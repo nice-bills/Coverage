@@ -94,7 +94,8 @@ def render(results, sha, ledger=None):
              f"Payback has changed {pct(g, 0)} a year (log scale); at that rate break-even is not reached.")
     usd = lambda x: "n/a" if x is None else f"${x:,.0f}"
     check = (f"<tr><td>Gas fees burnt, USD a day</td><td>{usd(s['burn_usd_per_day'])}</td><td>{usd(s['llama_burn_usd_per_day'])}</td></tr>"
-             f"<tr><td>Buybacks, USD a day</td><td>{usd(s['buyback_usd_per_day'])}</td><td>{usd(s['llama_buyback_usd_per_day'])}</td></tr>")
+             f"<tr><td>Buyback wallet gain, USD a day</td><td>{usd(s['buyback_usd_per_day'])}</td><td rowspan='2'>{usd(s['llama_buyback_usd_per_day'])}</td></tr>"
+             f"<tr><td>All three revenue wallets, USD a day</td><td>{usd(s['all_revenue_wallets_usd_per_day'])}</td></tr>")
     rows = "".join(
         f"<tr><td>{e(m)}</td><td>{v['pinball']:.4f}</td><td>{100 * v['skill_vs_persistence']:+.1f}%</td>"
         f"<td>{100 * v['interval_hit']:.0f}%</td><td>{v['n']}</td></tr>" for m, v in results["backtest"].items())

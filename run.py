@@ -12,6 +12,7 @@ YEAR = 365.25 * 86400
 W = 100               # rolling window in epochs (about 28 days)
 H = 30                # forecast horizon in epochs (about 9 days)
 QS = (0.1, 0.5, 0.9)
+LUMP = 20             # see load(): buyback gains above this multiple of the trailing median are transfers
 
 
 def load():
@@ -34,7 +35,15 @@ def load():
     bal = {int(r["end_height"]): int(r["balance"]) for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))}
     for r in rows:
         a, b = bal.get(r["prev_end_height"]), bal.get(r["end_height"])
-        r["buy"] = None if a is None or b is None else b - a
+        r["raw_buy"] = r["buy"] = None if a is None or b is None else b - a
+    # A gain above LUMP x the median of the previous W epochs is a treasury transfer of revenue captured
+    # earlier, not that epoch's revenue. It is excluded everywhere and reported separately. The rule only
+    # looks backwards, so it applies unchanged to epochs that close after the predictions are frozen.
+    for i, r in enumerate(rows):
+        past = [p["raw_buy"] for p in rows[max(0, i - W):i] if p["raw_buy"] is not None]
+        r["lump"] = r["buy"] is not None and len(past) >= 10 and r["buy"] > LUMP * quantile(past, 0.5)
+        if r["lump"]:
+            r["buy"] = 0
     llama = list(csv.DictReader(open(os.path.join(ROOT, "data", "llama.csv"))))
     return rows, price, llama
 
@@ -246,6 +255,13 @@ def main():
     avg = lambda k: sum(float(r[k] or 0) for r in days) / len(days) if days else None
     usd = sum(price[r["date"]] for r in days if r["date"] in price) / max(1, sum(r["date"] in price for r in days))
     pay = now["payback"]
+    # wider cross-check: NEAR plus wNEAR in all three NEAR Intents revenue wallets across the same window
+    wal = {}
+    for r in csv.DictReader(open(os.path.join(ROOT, "data", "wallets.csv"))):
+        wal[int(r["height"])] = wal.get(int(r["height"]), 0) + int(r["near"]) + int(r["wnear"])
+    h0, h1 = w[0]["prev_end_height"], w[-1]["end_height"]
+    wsecs = (w[-1]["t1_ns"] - w[0]["t0_ns"]) / 1e9
+    allw = (wal[h1] - wal[h0]) / Y / wsecs * 86400 if h0 in wal and h1 in wal else None
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
@@ -261,6 +277,10 @@ def main():
         window_price_usd=usd, burn_usd_per_day=now["burn_per_day"] * usd, llama_burn_usd_per_day=avg("near_burn_usd"),
         buyback_usd_per_day=None if pay is None else now["buyback_per_day"] * usd,
         llama_buyback_usd_per_day=avg("intents_buyback_usd"),
+        lump_transfers=sum(r["lump"] for r in rows),
+        lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
+        all_revenue_wallets_per_day=allw, all_revenue_wallets_usd_per_day=None if allw is None else allw * usd,
+        all_revenue_wallets_payback=None if allw is None else (allw + now["burn_per_day"]) / now["mint_per_day"],
         intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"))
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
     results = sig(dict(summary=summary, backtest=bt, series=roll[::3]))
