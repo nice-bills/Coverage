@@ -26,7 +26,7 @@ Measured from the chain, break-even is __MULT__x away, not __BURN_MULT__x.
 No keys: python3 run.py
 Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
-[repo link]
+https://github.com/nice-bills/Coverage
 
 (Reply to it with the demo link and the round hashes: __ROUND_HASHES__)
 

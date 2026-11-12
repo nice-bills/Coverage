@@ -26,7 +26,7 @@ Measured from the chain, break-even is 8.4x away, not 108x.
 No keys: python3 run.py
 Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
-[repo link]
+https://github.com/nice-bills/Coverage
 
 (Reply to it with the demo link and the round hashes: round-224265136-h05.json e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba; round-224265136-h10.json 2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f; round-224265136-h20.json 926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5)
 

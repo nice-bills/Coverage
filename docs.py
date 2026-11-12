@@ -70,6 +70,8 @@ def values():
         LUMP=num(s["lump_transfers_near"]), LUMP_OUT=num(s["lump_matched_outflow_near"]),
         OUT_N=str(s["buyback_outflow_epochs"]), OUT_NEAR=num(s["buyback_outflow_near"]),
         BUY_EPOCHS=str(s["buyback_epochs"]),
+        LUMP_IN=str(s["lump_epochs_in_window"]), OUT_IN=str(s["outflow_epochs_in_window"]),
+        PAY_LO=pct(s["payback_p05"]), PAY_HI=pct(s["payback_p95"]),
         PAY_FIRST=pct(s["payback_first"]), PAY_FIRST_DATE=s["payback_first_date"],
         PAY_PEAK=pct(s["payback_peak"]), PAY_PEAK_DATE=s["payback_peak_date"],
         BT_N=str(bt["persistence"]["n"]), BT_PERSIST=f"{bt['persistence']['pinball']:.4f}",

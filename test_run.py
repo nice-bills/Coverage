@@ -72,4 +72,11 @@ with tempfile.TemporaryDirectory() as tmp:
     lines[50] = ",".join(cells)
     open(path, "w").write("\n".join(lines) + "\n")
     assert go().returncode != 0
+# every file in data/ is listed in data/sources.json with the sha256 it has now
+import hashlib
+_d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+_src = json.load(open(os.path.join(_d, "sources.json")))
+for _f in sorted(os.listdir(_d)):
+    if _f != "sources.json":
+        assert _src[_f]["sha256"] == hashlib.sha256(open(os.path.join(_d, _f), "rb").read()).hexdigest(), _f
 print("SELFTEST PASS")

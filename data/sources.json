@@ -1,9 +1,42 @@
 {
+ "buybacks.csv": {
+  "fetched_utc": "2026-11-12T21:00:11Z",
+  "sha256": "819a1df720d1fbb48da67c3986e34b45d6a7acb1dc031265a41e11c8f2a6adc3",
+  "urls": [
+   "https://archival-rpc.mainnet.fastnear.com query view_account"
+  ]
+ },
+ "epochs.csv": {
+  "fetched_utc": "2026-11-12T21:00:10Z",
+  "sha256": "e3332633c34e1aae81cf62e2f442d5de0447bdd398ae242cf43335e3f8d6b611",
+  "urls": [
+   "https://archival-rpc.mainnet.fastnear.com block",
+   "https://mainnet.neardata.xyz/v0/block/{h}/headers"
+  ]
+ },
  "inflows.csv": {
   "fetched_utc": "2026-11-12T20:46:08Z",
   "sha256": "be8684397f2d4b08680ace6d0870c038b29554ab8509c90d896363517dd21c6c",
   "urls": [
    "https://api.nearblocks.io/v1/account/buybacks.multisignature.near/receipts?per_page=250&order=desc&page=N"
+  ]
+ },
+ "llama.csv": {
+  "fetched_utc": "2026-11-12T13:45:51Z",
+  "sha256": "1ff31beb4af3a3fe243d0ea65da1c8fe164adb2f0cfa225e39ec05a44fd8fb52",
+  "urls": [
+   "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
+   "https://api.llama.fi/summary/fees/near?dataType=dailyRevenue",
+   "https://api.llama.fi/summary/dexs/near-intents",
+   "https://api.llama.fi/summary/fees/near-intents?dataType=dailyFees",
+   "https://api.llama.fi/summary/fees/near-intents?dataType=dailyHoldersRevenue"
+  ]
+ },
+ "price.csv": {
+  "fetched_utc": "2026-11-12T13:45:49Z",
+  "sha256": "c7aa06de54584ced4e3541b4ef23b2c8ec96cf6cbf37c12ace3278e0d8cfbb44",
+  "urls": [
+   "https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily"
   ]
  },
  "protocol.json": {

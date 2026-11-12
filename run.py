@@ -300,6 +300,12 @@ def main():
         s = [w[rnd.randrange(W)] for _ in range(W)]
         boot.append(sum(r["burn"] for r in s) / sum(r["mint"] for r in s)
                     * sum(r["sample_gas_limit"] for r in s) / sum(r["sample_gas_used"] for r in s))
+    # sampling error of payback: same resampling, separate seed so the ceiling figures do not move
+    rnd, pboot = random.Random(1), []
+    if all(r["buy"] is not None for r in w):
+        for _ in range(500):
+            s = [w[rnd.randrange(W)] for _ in range(W)]
+            pboot.append(sum(r["burn"] + r["buy"] for r in s) / sum(r["mint"] for r in s))
     # third-party cross-check over the same days as the last window
     d0, d1 = day(w[0]["t0_ns"]).strftime("%Y-%m-%d"), day(w[-1]["t1_ns"]).strftime("%Y-%m-%d")
     days = [r for r in llama if d0 < r["date"] < d1]
@@ -388,6 +394,10 @@ def main():
         buyback_outflow_near=-sum(r["raw_buy"] for r in rows if r["raw_buy"] is not None and r["raw_buy"] < 0) / Y,
         buyback_epochs=sum(r["raw_buy"] is not None and r["raw_buy"] != 0 for r in rows),
         lump_transfers=sum(r["lump"] for r in rows),
+        # robustness: the excluded transfer and the one outflow both lie outside the headline window
+        lump_epochs_in_window=sum(r["lump"] for r in w),
+        outflow_epochs_in_window=sum(r["raw_buy"] is not None and r["raw_buy"] < 0 for r in w),
+        payback_p05=quantile(pboot, 0.05) if pboot else None, payback_p95=quantile(pboot, 0.95) if pboot else None,
         lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
         all_revenue_wallets_per_day=allw,
         all_revenue_wallets_payback=None if allw is None else (allw + now["burn_per_day"]) / now["mint_per_day"],

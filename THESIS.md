@@ -24,7 +24,8 @@ revenue.
 The thesis has three parts:
 
 1. Burn plus buybacks equal 12.0% of issuance, not 0.92%. If issuance and these
-   flows stayed as they are, break-even would be 8.4x away, not 108x. "Payback" is our name for that ratio; buybacks are held,
+   flows stayed as they are, break-even would be 8.4x away, not 108x. "Payback" is our name for that ratio. It compares flows; it is not a change in supply, and
+   "break-even" means the flows are equal. Buybacks are held,
    not destroyed (see Evidence against).
 2. More than nine-tenths of the payback comes from application revenue, not gas. The token's
    flow is tied to NEAR Intents fees, not to block space.
@@ -48,7 +49,9 @@ transaction hashes). Earlier transfers are not covered by this check.
 **Captured revenue follows volume.** Across 37 complete weeks since buybacks began, weekly
 captured revenue and weekly NEAR Intents volume have a correlation of 0.90 (DefiLlama). NEAR
 keeps a median 2.6 basis points of volume, in a range of 1.1 to 6.1. So the
-volume lever in the table below is measured, not assumed, though the take rate is not stable.
+volume lever in the table below rests on an observed relationship, not an assumption. It is
+37 weekly points: a description of this period, not proof that the relationship is stable
+or causal, and the take rate is not stable.
 
 **A separate pipeline gives the same total.** DefiLlama computes NEAR's captured Intents revenue
 from Dune tables across three revenue wallets. Converted at each day's price it is
@@ -65,7 +68,7 @@ over the whole cache; the protocol config has `max_inflation_rate` at 1/40
 The buyback account receives about 23% of that. If all of it arrived, at today's
 volume, payback would be 49%.
 
-**Burn has headroom on paper.** Sampled blocks are 0.78% full. Scaling today's burn to full
+**Burn has headroom on paper (extrapolated, not observed).** Sampled blocks are 0.78% full. Scaling today's burn to full
 blocks at today's effective gas price gives 119% of issuance (90% bootstrap range
 104% to 137%). This is an extrapolation from 300 sampled blocks, not a capacity
 guarantee.
@@ -100,6 +103,12 @@ or loss of flow at NEAR Intents removes most of the thesis.
 
 **Burn alone is far from break-even.** 0.92% of issuance, 108x away.
 
+**The headline does not depend on the exclusion, and its sampling range is wide.** The
+excluded transfer and the one outflow both lie outside the last 100 epochs (0 and
+0 epochs in the window), so no threshold changes the 12.0% figure. Resampling
+the window's epochs gives a 90% range of 10.7% to 13.5%: a few large buyback epochs
+carry much of the flow.
+
 **The history is short and needed one exclusion.** Buybacks began on 2026-02-23. One gain of
 505,041 NEAR was excluded by a mechanical rule (more than 20 times the median of the previous
 100 epochs). The chain shows what it was: across that epoch, heights 214890733 to 214933933,
@@ -126,7 +135,8 @@ difference and do not explain it.
 
 Each file in `predictions/` is a round: a forecast frozen at one block height about the epochs
 after it. `run.py freeze` writes a round from the newest cached epoch and never overwrites one.
-Rounds are short on purpose, so the chain has scored them by the time this is judged.
+Rounds are short on purpose: they close before and during judging, and `python3 fetch.py
+--epochs 45 && python3 run.py` scores whatever has closed.
 
 | Round | Epochs | Expected to close (UTC) | Payback | NEAR burnt | Buyback gain, NEAR | Payback interval held in the past | sha256 |
 |---|---|---|---|---|---|---|---|
@@ -189,7 +199,7 @@ Council veto window to close and validators to adopt it
 (https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644).
 This repo does not model the ramp; the row above only rescales today's multiple.
 
-For: the flow exists, is measurable on chain, scales with a product's volume (correlation
+For: the flow exists, is measurable on chain, has moved with a product's volume over 37 weeks (correlation
 0.90), and two of the three levers are governance decisions. Against: the product's volume
 is flat year on year, the flow is under nine months old and has fallen from its peak, and the
 NEAR is held, not destroyed. On this evidence NEAR is closer to offsetting its issuance than

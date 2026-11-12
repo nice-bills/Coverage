@@ -2,6 +2,8 @@
 
 How much of NEAR's token issuance is offset by protocol flows, and how far is break-even?
 
+Live dashboard, rebuilt from the chain every 6 hours: https://nice-bills.github.io/Coverage/
+
 Coverage measures three flows on NEAR mainnet: NEAR minted to validators, NEAR burnt in gas fees,
 and NEAR gained by `buybacks.multisignature.near`, the account that receives NEAR from the NEAR
 Intents contract. Mint and burn come from block headers. It needs no API key, no cloud account
@@ -20,7 +22,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=fa54cce57fcfac3f52b3f3027c293f614718fa49cf7f25d3df79a1b99fe4406a
+RESULT sha256=2a3ce99539498d55e4b427116c454d924976109aa3e48805b6c4d87b3e201777
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
@@ -49,8 +51,10 @@ python3 docs.py --check
 ```
 
 Expected output: `DOCS IN SYNC from result <first 12 characters of the hash above>`. This file,
-`THESIS.md` and `SUBMISSION.md` are generated from `templates/` by `docs.py`; every number in
-them is filled in from `out/results.json`, so the prose cannot drift from the data.
+`THESIS.md` and `SUBMISSION.md` are generated from `templates/` by `docs.py`; every measured
+figure in them is filled in from `out/results.json`, so those figures cannot drift from the
+data. Dates and governance facts (the buyback start date, HSP-029) are not computed here; each
+is cited to its source in `THESIS.md` and is true as of 2026-11-12.
 
 ## Check the cache against the chain (network, no keys, about a minute)
 
@@ -78,7 +82,9 @@ python3 fetch.py --epochs 45
 python3 run.py
 ```
 
-`fetch.py` adds only epochs and balances newer than the cache. `run.py` then prints, per round:
+`fetch.py` adds only epochs and balances newer than the cache. `run.py` then prints, per round
+(illustrative; the committed cache was frozen at the rounds' height, so it prints `0/5`, `0/10`
+and `0/20` until `fetch.py` adds the epochs that closed since):
 
 ```
 LEDGER round-<height>-h10.json: 7/10 epochs closed -> PENDING
@@ -127,7 +133,9 @@ burnt in that block; at the first block of an epoch it also rises by the newly m
 
 A buyback gain larger than 20 times the median of the previous 100 epochs is treated as a
 transfer of revenue captured earlier. It is excluded from every figure and reported as
-`lump_transfers`. The rule only looks backwards. One epoch qualifies; `data/wallets.csv` shows
+`lump_transfers`. The rule only looks backwards. The headline window contains
+0 excluded epochs and 0 outflow epochs, so the headline payback does not
+depend on the threshold. One epoch qualifies; `data/wallets.csv` shows
 the other revenue wallets falling by nearly the same amount across it.
 
 What the internal check does and does not prove: `run.py` requires each epoch to begin at the
@@ -147,8 +155,8 @@ that is wrong in a self-consistent way; `verify.py` compares rows with the chain
 | `data/llama.csv` | daily USD: NEAR fees, NEAR Intents volume, fees, captured revenue | DefiLlama API (third party) | none |
 | `data/price.csv` | daily NEAR price in USD | CoinGecko API (third party) | none |
 
-`data/sources.json` records when each third-party or snapshot file was fetched, from which
-URLs, and its sha256. The two header sources return identical fields and `fetch.py` alternates between them. The
+`data/sources.json` records, for every file in `data/`, when it was written, from which
+URLs, and its sha256; `test_run.py` fails if a file does not match its recorded hash. The two header sources return identical fields and `fetch.py` alternates between them. The
 third-party files never feed mint, burn, buyback gain, payback or the multiple. They are used
 for sender attribution, a cross-check table, the price-based forecasting model and USD context.
 
@@ -193,7 +201,9 @@ the code derives from the data up to that round's height.
 ## Limits
 
 - Buybacks are held by a multisig account, not burnt. They do not reduce supply and could be
-  spent. Payback counts them as a flow that offsets issuance.
+  spent. Payback is a comparison of flows, not a change in supply: supply keeps growing at the
+  gross issuance rate unless the held NEAR is burnt. "Break-even" here means the flows
+  are equal, not that supply stops growing.
 - The buyback figure covers one of three revenue wallets. The all-wallet figure is in the
   cross-check table.
 - A balance change is exact, but that the NEAR was bought with fee revenue rests on NEAR's own

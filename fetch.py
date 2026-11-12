@@ -336,6 +336,8 @@ def main():
     save(rows)
     print(f"wrote {len(rows)} epochs to {OUT}")
     buybacks()
+    stamp("epochs.csv", [RPC + " block", "https://mainnet.neardata.xyz/v0/block/{h}/headers"])
+    stamp("buybacks.csv", [RPC + " query view_account"])
 
 
 if __name__ == "__main__":
