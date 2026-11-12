@@ -33,13 +33,13 @@ const D=JSON.parse(document.getElementById('data').textContent),NS='http://www.w
 function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
 document.querySelectorAll('[data-chart]').forEach(card=>{
  const key=card.dataset.chart,mul=+card.dataset.mul,unit=card.dataset.unit,dp=+card.dataset.dp;
- const xs=D.map(d=>d.t),ys=D.map(d=>d[key]*mul),W=480,Ht=200,L=44,R=8,T=10,B=22;
+ const P=D.filter(d=>d[key]!=null);if(P.length<2){card.remove();return}const xs=P.map(d=>d.t),ys=P.map(d=>d[key]*mul),W=480,Ht=200,L=44,R=8,T=10,B=22;
  const x0=xs[0],x1=xs[xs.length-1],y1=Math.max(...ys)*1.08,sx=x=>L+(x-x0)/(x1-x0)*(W-L-R),sy=y=>Ht-B-y/y1*(Ht-T-B);
  const svg=el('svg',{viewBox:`0 0 ${W} ${Ht}`,role:'img','aria-label':card.querySelector('h3').textContent},card);
  for(let i=0;i<=4;i++){const v=y1*i/4;el('line',{x1:L,x2:W-R,y1:sy(v),y2:sy(v),stroke:'var(--grid)'},svg);
   el('text',{x:L-6,y:sy(v)+4,'text-anchor':'end'},svg).textContent=v.toFixed(dp)}
- [0,.5,1].forEach(f=>{const i=Math.round(f*(D.length-1));
-  el('text',{x:sx(xs[i]),y:Ht-6,'text-anchor':f==0?'start':f==1?'end':'middle'},svg).textContent=D[i].date});
+ [0,.5,1].forEach(f=>{const i=Math.round(f*(P.length-1));
+  el('text',{x:sx(xs[i]),y:Ht-6,'text-anchor':f==0?'start':f==1?'end':'middle'},svg).textContent=P[i].date});
  el('path',{d:'M'+xs.map((x,i)=>sx(x).toFixed(1)+','+sy(ys[i]).toFixed(1)).join('L'),fill:'none',stroke:'var(--s1)','stroke-width':2,'stroke-linejoin':'round'},svg);
  const ch=el('line',{y1:T,y2:Ht-B,stroke:'var(--muted)',visibility:'hidden'},svg),dot=el('circle',{r:4,fill:'var(--s1)',stroke:'var(--surface)','stroke-width':2,visibility:'hidden'},svg);
  const tip=document.createElement('div');tip.className='tip';card.appendChild(tip);
@@ -47,33 +47,54 @@ document.querySelectorAll('[data-chart]').forEach(card=>{
   let i=0;for(let j=1;j<xs.length;j++)if(Math.abs(sx(xs[j])-px)<Math.abs(sx(xs[i])-px))i=j;
   ch.setAttribute('x1',sx(xs[i]));ch.setAttribute('x2',sx(xs[i]));ch.setAttribute('visibility','visible');
   dot.setAttribute('cx',sx(xs[i]));dot.setAttribute('cy',sy(ys[i]));dot.setAttribute('visibility','visible');
-  tip.textContent=D[i].date+': '+ys[i].toFixed(dp+1)+unit;tip.style.display='block';
+  tip.textContent=P[i].date+': '+ys[i].toFixed(dp+1)+unit;tip.style.display='block';
   tip.style.left=(svg.offsetLeft+sx(xs[i])/W*r.width)+'px';tip.style.top=(svg.offsetTop+sy(ys[i])/Ht*r.height)+'px'});
  svg.addEventListener('pointerleave',()=>{tip.style.display='none';ch.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden')});
 });
 """
 
 CHARTS = [  # key, title, subtitle, multiplier, unit, decimals
-    ("coverage", "Coverage", "Fee burn as % of issuance, 100-epoch rolling", 100, "%", 2),
+    ("payback", "Payback", "Burn plus buybacks as % of issuance, 100-epoch rolling", 100, "%", 1),
+    ("multiple", "Distance to break-even", "Multiple of today's burn plus buybacks that offsets issuance", 1, "x", 1),
+    ("buyback_per_day", "Buybacks", "NEAR added to the buyback account per day", 1, " NEAR", 0),
+    ("burn_per_day", "Burn", "NEAR burnt in gas fees per day (exact)", 1, " NEAR", 0),
+    ("coverage", "Burn-only coverage", "Fee burn as % of issuance (exact)", 100, "%", 2),
     ("utilization", "Block utilization", "Gas used as % of gas limit, sampled", 100, "%", 2),
-    ("burn_per_day", "Burn", "NEAR burnt per day", 1, " NEAR", 0),
-    ("multiple", "Distance to break-even", "Multiple of current burn that offsets issuance", 1, "x", 0),
 ]
 
 
 def render(results, sha, ledger=None):
     s, e = results["summary"], html.escape
     pct = lambda x, n=2: f"{100 * x:.{n}f}%"
-    tiles = [(pct(s["coverage"]), "of issuance burnt back by fees"),
-             (f"{s['multiple']:.0f}x", "usage multiple to break-even"),
-             (pct(s["ceiling"], 0), f"coverage if blocks were full at today's gas price "
-                                     f"(90% range {pct(s['ceiling_p05'], 0)} to {pct(s['ceiling_p95'], 0)})"),
-             (pct(s["utilization"]), "of block capacity in use"),
-             (pct(s["realized_inflation"], 3), "realized annual inflation, measured")]
-    trend = (f"At the measured trend, coverage grows {pct(s['coverage_growth_per_year'], 0)} a year (log scale) and "
-             f"reaches break-even in {s['years_to_breakeven_at_trend']:.1f} years."
-             if s.get("years_to_breakeven_at_trend") else
-             "Coverage has not grown over this window; at this trend break-even is never reached.")
+    num = lambda x: f"{x:,.0f}"
+    if s["payback"] is not None:
+        head = (f"NEAR already pays back {pct(s['payback'], 1)} of what it mints. "
+                f"Break-even is {s['multiple']:.1f}x away.")
+        lede = (f"{pct(s['buyback_coverage'], 1)} is NEAR bought with NEAR Intents fee revenue and "
+                f"{pct(s['burn_coverage'])} is gas fees burnt. A fee-burn dashboard sees only the second number "
+                f"and puts break-even {s['burn_only_multiple']:.0f}x away.")
+        tiles = [(pct(s["payback"], 1), "of new issuance offset by burn plus buybacks"),
+                 (f"{s['multiple']:.1f}x", "growth in fee flows that offsets issuance"),
+                 (num(s["buyback_per_day"]), "NEAR a day into the buyback account (on-chain balance)"),
+                 (num(s["burn_per_day"]), "NEAR a day burnt in gas fees (exact)"),
+                 (num(s["mint_per_day"]), "NEAR a day minted to validators (exact)"),
+                 (pct(s["net_inflation"]), f"net inflation after payback (gross {pct(s['realized_inflation'])})")]
+    else:
+        head = f"NEAR burns back {pct(s['burn_coverage'])} of what it mints."
+        lede = "Buyback balances are not cached for this window yet."
+        tiles = [(pct(s["burn_coverage"]), "of issuance burnt back by fees"),
+                 (num(s["burn_per_day"]), "NEAR a day burnt in gas fees (exact)"),
+                 (num(s["mint_per_day"]), "NEAR a day minted to validators (exact)")]
+    tiles.append((pct(s["ceiling"], 0), f"burn coverage if blocks were full at today's gas price "
+                                        f"(90% range {pct(s['ceiling_p05'], 0)} to {pct(s['ceiling_p95'], 0)})"))
+    g = s.get("payback_growth_per_year")
+    trend = ("Not enough history with buyback data for a trend yet." if g is None else
+             f"Payback has grown {pct(g, 0)} a year (log scale) and reaches break-even in "
+             f"{s['years_to_breakeven_at_trend']:.1f} years at that rate." if s.get("years_to_breakeven_at_trend") else
+             f"Payback has changed {pct(g, 0)} a year (log scale); at that rate break-even is not reached.")
+    usd = lambda x: "n/a" if x is None else f"${x:,.0f}"
+    check = (f"<tr><td>Gas fees burnt, USD a day</td><td>{usd(s['burn_usd_per_day'])}</td><td>{usd(s['llama_burn_usd_per_day'])}</td></tr>"
+             f"<tr><td>Buybacks, USD a day</td><td>{usd(s['buyback_usd_per_day'])}</td><td>{usd(s['llama_buyback_usd_per_day'])}</td></tr>")
     rows = "".join(
         f"<tr><td>{e(m)}</td><td>{v['pinball']:.4f}</td><td>{100 * v['skill_vs_persistence']:+.1f}%</td>"
         f"<td>{100 * v['interval_hit']:.0f}%</td><td>{v['n']}</td></tr>" for m, v in results["backtest"].items())
@@ -86,23 +107,33 @@ def render(results, sha, ledger=None):
                f"{ledger['resolved']} of {ledger['total']} epochs resolved. Verdict so far: "
                f"<span class='{cls}'>{e(ledger['verdict'])}</span>.</p><div class='card wrap'><table><tr><th>Epoch</th>"
                f"<th>10%</th><th>50%</th><th>90%</th><th>Actual</th><th>In interval</th></tr>{lr}</table></div>")
+        if ledger["buyback"]:
+            b = ledger["buyback"]
+            got = "pending" if b["actual"] is None else f"{b['actual']:,.0f} NEAR"
+            led += (f"<p style='margin-top:12px'>Second claim: the buyback account gains between {b['q10']:,.0f} and "
+                    f"{b['q90']:,.0f} NEAR over these 30 epochs. Actual: {got}. <b>{e(b['verdict'])}</b>.</p>")
     cards = "".join(f"<div class='card' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
                     f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in CHARTS)
+    bt = (f"<h2>Does usage or price explain the burn?</h2><p>Walk-forward backtest of burn per epoch, "
+          f"{next(iter(results['backtest'].values()))['n']} forecasts, 30 epochs ahead. Lower pinball loss is better. "
+          f"The thesis model uses no price; the rival uses only price.</p><div class='card wrap'><table><tr><th>Model</th>"
+          f"<th>Pinball loss</th><th>Skill vs persistence</th><th>80% interval hit rate</th><th>Forecasts</th></tr>{rows}"
+          f"</table></div>") if results["backtest"] else ""
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: NEAR burn vs issuance</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: what NEAR pays back</title>
 <style>{CSS}</style></head><body><main>
-<h1>NEAR burns back {pct(s['coverage'])} of what it mints. Break-even is {s['multiple']:.0f}x away, and inside current capacity.</h1>
-<p>Every number here comes from NEAR mainnet block headers, {e(s['first'])} to {e(s['last'])}
+<h1>{e(head)}</h1>
+<p>{e(lede)}</p>
+<p>Mint, burn and the buyback balance are read from NEAR mainnet, {e(s['first'])} to {e(s['last'])}
 ({s['epochs']} epochs, heights {s['first_height']} to {s['last_height']}). Mint and burn are exact to the yoctoNEAR.
 Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 <div class="banner">{e(trend)}</div>
 <div class="tiles">{''.join(f"<div class='tile'><b>{e(a)}</b><span>{e(b)}</span></div>" for a, b in tiles)}</div>
 <div class="grid">{cards}</div>
-<h2>Does usage or price explain the burn?</h2>
-<p>Walk-forward backtest of burn per epoch, {results['backtest'] and next(iter(results['backtest'].values()))['n']} forecasts,
-30 epochs ahead. Lower pinball loss is better. The thesis model uses no price; the rival uses only price.</p>
-<div class="card wrap"><table><tr><th>Model</th><th>Pinball loss</th><th>Skill vs persistence</th>
-<th>80% interval hit rate</th><th>Forecasts</th></tr>{rows}</table></div>
+<h2>Chain versus the indexer</h2>
+<p>The same two flows over the same days, measured here from the chain and reported by DefiLlama.</p>
+<div class="card wrap"><table><tr><th>Flow</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
+{bt}
 {led}
 <p style="margin-top:32px"><small>Result hash <code>{sha}</code></small></p>
 </main><script type="application/json" id="data">{json.dumps(results['series'], separators=(',', ':'))}</script>

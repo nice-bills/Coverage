@@ -30,7 +30,13 @@ def load():
     price = {}
     for r in csv.DictReader(open(os.path.join(ROOT, "data", "price.csv"))):
         price[r["date"]] = float(r["usd"])
-    return rows, price
+    # NEAR accumulated by the buyback account during each epoch (None where the balance is not cached)
+    bal = {int(r["end_height"]): int(r["balance"]) for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))}
+    for r in rows:
+        a, b = bal.get(r["prev_end_height"]), bal.get(r["end_height"])
+        r["buy"] = None if a is None or b is None else b - a
+    llama = list(csv.DictReader(open(os.path.join(ROOT, "data", "llama.csv"))))
+    return rows, price, llama
 
 
 def day(ns):
@@ -59,10 +65,15 @@ def rolling(rows):
         used, limit = sum(r["sample_gas_used"] for r in w), sum(r["sample_gas_limit"] for r in w)
         secs = (w[-1]["t1_ns"] - w[0]["t0_ns"]) / 1e9
         cov, util = burn / mint, used / limit
+        buy = None if any(r["buy"] is None for r in w) else sum(r["buy"] for r in w)
         out.append(dict(date=day(w[-1]["t1_ns"]).strftime("%Y-%m-%d"), t=w[-1]["t1_ns"] / 1e9,
-                        coverage=cov, utilization=util, ceiling=cov / util, multiple=mint / burn,
+                        coverage=cov, utilization=util, ceiling=cov / util,
                         burn_per_day=burn / Y / secs * 86400, mint_per_day=mint / Y / secs * 86400,
-                        inflation=mint / w[-1]["supply_end"] * YEAR / secs))
+                        inflation=mint / w[-1]["supply_end"] * YEAR / secs,
+                        buyback_per_day=None if buy is None else buy / Y / secs * 86400,
+                        buyback_coverage=None if buy is None else buy / mint,
+                        payback=None if buy is None else (burn + buy) / mint,
+                        multiple=None if buy is None else mint / (burn + buy)))
     return out
 
 
@@ -138,10 +149,26 @@ def backtest(rows, start=300):
     return out, pool
 
 
+def buyback_forecast(rows):
+    """NEAR the buyback account gains over the next H epochs: the last H-epoch gain, with an
+    interval from how much consecutive H-epoch gains have differed in the past."""
+    buy = []
+    for r in reversed(rows):
+        if r["buy"] is None:
+            break
+        buy.append(r["buy"])
+    buy.reverse()
+    sums = [sum(buy[i - H:i]) for i in range(H, len(buy) + 1)]
+    ratios = [math.log(sums[i + H] / sums[i]) for i in range(0, len(sums) - H, 5) if sums[i] > 0 and sums[i + H] > 0]
+    if len(ratios) < 10:
+        return None
+    return [round(sums[-1] / Y * math.exp(quantile(ratios, q)), 1) for q in QS]
+
+
 def predict(rows, pool):
     o = len(rows)
     out = {"after_end_height": rows[-1]["end_height"], "horizon_epochs": H, "unit": "NEAR burnt per epoch",
-           "models": {}}
+           "buyback_gain": buyback_forecast(rows), "models": {}}
     for m, f in MODELS.items():
         pred, offs = f(rows, o), [quantile(pool[m], q) for q in QS]
         out["models"][m] = [[round(math.exp(p + off), 3) for off in offs] for p in pred]
@@ -165,7 +192,13 @@ def ledger(later, commit):
     # pre-registered rule: the price-free model beats the price-only model, and its 80% interval is calibrated
     ok = loss["usage"] < loss["price"] and 20 <= hits <= 28
     verdict = "PENDING" if k < H else "PASS" if ok else "FALSIFIED"
-    return dict(resolved=k, total=H, hits=hits, loss=loss, verdict=verdict, rows=rows)
+    buyback, q = None, commit.get("buyback_gain")
+    if q and k == H and all(r["buy"] is not None for r in later[:H]):  # second claim: total buyback gain
+        got = sum(r["buy"] for r in later[:H]) / Y
+        buyback = dict(q10=q[0], q50=q[1], q90=q[2], actual=got, verdict="HIT" if q[0] <= got <= q[2] else "MISS")
+    elif q:
+        buyback = dict(q10=q[0], q50=q[1], q90=q[2], actual=None, verdict="PENDING")
+    return dict(buyback=buyback, resolved=k, total=H, hits=hits, loss=loss, verdict=verdict, rows=rows)
 
 
 def sig(x, n=6):  # round floats so the hash does not depend on the platform's libm
@@ -179,7 +212,7 @@ def sig(x, n=6):  # round floats so the hash does not depend on the platform's l
 
 
 def main():
-    rows, price = load()
+    rows, price, llama = load()
     prep(rows, price)
     # once predictions are committed, the analysis is frozen at that height; later epochs only score it
     cpath, commit, later = os.path.join(ROOT, "predictions.json"), None, []
@@ -190,27 +223,45 @@ def main():
     roll = rolling(rows)
     now = roll[-1]
     secs = (rows[-1]["t1_ns"] - rows[0]["t0_ns"]) / 1e9
-    # trend on non-overlapping windows, so the points are independent
-    blocks = [rows[i - W:i] for i in range(len(rows), W - 1, -W)][::-1]
-    bx = [b[-1]["t1_ns"] / 1e9 / 86400 for b in blocks]
-    by = [math.log(sum(r["burn"] for r in b) / sum(r["mint"] for r in b)) for b in blocks]
-    a, b = ols(bx, by) if len(blocks) > 2 else (0.0, 0.0)
+
+    def trend(value):  # log-linear growth per year over non-overlapping windows, so the points are independent
+        blocks = [rows[i - W:i] for i in range(len(rows), W - 1, -W)][::-1]
+        pts = [(b[-1]["t1_ns"] / 1e9 / 86400, value(b)) for b in blocks]
+        pts = [(x, math.log(v)) for x, v in pts if v is not None and v > 0]
+        return ols(*zip(*pts))[1] * 365.25 if len(pts) > 2 else None
+
+    mint = lambda b: sum(r["mint"] for r in b)
+    g_burn = trend(lambda b: sum(r["burn"] for r in b) / mint(b))
+    g_pay = trend(lambda b: None if any(r["buy"] is None for r in b)
+                  else (sum(r["burn"] for r in b) + sum(r["buy"] for r in b)) / mint(b))
     # sampling error of the ceiling: resample the window's epochs (fixed seed, so the hash is stable)
     rnd, w, boot = random.Random(0), rows[-W:], []
     for _ in range(500):
         s = [w[rnd.randrange(W)] for _ in range(W)]
         boot.append(sum(r["burn"] for r in s) / sum(r["mint"] for r in s)
                     * sum(r["sample_gas_limit"] for r in s) / sum(r["sample_gas_used"] for r in s))
+    # third-party cross-check over the same days as the last window
+    d0, d1 = day(w[0]["t0_ns"]).strftime("%Y-%m-%d"), day(w[-1]["t1_ns"]).strftime("%Y-%m-%d")
+    days = [r for r in llama if d0 < r["date"] < d1]
+    avg = lambda k: sum(float(r[k] or 0) for r in days) / len(days) if days else None
+    usd = sum(price[r["date"]] for r in days if r["date"] in price) / max(1, sum(r["date"] in price for r in days))
+    pay = now["payback"]
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
-        coverage=now["coverage"], utilization=now["utilization"], ceiling=now["ceiling"],
-        ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95), trend_windows=len(blocks),
-        multiple=now["multiple"], breakeven_utilization=1 / now["ceiling"],
-        burn_per_day=now["burn_per_day"], mint_per_day=now["mint_per_day"],
+        mint_per_day=now["mint_per_day"], burn_per_day=now["burn_per_day"], buyback_per_day=now["buyback_per_day"],
+        burn_coverage=now["coverage"], buyback_coverage=now["buyback_coverage"], payback=pay,
+        multiple=now["multiple"], burn_only_multiple=1 / now["coverage"],
         realized_inflation=sum(r["mint"] for r in rows) / rows[-1]["supply_end"] * YEAR / secs,
-        coverage_growth_per_year=b * 365.25,
-        years_to_breakeven_at_trend=math.log(now["multiple"]) / (b * 365.25) if b > 0 else None)
+        net_inflation=None if pay is None else now["inflation"] * (1 - pay),
+        utilization=now["utilization"], ceiling=now["ceiling"],
+        ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95),
+        burn_coverage_growth_per_year=g_burn, payback_growth_per_year=g_pay,
+        years_to_breakeven_at_trend=math.log(now["multiple"]) / g_pay if pay and g_pay and g_pay > 0 else None,
+        window_price_usd=usd, burn_usd_per_day=now["burn_per_day"] * usd, llama_burn_usd_per_day=avg("near_burn_usd"),
+        buyback_usd_per_day=None if pay is None else now["buyback_per_day"] * usd,
+        llama_buyback_usd_per_day=avg("intents_buyback_usd"),
+        intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"))
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
     results = sig(dict(summary=summary, backtest=bt, series=roll[::3]))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
@@ -236,6 +287,8 @@ def main():
     if led:
         print(f"LEDGER {led['resolved']}/{led['total']} epochs resolved, {led['hits']} in interval, "
               f"loss {sig(led['loss'], 4)} -> {led['verdict']}")
+        if led["buyback"]:
+            print(f"LEDGER buyback gain {led['buyback']}")
     print("RESULT sha256=" + sha)
 
 

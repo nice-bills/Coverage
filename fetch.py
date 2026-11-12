@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Rebuild data/epochs.csv from NEAR mainnet block headers. No keys, stdlib only.
 
-Usage: python3 fetch.py [--epochs 1400]
-Resumable: epochs already in data/epochs.csv are not refetched.
+Usage: python3 fetch.py [--epochs 1300]   epochs, then buyback balances
+       python3 fetch.py buybacks          buyback balances only
+       python3 fetch.py offchain          price and DefiLlama series (third party)
+Resumable: epochs and balances already cached are not refetched.
 
 Per epoch (exact, integer yoctoNEAR):
   mint = supply(first block) - supply(last block of previous epoch) + burnt(first block)
@@ -83,7 +85,11 @@ def burnt(b):
 
 def fetch_epoch(end):
     """end = last block of the epoch. Returns (row, last block of the previous epoch)."""
-    prev_end = block(end["header"]["next_epoch_id"])
+    # next_epoch_id is the hash of the previous epoch's last block. Epochs are usually exactly
+    # 43,200 heights long, so try that height first: it can be served by either source.
+    prev_end = block(end["header"]["height"] - 43200)
+    if not prev_end or prev_end["header"]["hash"] != end["header"]["next_epoch_id"]:
+        prev_end = block(end["header"]["next_epoch_id"])
     h = prev_end["header"]["height"] + 1
     while (start := block(h)) is None:
         h += 1
@@ -102,6 +108,84 @@ def fetch_epoch(end):
                sample_n=len(sample), sample_gas_used=sum(c["gas_used"] for c in cs),
                sample_gas_limit=sum(c["gas_limit"] for c in cs))
     return row, prev_end
+
+
+BUYBACK = "buybacks.multisignature.near"  # receives NEAR bought with NEAR Intents fee revenue
+BOUT = os.path.join(os.path.dirname(OUT), "buybacks.csv")
+LLAMA = {  # third-party daily USD series, keyless; context and cross-checks only
+    "near_fees_usd": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
+    "near_burn_usd": "https://api.llama.fi/summary/fees/near?dataType=dailyRevenue",
+    "intents_volume_usd": "https://api.llama.fi/summary/dexs/near-intents",
+    "intents_fees_usd": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyFees",
+    "intents_buyback_usd": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyHoldersRevenue",
+}
+
+
+def balance(height):
+    """NEAR held by the buyback account at a block height, in yoctoNEAR. None before the account existed."""
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "query", "params": {
+        "request_type": "view_account", "block_id": height, "account_id": BUYBACK}}).encode()
+    while True:
+        try:
+            r = json.load(urllib.request.urlopen(urllib.request.Request(RPC, body, UA), timeout=30))
+            if "result" in r:
+                return int(r["result"]["amount"]) + int(r["result"]["locked"])
+            if (r["error"].get("cause") or {}).get("name") == "UNKNOWN_ACCOUNT":
+                return None
+            sys.exit(f"balance query failed at {height}: {r['error']}")
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+            time.sleep(5)
+
+
+def buybacks():
+    """Balance of the buyback account at every cached epoch end. Newest first; resumable."""
+    rows = list(csv.DictReader(open(OUT)))
+    # every epoch end, plus the block before the oldest epoch so its gain can be computed too
+    ends = sorted({int(r["end_height"]) for r in rows} | {min(int(r["prev_end_height"]) for r in rows)}, reverse=True)
+    have = {}
+    if os.path.exists(BOUT):
+        have = {int(r["end_height"]): int(r["balance"]) for r in csv.DictReader(open(BOUT))}
+
+    def write():
+        with open(BOUT + ".tmp", "w", newline="") as f:
+            w = csv.writer(f, lineterminator="\n")
+            w.writerow(["end_height", "balance"])
+            w.writerows(sorted(have.items()))
+        os.replace(BOUT + ".tmp", BOUT)
+
+    gone = False  # once the account does not exist, every older height is zero too
+    for i, h in enumerate(ends):
+        if h in have:
+            continue
+        b = None if gone else balance(h)
+        gone = b is None
+        have[h] = b or 0
+        if i % 20 == 0:
+            write()
+            print(f"buybacks {i + 1}/{len(ends)}", flush=True)
+    write()
+    print(f"wrote {len(have)} balances to {BOUT}")
+
+
+def offchain():
+    """Daily NEAR price and DefiLlama series. Only complete UTC days are kept."""
+    get = lambda u: json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60))
+    day = lambda ts: time.strftime("%Y-%m-%d", time.gmtime(ts))
+    today = day(time.time())
+    prices = get("https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily")
+    with open(os.path.join(os.path.dirname(OUT), "price.csv"), "w", newline="") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["date", "usd"])
+        w.writerows((day(t / 1000), p) for t, p in prices["prices"] if day(t / 1000) < today)
+    cols = {k: {day(t): v for t, v in get(u)["totalDataChart"]} for k, u in LLAMA.items()}
+    dates = sorted(d for d in set().union(*cols.values()) if "2025-11-01" <= d < today)
+    with open(os.path.join(os.path.dirname(OUT), "llama.csv"), "w", newline="") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["date"] + list(LLAMA))
+        w.writerows([d] + [cols[k].get(d, "") for k in LLAMA] for d in dates)
+    print(f"wrote price.csv and llama.csv ({len(dates)} days)")
 
 
 def save(rows):
@@ -135,7 +219,8 @@ def main():
             print(f"{i + 1}/{n} epochs, at height {end_h}", flush=True)
     save(rows)
     print(f"wrote {len(rows)} epochs to {OUT}")
+    buybacks()
 
 
 if __name__ == "__main__":
-    main()
+    {"buybacks": buybacks, "offchain": offchain}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()
