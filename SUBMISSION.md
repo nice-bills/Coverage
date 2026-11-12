@@ -44,8 +44,24 @@ Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
 ## Checklist
 
-- [ ] Create a public GitHub repo and push `main`.
-- [ ] Settings, Pages: source "GitHub Actions". The `pages` workflow publishes the dashboard and rescoring every 6 hours.
+Before submitting (Saturday 14 November, before 23:59 UTC):
+
+- [ ] Create a public GitHub repo and push `main`. Do this as early as possible: the push time is
+      one of the independent timestamps on the forecast rounds.
+- [ ] Settings, Pages: source "GitHub Actions". The `pages` workflow publishes the dashboard and
+      rescoring every 6 hours. Put the Pages URL at the top of `templates/README.md`.
+- [ ] Refresh the scores so the first round (closes about 14 November 07:00 UTC) shows its result:
+
+      python3 fetch.py --epochs 45
+      python3 run.py
+      python3 docs.py
+      uvx --from opentimestamps-client ots upgrade predictions/*.ots
+      git add -A && git commit -m "Score round 1; upgrade timestamps" && git push
+
+- [ ] Optional: freeze one more round at submission time so a fresh one closes during judging
+      (16 to 18 November): `python3 run.py freeze 10`, then stamp it with
+      `uvx --from opentimestamps-client ots stamp predictions/<new file>`, rerun `run.py` and
+      `docs.py`, commit and push. The README hash changes; `docs.py` updates it.
 - [ ] Record the video, post on X with the text above, add repo and demo links.
 - [ ] Submit: repo URL, X post URL, description, NEAR mainnet payout account.
 - [ ] Leave the repo public and Pages enabled until at least 25 November 2026.
