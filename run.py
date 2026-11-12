@@ -255,6 +255,7 @@ def main():
     avg = lambda k: sum(float(r[k] or 0) for r in days) / len(days) if days else None
     usd = sum(price[r["date"]] for r in days if r["date"] in price) / max(1, sum(r["date"] in price for r in days))
     pay = now["payback"]
+    upto = [r for r in llama if r["date"] < d1]
     # wider cross-check: NEAR plus wNEAR in all three NEAR Intents revenue wallets across the same window
     wal = {}
     for r in csv.DictReader(open(os.path.join(ROOT, "data", "wallets.csv"))):
@@ -281,7 +282,13 @@ def main():
         lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
         all_revenue_wallets_per_day=allw, all_revenue_wallets_usd_per_day=None if allw is None else allw * usd,
         all_revenue_wallets_payback=None if allw is None else (allw + now["burn_per_day"]) / now["mint_per_day"],
-        intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"))
+        intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"),
+        # year on year, first 30 days against last 30 days of the DefiLlama series up to the snapshot
+        **{k + "_ratio_1y": sum(float(r[k] or 0) for r in upto[-30:]) / max(1.0, sum(float(r[k] or 0) for r in upto[:30]))
+           for k in ("intents_volume_usd", "intents_fees_usd", "near_fees_usd")},
+        # lever: payback if every dollar of gross NEAR Intents fees were captured, at today's volume
+        payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
+        if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
     results = sig(dict(summary=summary, backtest=bt, series=roll[::3]))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
