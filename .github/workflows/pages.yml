@@ -27,6 +27,7 @@ jobs:
         timeout-minutes: 30
         continue-on-error: true   # rate limited or offline: publish from the committed cache
       - run: python3 run.py
+      - run: python3 docs.py --check || true   # docs are regenerated only on main
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

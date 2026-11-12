@@ -7,8 +7,8 @@ and NEAR gained by `buybacks.multisignature.near`, the account that receives NEA
 Intents contract. Mint and burn come from block headers. It needs no API key, no cloud account
 and no dependencies beyond Python 3.9+.
 
-Result for the 100 epochs ending __LAST__: burn plus buybacks equal __PAYBACK__ of issuance
-(burn alone: __BURN_COV__). The thesis, the evidence against it and what would change our mind
+Result for the 100 epochs ending 2026-11-12: burn plus buybacks equal 11.8% of issuance
+(burn alone: 0.92%). The thesis, the evidence against it and what would change our mind
 are in [THESIS.md](THESIS.md).
 
 ## Reproduce (offline, under 2 seconds)
@@ -20,7 +20,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=__RESULT_HASH__
+RESULT sha256=53be70e2f056211e9e6444bb0353091b7702050561451c71f68eab34d7f714bf
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
@@ -41,6 +41,16 @@ Expected output: `SELFTEST PASS`. It tests the scoring maths, then runs `run.py`
 the repo and confirms that (a) the result hash is unchanged once rounds are frozen, (b) a frozen
 round cannot be rewritten, (c) an edited round is refused, and (d) one yoctoNEAR added to one
 cached row is refused.
+
+## Check that the prose matches the data (offline)
+
+```
+python3 docs.py --check
+```
+
+Expected output: `DOCS IN SYNC from result <first 12 characters of the hash above>`. This file,
+`THESIS.md` and `SUBMISSION.md` are generated from `templates/` by `docs.py`; every number in
+them is filled in from `out/results.json`, so the prose cannot drift from the data.
 
 ## Check the cache against the chain (network, no keys, about a minute)
 
@@ -82,7 +92,7 @@ newest round's height; later epochs are used only for scoring.
 ## Rebuild the cache from the chain (slow)
 
 ```
-python3 fetch.py --epochs __EPOCHS__
+python3 fetch.py --epochs 900
 python3 fetch.py wallets 214890733 214933933
 python3 fetch.py inflows
 python3 fetch.py protocol
@@ -149,7 +159,7 @@ newest cached epoch and never overwritten. A round commits to 90% intervals for 
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
-__ROUNDS_TABLE__
+(no rounds frozen yet)
 
 Rule, checked by `run.py` once a round's epochs have closed:
 
@@ -169,6 +179,7 @@ the code derives from the data up to that round's height.
 | `run.py` | `data/` to results, predictions, ledger and dashboard; offline, deterministic |
 | `dashboard.py` | renders `dist/index.html`; no external assets |
 | `verify.py` | spot-checks cached epochs against the chain |
+| `docs.py`, `templates/` | generate this file, `THESIS.md` and `SUBMISSION.md` from the results |
 | `test_run.py` | self-test and tamper checks |
 | `predictions/` | the frozen forecast rounds and their OpenTimestamps proofs |
 | `VERIFY.txt` | recorded output of one `verify.py` run |
