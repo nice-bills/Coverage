@@ -89,10 +89,13 @@ python3 fetch.py offchain
 ```
 
 `fetch.py` skips whatever is already cached, so to rebuild from nothing move `data/` aside
-first (`git checkout data/` restores it). A full rebuild takes several hours because the free
+first (`git checkout data/` restores it). `--epochs` counts back from the current chain tip, so
+use a number at least as large as shown plus the epochs that have closed since; `run.py`
+ignores epochs before or after the frozen range, so extra history does not change the result.
+The third-party files (`inflows`, `offchain`) return newer rows on a later day and will change
+the hash; keep the committed copies to reproduce it. A full rebuild takes several hours because the free
 endpoints allow short bursts and then block for minutes. A rebuild run later also picks up
-newer epochs; `run.py` uses those only for scoring. `inflows` and `offchain` read third-party
-indexers and return newer rows on a later day.
+newer epochs; `run.py` uses those only for scoring.
 
 ## What is measured
 
@@ -106,7 +109,7 @@ burnt in that block; at the first block of an epoch it also rises by the newly m
 | buyback gain | change in the NEAR balance of `buybacks.multisignature.near` between epoch ends | yes, as a balance change |
 | payback | `(burn + buyback gain) / mint` | yes |
 | multiple | `mint / (burn + buyback gain)`: growth in those flows that equals issuance | yes |
-| utilization | `gas_used / gas_limit` over 3 seeded random blocks per epoch | sampled |
+| utilization | `gas_used / gas_limit` over 3 seeded random heights per epoch (a skipped height yields no block, so a few epochs have 2) | sampled |
 | ceiling | `burn / mint / utilization`: burn coverage scaled to full blocks at today's effective gas price | sampled, extrapolated |
 
 `burnt(block)` is the sum of `balance_burnt` over the chunks included at that height.
@@ -181,6 +184,11 @@ code derives from the frozen data, so the method is frozen with the numbers.
   cross-check table.
 - A balance change is exact, but that the NEAR was bought with fee revenue rests on NEAR's own
   description of the wallet and on the sender being `intents.near`.
+- `data/wallets.csv` shows zero wNEAR for all three wallets at every height queried. That is
+  what `ft_balance_of` on `wrap.near` returned; a failed call stops `fetch.py` and is never
+  written as zero.
+- The hosted dashboard refetches epochs and buyback balances every 6 hours. Its DefiLlama,
+  price and sender sections stay at the committed snapshot.
 - Utilization and the ceiling come from 3 blocks per epoch and are only meaningful as 100-epoch
   figures. The ceiling assumes today's effective gas price and is not a capacity guarantee.
 - Floats in `out/results.json` are rounded to 6 significant figures so the hash does not depend

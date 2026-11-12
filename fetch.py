@@ -152,7 +152,11 @@ def query(params):
     while True:
         try:
             r = json.load(urllib.request.urlopen(urllib.request.Request(RPC, body, UA), timeout=30))
-            return r.get("result")
+            if "result" in r:
+                return r["result"]
+            if (r["error"].get("cause") or {}).get("name") == "UNKNOWN_ACCOUNT":
+                return None  # the account did not exist at that height
+            sys.exit(f"query failed: {params} -> {r['error']}")
         except urllib.error.HTTPError as e:
             if e.code != 429:
                 raise
@@ -175,8 +179,9 @@ def wallets():
             args = base64.b64encode(json.dumps({"account_id": acct}).encode()).decode()
             w = query({"request_type": "call_function", "block_id": h, "account_id": "wrap.near",
                        "method_name": "ft_balance_of", "args_base64": args})
-            out.append([h, acct, int(a["amount"]) + int(a["locked"]) if a else 0,
-                        int(json.loads(bytes(w["result"]))) if w and "result" in w else 0])
+            if "error" in w:  # a failed view call must not be recorded as a zero balance
+                sys.exit(f"ft_balance_of failed for {acct} at {h}: {w['error']}")
+            out.append([h, acct, int(a["amount"]) + int(a["locked"]) if a else 0, int(json.loads(bytes(w["result"])))])
     with open(os.path.join(os.path.dirname(OUT), "wallets.csv"), "w", newline="") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["height", "account", "near", "wnear"])
@@ -212,28 +217,33 @@ def protocol():
     print("wrote protocol.json", keep)
 
 
-def inflows(pages=6):
+def inflows(pages=12):
     """Recent receipts into the buyback account, from the NearBlocks indexer (third party, no key):
     who sent the NEAR. Each row carries a transaction hash that can be checked on any RPC."""
-    out = {}
-    for page in range(1, pages + 1):
-        url = f"https://api.nearblocks.io/v1/account/{BUYBACK}/receipts?per_page=250&order=desc&page={page}"
-        for attempt in range(8):
+    out, cursor = {}, None
+    for _ in range(pages):
+        url = f"https://api.nearblocks.io/v1/account/{BUYBACK}/receipts?per_page=250&order=desc"
+        if cursor:
+            url += f"&cursor={cursor}"
+        for attempt in range(20):
             try:
-                rows = json.load(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60))["txns"]
+                page = json.load(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60))
                 break
             except urllib.error.HTTPError as e:
                 if e.code != 429:
                     raise
-                time.sleep(15)
+                time.sleep(20)
+            except OSError:
+                time.sleep(20)
         else:
             break
-        for r in rows:
+        for r in page["txns"]:
             dep = sum(int(a.get("deposit") or 0) for a in r.get("actions") or [] if a.get("action") == "TRANSFER")
             if r["receiver_account_id"] == BUYBACK and dep and r["receipt_outcome"]["status"]:
                 out[r["receipt_id"]] = [r["receipt_block"]["block_height"], r["transaction_hash"],
                                         r["predecessor_account_id"], round(dep / 1e24, 6)]
-        if len(rows) < 250:
+        cursor = page.get("cursor")
+        if not cursor or len(page["txns"]) < 250:
             break
     with open(os.path.join(os.path.dirname(OUT), "inflows.csv"), "w", newline="") as f:
         w = csv.writer(f, lineterminator="\n")

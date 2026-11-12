@@ -39,7 +39,7 @@ const C=document.querySelector('.calc');if(C){const g=id=>document.getElementByI
  g('o-vol').textContent=v.toFixed(1)+'x today';g('o-cap').textContent=c+'%'+(c==c0?' (today)':'');
  g('o-inf').textContent=n.toFixed(1)+'% a year'+(n==2.5?' (today)':'');
  g('bar').style.width=Math.min(100,p*100)+'%';
- g('o-pay').textContent='Payback: '+(p*100).toFixed(1)+'% of issuance'+(p>=1?'. Break-even reached: supply stops growing net of buybacks.':'. Break-even is '+(1/p).toFixed(1)+'x away.')};
+ g('o-pay').textContent='Payback: '+(p*100).toFixed(1)+'% of issuance'+(p>=1?'. Break-even: burn plus buybacks equal issuance.':'. Break-even is '+(1/p).toFixed(1)+'x away.')};
  C.addEventListener('input',f);f()}
 const ALL=JSON.parse(document.getElementById('data').textContent),NS='http://www.w3.org/2000/svg';
 function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
@@ -97,7 +97,7 @@ def render(results, sha, ledger=None):
                  (num(s["buyback_per_day"]), "NEAR a day into the buyback account (on-chain balance)"),
                  (num(s["burn_per_day"]), "NEAR a day burnt in gas fees (exact)"),
                  (num(s["mint_per_day"]), "NEAR a day minted to validators (exact)"),
-                 (pct(s["net_inflation"]), f"net inflation after payback (gross {pct(s['realized_inflation'])})")]
+                 (pct(s["realized_inflation"]), "realized inflation a year, measured from mint")]
     else:
         head = f"NEAR burns back {pct(s['burn_coverage'])} of what it mints."
         lede = "Buyback balances are not cached for this window yet."
@@ -122,12 +122,13 @@ def render(results, sha, ledger=None):
                    f"</ul></div>")
     attr = ""
     if s.get("inflow_transfers"):
-        attr = (f"<p>Sender check: {s['inflow_transfers_from_intents']} of the last {s['inflow_transfers']} transfers into the buyback "
+        attr = (f"<p>Sender check: {s['inflow_transfers_from_intents']} of the {s['inflow_transfers']} transfers since height "
+                f"{s['inflow_first_height']} into the buyback "
                 f"account came from <code>intents.near</code>, carrying {pct(s['inflow_share_from_intents'], 1)} of the NEAR "
                 f"(NearBlocks, with transaction hashes in <code>data/inflows.csv</code>).</p>")
     nr = lambda x: "n/a" if x is None else f"{x:,.0f}"
     check = (f"<tr><td>Gas fees burnt</td><td>{nr(s['burn_per_day'])}</td><td>{nr(s['llama_burn_near_per_day'])} "
-             f"(assumes 70% of {nr(s['llama_fees_near_per_day'])} in fees)</td></tr>"
+             f"(its revenue series; its fees series is {nr(s['llama_fees_near_per_day'])})</td></tr>"
              f"<tr><td>Buyback account gain</td><td>{nr(s['buyback_per_day'])}</td><td rowspan='2'>{nr(s['llama_buyback_near_per_day'])} "
              f"(captured revenue, all wallets)</td></tr>"
              f"<tr><td>All three revenue wallets, gain</td><td>{nr(s['all_revenue_wallets_per_day'])}</td></tr>")

@@ -9,7 +9,7 @@ import csv, datetime, hashlib, json, math, os, random, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 Y = 10 ** 24          # yoctoNEAR per NEAR
 YEAR = 365.25 * 86400
-W = 100               # rolling window in epochs (about 28 days)
+W = 100               # rolling window in epochs (about four weeks)
 H = 30                # forecast horizon in epochs (about 9 days)
 QS = (0.1, 0.5, 0.9)
 LUMP = 20             # see load(): buyback gains above this multiple of the trailing median are transfers
@@ -19,6 +19,12 @@ def load():
     rows = list(csv.DictReader(open(os.path.join(ROOT, "data", "epochs.csv"))))
     rows = [{k: int(v) for k, v in r.items()} for r in rows]
     rows.sort(key=lambda r: r["start_height"])
+    # Once predictions are committed the analysis covers a fixed range of epochs, so a cache rebuilt
+    # later with more history, or newer epochs, gives the same result.
+    cpath = os.path.join(ROOT, "predictions.json")
+    if os.path.exists(cpath):
+        first = json.load(open(cpath))["first_start_height"]
+        rows = [r for r in rows if r["start_height"] >= first]
     if len(rows) < W:
         sys.exit(f"data/epochs.csv has {len(rows)} epochs; at least {W} are needed. Run: python3 fetch.py")
     # Continuity: every epoch must start where the previous one ended, in height and in supply.
@@ -198,7 +204,7 @@ def window_claims(rows):
 
 def predict(rows, pool, bt):
     o = len(rows)
-    out = {"after_end_height": rows[-1]["end_height"], "horizon_epochs": H, "claims": window_claims(rows)[0],
+    out = {"first_start_height": rows[0]["start_height"], "after_end_height": rows[-1]["end_height"], "horizon_epochs": H, "claims": window_claims(rows)[0],
            "per_epoch_unit": "NEAR burnt per epoch, 10% / 50% / 90%",
            "table_model": min(bt, key=lambda m: bt[m]["pinball"]), "models": {}}
     for m, f in MODELS.items():
@@ -256,16 +262,6 @@ def main():
     now = roll[-1]
     secs = (rows[-1]["t1_ns"] - rows[0]["t0_ns"]) / 1e9
 
-    def trend(value):  # log-linear growth per year over non-overlapping windows, so the points are independent
-        blocks = [rows[i - W:i] for i in range(len(rows), W - 1, -W)][::-1]
-        pts = [(b[-1]["t1_ns"] / 1e9 / 86400, value(b)) for b in blocks]
-        pts = [(x, math.log(v)) for x, v in pts if v is not None and v > 0]
-        return ols(*zip(*pts))[1] * 365.25 if len(pts) > 2 else None
-
-    mint = lambda b: sum(r["mint"] for r in b)
-    g_burn = trend(lambda b: sum(r["burn"] for r in b) / mint(b))
-    g_pay = trend(lambda b: None if any(r["buy"] is None for r in b)
-                  else (sum(r["burn"] for r in b) + sum(r["buy"] for r in b)) / mint(b))
     # sampling error of the ceiling: resample the window's epochs (fixed seed, so the hash is stable)
     rnd, w, boot = random.Random(0), rows[-W:], []
     for _ in range(500):
@@ -319,11 +315,12 @@ def main():
         burn_coverage=now["coverage"], buyback_coverage=now["buyback_coverage"], payback=pay,
         multiple=now["multiple"], burn_only_multiple=1 / now["coverage"],
         realized_inflation=sum(r["mint"] for r in rows) / rows[-1]["supply_end"] * YEAR / secs,
-        net_inflation=None if pay is None else now["inflation"] * (1 - pay),
+        inflation_if_buybacks_were_burnt=None if pay is None else now["inflation"] * (1 - pay),
+        window_days=(w[-1]["t1_ns"] - w[0]["t0_ns"]) / 86400e9,
+        # constant yearly growth in burn plus buybacks that reaches break-even in 3, 5 and 10 years
+        **({} if pay is None else {f"growth_needed_{n}y": now["multiple"] ** (1 / n) - 1 for n in (3, 5, 10)}),
         utilization=now["utilization"], ceiling=now["ceiling"],
         ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95),
-        burn_coverage_growth_per_year=g_burn, payback_growth_per_year=g_pay,
-        years_to_breakeven_at_trend=math.log(now["multiple"]) / g_pay if pay and g_pay and g_pay > 0 else None,
         window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),
         llama_buyback_near_per_day=near("intents_buyback_usd"),
         # how much left the other two revenue wallets during the lump epochs (where those heights are cached)
