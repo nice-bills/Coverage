@@ -291,6 +291,11 @@ def main():
     h0, h1 = w[0]["prev_end_height"], w[-1]["end_height"]
     wsecs = (w[-1]["t1_ns"] - w[0]["t0_ns"]) / 1e9
     allw = (wal[h1] - wal[h0]) / Y / wsecs * 86400 if h0 in wal and h1 in wal else None
+    # who sent NEAR to the buyback account (NearBlocks indexer; each row has a transaction hash)
+    inf = list(csv.DictReader(open(os.path.join(ROOT, "data", "inflows.csv"))))
+    inf = [r for r in inf if int(r["block_height"]) <= rows[-1]["end_height"]]
+    paid = [r for r in roll if r["payback"] is not None]
+    peak = max(paid, key=lambda r: r["payback"]) if paid else None
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
@@ -306,6 +311,12 @@ def main():
         window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),
         llama_buyback_near_per_day=near("intents_buyback_usd"),
         # how much left the other two revenue wallets during the lump epochs (where those heights are cached)
+        inflow_transfers=len(inf), inflow_first_height=int(inf[0]["block_height"]) if inf else None,
+        inflow_share_from_intents=sum(float(r["near"]) for r in inf if r["predecessor"] == "intents.near")
+        / sum(float(r["near"]) for r in inf) if inf else None,
+        inflow_transfers_from_intents=sum(r["predecessor"] == "intents.near" for r in inf),
+        payback_first=paid[0]["payback"] if paid else None, payback_first_date=paid[0]["date"] if paid else None,
+        payback_peak=peak["payback"] if peak else None, payback_peak_date=peak["date"] if peak else None,
         lump_matched_outflow_near=sum(other.get(r["prev_end_height"], 0) - other.get(r["end_height"], 0) for r in rows
                                       if r["lump"] and r["prev_end_height"] in other and r["end_height"] in other) / Y,
         lump_transfers=sum(r["lump"] for r in rows),

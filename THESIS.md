@@ -1,148 +1,170 @@
-# Thesis: NEAR's payback moved to the application layer, and break-even is single-digit multiples away
+# Thesis: NEAR's token flow moved to the application layer, and break-even is single-digit multiples away
+
+Every figure in this file is printed by `python3 run.py` (no keys, no network) and stored in
+`out/results.json`. Figures are for the last 100 epochs, about 28 days, ending __LAST__ at
+height __LAST_HEIGHT__, unless a different period is stated.
 
 ## Claim
 
 NEAR mints about 2.5% of its supply a year to validators. The usual question is how much of that
-the protocol's gas-fee burn gives back, and the usual answer is "under 1%", which puts break-even
-about __BURN_MULT__ times away.
+the gas-fee burn gives back. The answer from the chain is __BURN_COV__, which puts break-even
+__BURN_MULT__ times away.
 
-That answer measures the wrong layer. Since 23 February 2026, fee revenue from NEAR Intents has
-been used to buy NEAR, and the NEAR accumulates in `buybacks.multisignature.near`. Measured on
-chain over the last 100 epochs (about 28 days, ending __LAST__):
+That measures one layer. Since 23 February 2026 the NEAR Intents contract has been sending NEAR
+to `buybacks.multisignature.near`, the wallet NEAR names for buybacks funded by Intents fee
+revenue.
 
 | Flow | NEAR a day | Share of mint |
 |---|---|---|
 | Minted to validators (exact) | __MINT__ | 100% |
 | Burnt in gas fees (exact) | __BURN__ | __BURN_COV__ |
-| Added to the buyback account (exact balance change) | __BUY__ | __BUY_COV__ |
-| **Payback: burn plus buybacks** | | **__PAYBACK__** |
+| Gained by the buyback account (exact balance change) | __BUY__ | __BUY_COV__ |
+| **Payback: burn plus buyback gain** | | **__PAYBACK__** |
 
-So the thesis is:
+The thesis has three parts:
 
-1. NEAR already pays back __PAYBACK__ of its issuance, not __BURN_COV__. Break-even is
-   __MULT__x away, not __BURN_MULT__x.
-2. More than nine-tenths of that payback comes from application revenue, not from gas. The
-   token's cash flow is tied to NEAR Intents fees, not to block space.
-3. The remaining gap can close through levers NEAR controls, without waiting for the market:
-   the share of Intents fees it captures, and the issuance rate.
-
-All three figures in the table come from `python3 run.py`, which needs no keys and no network.
+1. Burn plus buybacks equal __PAYBACK__ of issuance, not __BURN_COV__. Break-even is
+   __MULT__x away, not __BURN_MULT__x. "Payback" is our name for that ratio; buybacks are held,
+   not destroyed (see Evidence against).
+2. More than nine-tenths of the payback comes from application revenue, not gas. The token's
+   flow is tied to NEAR Intents fees, not to block space.
+3. The gap can narrow through levers NEAR governance controls: the share of Intents fees that
+   reaches the buyback account, and the issuance rate.
 
 ## Evidence for
 
-**The flows are exact and reconcile.** Mint and burn are read from `total_supply` in block
-headers. `run.py` asserts that the change in supply over the whole cache equals the sum of mint
-minus burn, to the yoctoNEAR, across __EPOCHS__ epochs. The buyback figure is the change in an
-account balance between two block heights.
+**Mint and burn are read from the chain, and anyone can recheck them.** Both come from
+`total_supply` in block headers. `python3 verify.py 3 <seed>` refetches random epochs from
+mainnet, requires every cached field to match, and checks on random blocks that supply fell by
+exactly the fees burnt in that block. `VERIFY.txt` records one such run. `run.py` also refuses a
+cache whose epochs do not chain together in height and supply; that check catches gaps and
+edits, but it is the chain comparison, not the internal check, that establishes correctness.
 
-**An independent pipeline agrees.** DefiLlama computes captured NEAR Intents revenue from Dune
-tables. Over the same days it reports __LLAMA_BUY__ a day. Our 12 RPC calls against all three
-revenue wallets give __ALL_USD__ a day. The buyback wallet alone, which is the figure the thesis
-uses, is __BUY_USD__ a day, so the headline is the conservative one.
+**The inflows come from the NEAR Intents contract.** Of the last __INFLOW_N__ transfers into the
+buyback account, __INFLOW_INTENTS__ were sent by `intents.near`, carrying __INFLOW_SHARE__ of
+the NEAR (`data/inflows.csv`, from the NearBlocks indexer, with transaction hashes).
 
-**The indexer's burn figure is stale, in NEAR's favour.** DefiLlama's NEAR adapter states that
-70% of each gas fee is burnt. The live protocol config has `burnt_gas_reward` at 0 (the developer
-rebate was removed), and the chain shows __BURN_USD__ a day burnt against DefiLlama's
-__LLAMA_BURN__. A model built on that indexer understates burn.
+**A separate pipeline gives the same total.** DefiLlama computes NEAR's captured Intents revenue
+from Dune tables across three revenue wallets. Converted at each day's price it is
+__LLAMA_BUY_NEAR__ NEAR a day over the same days. Balance changes of those three wallets, read
+with 12 RPC calls, give __ALL_NEAR__ NEAR a day. The thesis uses only the buyback wallet,
+__BUY__ NEAR a day, which is the lower figure.
 
-**Realized inflation matches the stated policy.** Measured mint annualizes to __INFL__ of
-supply against a configured maximum of 1/40. Net of payback it is __NET_INFL__.
+**Realized inflation matches stated policy.** Measured mint annualizes to __INFL__ of supply
+over the whole cache; the protocol config has `max_inflation_rate` at 1/40
+(`data/protocol.json`). Net of payback it is __NET_INFL__.
 
 **The capture lever is large.** Gross NEAR Intents fees run at __FEES_USD__ a day (DefiLlama).
-If all of it were captured at today's volume, payback would be __LEVER__. Capturing fees is a
-governance decision, already taken once.
+The buyback account receives about __CAPTURE__ of that. If all of it arrived, at today's
+volume, payback would be __LEVER__.
 
-**Burn has headroom inside existing capacity.** Blocks are __UTIL__ full. At today's effective
-gas price, full blocks would burn __CEIL__ of issuance (90% range __CEIL_LO__ to __CEIL_HI__).
-Burn alone can reach break-even without new shards, though it is far from doing so.
+**Burn has headroom on paper.** Sampled blocks are __UTIL__ full. Scaling today's burn to full
+blocks at today's effective gas price gives __CEIL__ of issuance (90% bootstrap range
+__CEIL_LO__ to __CEIL_HI__). This is an extrapolation from 300 sampled blocks, not a capacity
+guarantee.
 
-**Burn follows the clock, not the price.** Burn per epoch has a stable time-of-week profile.
-The backtest table in the dashboard compares a model that uses only that profile with a model
-that uses only NEAR's price. __BACKTEST_SENTENCE__
+**Price does not explain burn.** In a walk-forward backtest of burn per epoch
+(__BT_N__ forecasts), a model that adds NEAR's price to the recent level scores
+__BT_PRICE__ pinball loss against __BT_PERSIST__ for the recent level alone. A model that adds
+a time-of-week profile scores __BT_CLOCK__. Neither addition is a clear improvement, so at this
+horizon burn behaves like a noisy level, not like a function of the token price.
 
 ## Evidence against
 
 **Buybacks are not burns.** The NEAR sits in a multisig account. Supply does not fall, and the
-holders of the keys can spend or sell it. Payback here is a flow that offsets issuance, not
-destroyed tokens. If the account's balance starts falling, this thesis is wrong about what the
-flow means.
+key holders can spend or sell it. If the balance starts falling, the flow does not mean what
+this thesis takes it to mean.
 
-**NEAR Intents is not growing.** Over the year to __LAST__, daily Intents volume is
-__VOL_RATIO__x what it was, gross Intents fees are __FEE_RATIO__x and NEAR gas fees in USD are
-__GAS_RATIO__x (first 30 days against last 30 days, DefiLlama). Payback rose because capture
-was switched on, not because the business grew. At today's capture share, break-even needs
-__MULT__x the volume, and volume has not moved.
+**Payback has been falling.** The first 100-epoch window with buyback data (ending
+__PAY_FIRST_DATE__) shows __PAY_FIRST__; the peak is __PAY_PEAK__ (__PAY_PEAK_DATE__); the
+latest is __PAYBACK__. __TREND_SENTENCE__
 
-**The payback is concentrated.** One application supplies over 90% of it. One counterparty
-change, exploit or fee cut at NEAR Intents removes most of the thesis.
+**NEAR Intents is not growing.** Comparing the first and last 30 days of the year to __LAST__
+(DefiLlama): daily Intents volume is __VOL_RATIO__x, gross Intents fees __FEE_RATIO__x, and
+NEAR gas fees in USD __GAS_RATIO__x. The buyback flow exists because capture was switched on
+in February 2026, not because the business grew. At today's capture share, break-even needs
+__MULT__x the volume.
 
-**Burn is under 1% and has been falling in USD.** Measured from the chain, gas burn covers
-__BURN_COV__ of issuance. On its own it is __BURN_MULT__x from break-even.
+**The payback is concentrated.** One application supplies over 90% of it. A fee cut, exploit
+or loss of flow at NEAR Intents removes most of the thesis.
 
-**The window is short.** Buybacks began on 2026-02-23, so there are under nine months of
-history, and one gain of __LUMP__ NEAR on 2026-09-09 had to be excluded as a treasury
-movement. The exclusion rule is mechanical and backward-looking, but it is still a rule we
-chose. The chain supports it for this case: between heights 214890733 and 214933933 the
-buyback account gained 505,040.6 NEAR while `1csfundsadmin.sputnik-dao.near` lost 502,791.7
-(`view_account` at both heights on the archival RPC). That is revenue captured earlier moving
-between wallets, not new revenue.
+**Burn alone is far from break-even.** __BURN_COV__ of issuance, __BURN_MULT__x away.
 
-**Buyback amounts depend on the NEAR price.** Revenue is earned in dollars and converted to
-NEAR. A higher NEAR price buys fewer NEAR for the same revenue, so payback in NEAR terms falls
-as price rises. Break-even is harder to reach exactly when the token is doing well.
+**The history is short and needed one exclusion.** Buybacks began on 2026-02-23. One gain of
+__LUMP__ NEAR was excluded by a mechanical rule (more than 20 times the median of the previous
+100 epochs). The chain shows what it was: across that epoch, heights 214890733 to 214933933,
+the other two revenue wallets fell by __LUMP_OUT__ NEAR (`data/wallets.csv`). That is revenue
+captured earlier moving between wallets.
 
-**Sampling.** Utilization and the ceiling use 3 blocks per epoch. They are reported only as
-100-epoch aggregates with a bootstrap range.
+**Buyback size depends on the NEAR price.** Fee revenue is earned mostly in dollar terms and
+arrives as NEAR, so the same revenue is fewer NEAR at a higher price. This is arithmetic, not
+something the repo tests.
 
-## What would change our mind
+**Third-party inputs.** Attribution of inflows uses NearBlocks, and the USD context uses
+DefiLlama and CoinGecko. None of these feed mint, burn, the buyback gain or payback. DefiLlama's
+NEAR page states that 70% of gas fees are burnt; the live protocol config has
+`burnt_gas_reward` at 0. Over the same days DefiLlama reports __LLAMA_FEES_NEAR__ NEAR a day in
+gas fees and __LLAMA_BURN_NEAR__ burnt, against __BURN__ measured from the chain. We report the
+difference and do not explain it.
 
-Checked automatically by `python3 run.py` against epochs that closed after the predictions were
-frozen:
+**Sampling.** Utilization and the ceiling use 3 blocks per epoch and are reported only as
+100-epoch aggregates.
 
-1. **Burn is explained by price after all.** The price-only model beats the price-free model
-   over the next 30 epochs, or the price-free model's 80% interval contains fewer than 20 or
-   more than 28 of the 30 outcomes. The command prints `FALSIFIED`.
-2. **Buybacks stop or reverse.** The buyback account's gain over the next 30 epochs falls
-   outside the committed interval. The command prints `MISS`.
+## Pre-registered claims and what would change our mind
 
-Checked by rerunning `fetch.py` and `run.py` later:
+`predictions.json` was generated by `run.py` from data ending at height __LAST_HEIGHT__. It
+commits to three claims about the 30 epochs after that height (about 9 days):
 
-3. The buyback account balance falls between two epoch ends (NEAR is being spent, not held).
-4. Payback over any 100-epoch window drops below half of today's figure.
-5. Gross Intents fees fall while capture share is unchanged, so payback falls with them.
+| Claim | Committed interval | Held in past windows |
+|---|---|---|
+| Payback over the 30 epochs (90% interval) | __C_PAY__ | __H_PAY__ |
+| NEAR burnt over the 30 epochs (80% interval) | __C_BURN__ | __H_BURN__ |
+| NEAR gained by the buyback account (80% interval) | __C_BUY__ | __H_BUY__ |
 
-## Pre-registration
+Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows have
+differed historically. "Held in past windows" is how often the same procedure, run at earlier
+dates on data available then, contained the outcome.
 
-`predictions.json` contains 30 epochs of burn forecasts from three models and the buyback
-interval. It was generated by `run.py` from data ending at height __LAST_HEIGHT__.
+- If payback over those 30 epochs falls outside its interval, `run.py` prints `FALSIFIED`. A
+  90% interval fails about one time in ten even when the model is right; we accept that.
+- The other two claims are reported as `HIT` or `MISS`.
+- `predictions.json` also carries per-epoch burn forecasts from three models, scored as epochs
+  close.
 
 ```
 sha256(predictions.json) = __PRED_HASH__
 ```
 
-This hash is published in the repository's commit history, in the demo post and in the
-submission description, each timestamped by a party we do not control, before the epochs it
-predicts had closed. `run.py` will not score unless `predictions.json` is exactly what the code
-derives from the frozen data, so the method is frozen with the numbers.
+The hash is in this repository's commit history, in the demo post and in the submission
+description, each timestamped by a party we do not control. `run.py` will not score unless
+`predictions.json` is byte-for-byte what the code derives from the frozen data.
+
+Beyond the 30 epochs, rerunning `fetch.py` and `run.py` would change our mind if:
+
+- the buyback account balance falls between two epoch ends;
+- payback over a 100-epoch window drops below half of __PAYBACK__;
+- transfers into the buyback account stop coming from `intents.near`.
 
 ## How to read the multiple
 
-`multiple = mint / (burn + buyback)`. It is the factor by which today's fee flows must grow, at
-constant issuance, for the flows to equal issuance. It is not a price target and says nothing
-about valuation. It moves when any of these move:
+`multiple = mint / (burn + buyback gain)`: the factor by which today's flows must grow, at
+constant issuance, to equal issuance. It is not a price target and says nothing about valuation.
 
 | Lever | Who controls it | Effect on the multiple |
 |---|---|---|
 | NEAR Intents volume | the market | inversely proportional |
-| Share of Intents fees captured | NEAR governance | inversely proportional |
+| Share of Intents fees reaching the buyback account | NEAR governance | inversely proportional |
 | Gas use and gas price | users and protocol | small today: burn is under a tenth of payback |
 | Issuance rate | NEAR governance | proportional: halving issuance halves it |
-| NEAR price | the market | higher price means fewer NEAR bought per dollar |
+| NEAR price | the market | higher price means fewer NEAR per dollar of revenue |
 
 ## Sources
 
-- NEAR mainnet via `archival-rpc.mainnet.fastnear.com` and `mainnet.neardata.xyz` (no key).
-- `buybacks.multisignature.near`, `fefundsadmin.sputnik-dao.near` and
-  `1csfundsadmin.sputnik-dao.near` are the revenue wallets listed on revenue.near.org and in
-  DefiLlama's `fees/near-intents` adapter, which also gives the 2026-02-23 buyback start.
-- DefiLlama `api.llama.fi/summary/...` and CoinGecko (no key) for USD context only.
+- NEAR mainnet: `https://archival-rpc.mainnet.fastnear.com` and `https://mainnet.neardata.xyz` (no key).
+- Revenue wallets and the buyback start date: https://revenue.near.org and
+  https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near-intents/index.ts
+- DefiLlama's burn assumption for NEAR: the `methodology` field of
+  `https://api.llama.fi/summary/fees/near?dataType=dailyRevenue`.
+- Protocol parameters: `EXPERIMENTAL_protocol_config` on the RPC, cached in `data/protocol.json`.
+- Inflow attribution: `https://api.nearblocks.io/v1/account/buybacks.multisignature.near/receipts`.
+- USD context: DefiLlama `https://api.llama.fi/summary/...` and CoinGecko.
