@@ -23,11 +23,13 @@ NEAR pays back __PAYBACK__ of its issuance, not __BURN_COV__.
 
 Fee-burn dashboards miss the NEAR Intents buybacks. Counted from the chain, break-even is __MULT__x away, not __BURN_MULT__x.
 
-One command, no keys: python3 run.py
-Predictions frozen, scored by mainnet during judging.
-sha256 __PRED_HASH__
+No keys: python3 run.py
+Forecasts frozen; mainnet scores them.
+sha256 __PRED_HASH16__…
 
-[repo link] [demo link]
+[repo link]
+
+(Reply to it with the demo link and the full hash: __PRED_HASH__)
 
 ## 60-second video
 

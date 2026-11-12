@@ -10,12 +10,18 @@ assert abs(a - 1) < 1e-12 and abs(b - 2) < 1e-12
 assert run.pinball(2.0, 1.0, 0.9) == 0.9 and abs(run.pinball(1.0, 2.0, 0.9) - 0.1) < 1e-12
 assert run.sig(0.123456789) == 0.123457 and run.sig({"a": [1.23456789e-9]}) == {"a": [1.23457e-9]}
 
-# ledger: perfect medians inside a tight interval beat a model that is off by 2x
-later = [{"y": math.log(100.0), "burn": 100 * run.Y} for _ in range(run.H)]
-good, off = [[90.0, 100.0, 110.0]] * run.H, [[180.0, 200.0, 220.0]] * run.H
-led = run.ledger(later, {"models": {"usage": good, "price": off, "persistence": off}})
-assert led["hits"] == run.H and led["loss"]["usage"] < led["loss"]["price"]
-assert led["verdict"] == "FALSIFIED"  # 30 of 30 hits is outside the 20-28 calibration band: too wide is a fail too
-assert run.ledger(later[:5], {"models": {"usage": good, "price": off, "persistence": off}})["verdict"] == "PENDING"
-assert run.ledger([], {"models": {"usage": good, "price": off, "persistence": off}})["verdict"] == "PENDING"
+# ledger: claims are scored only when all 30 epochs have closed, and the payback claim sets the verdict
+later = [{"y": math.log(100.0), "burn": 100 * run.Y, "buy": 900 * run.Y, "mint": 10000 * run.Y} for _ in range(run.H)]
+per_epoch = [[90.0, 100.0, 110.0]] * run.H
+commit = {"claims": {"payback": [0.08, 0.1, 0.12], "burn_total": [2000.0, 3000.0, 3500.0], "buyback_total": [1.0, 2.0, 3.0]},
+          "table_model": "persistence", "models": {"persistence": per_epoch, "clock": per_epoch, "price": per_epoch}}
+led = run.ledger(later, commit)
+assert led["verdict"] == "PASS" and abs(led["claims"]["payback"]["actual"] - 0.1) < 1e-12
+assert led["claims"]["burn_total"]["verdict"] == "HIT" and led["claims"]["buyback_total"]["verdict"] == "MISS"
+assert led["hits"] == run.H
+commit["claims"]["payback"] = [0.2, 0.3, 0.4]
+assert run.ledger(later, commit)["verdict"] == "FALSIFIED"
+assert run.ledger(later[:5], commit)["verdict"] == "PENDING" and run.ledger([], commit)["verdict"] == "PENDING"
+later[3]["buy"] = None  # a missing balance must not be scored as zero
+assert run.ledger(later, commit)["verdict"] == "PENDING"
 print("SELFTEST PASS")

@@ -4,6 +4,7 @@
 Usage: python3 fetch.py [--epochs 1300]   epochs, then buyback balances
        python3 fetch.py buybacks          buyback balances only
        python3 fetch.py wallets           all three revenue wallets at the last window's ends
+       python3 fetch.py inflows           who sent NEAR to the buyback account (NearBlocks, third party)
        python3 fetch.py offchain          price and DefiLlama series (third party)
 Resumable: epochs and balances already cached are not refetched.
 
@@ -176,6 +177,36 @@ def wallets():
     print(f"wrote wallets.csv ({len(out)} rows)")
 
 
+def inflows(pages=6):
+    """Recent receipts into the buyback account, from the NearBlocks indexer (third party, no key):
+    who sent the NEAR. Each row carries a transaction hash that can be checked on any RPC."""
+    out = {}
+    for page in range(1, pages + 1):
+        url = f"https://api.nearblocks.io/v1/account/{BUYBACK}/receipts?per_page=250&order=desc&page={page}"
+        for attempt in range(8):
+            try:
+                rows = json.load(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60))["txns"]
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429:
+                    raise
+                time.sleep(15)
+        else:
+            break
+        for r in rows:
+            dep = sum(int(a.get("deposit") or 0) for a in r.get("actions") or [] if a.get("action") == "TRANSFER")
+            if r["receiver_account_id"] == BUYBACK and dep and r["receipt_outcome"]["status"]:
+                out[r["receipt_id"]] = [r["receipt_block"]["block_height"], r["transaction_hash"],
+                                        r["predecessor_account_id"], round(dep / 1e24, 6)]
+        if len(rows) < 250:
+            break
+    with open(os.path.join(os.path.dirname(OUT), "inflows.csv"), "w", newline="") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["block_height", "transaction_hash", "predecessor", "near"])
+        w.writerows(sorted(out.values()))
+    print(f"wrote inflows.csv ({len(out)} transfers)")
+
+
 def buybacks():
     """Balance of the buyback account at every cached epoch end. Newest first; resumable."""
     rows = list(csv.DictReader(open(OUT)))
@@ -260,4 +291,4 @@ def main():
 
 
 if __name__ == "__main__":
-    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()
+    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets, "inflows": inflows}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()

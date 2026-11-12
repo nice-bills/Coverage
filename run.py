@@ -4,7 +4,7 @@
 Usage: python3 run.py        (no network, no keys, stdlib only)
 Prints `RESULT sha256=...` over out/results.json; the README states the expected value.
 """
-import csv, datetime, hashlib, json, math, os, random
+import csv, datetime, hashlib, json, math, os, random, sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 Y = 10 ** 24          # yoctoNEAR per NEAR
@@ -19,15 +19,17 @@ def load():
     rows = list(csv.DictReader(open(os.path.join(ROOT, "data", "epochs.csv"))))
     rows = [{k: int(v) for k, v in r.items()} for r in rows]
     rows.sort(key=lambda r: r["start_height"])
-    # keep the newest contiguous run; a gap means a partial fetch
-    for i in range(len(rows) - 1, 0, -1):
-        if rows[i]["prev_end_height"] != rows[i - 1]["end_height"]:
-            rows = rows[i:]
-            break
+    if len(rows) < W:
+        sys.exit(f"data/epochs.csv has {len(rows)} epochs; at least {W} are needed. Run: python3 fetch.py")
+    # Continuity: every epoch must start where the previous one ended, in height and in supply.
+    # This catches gaps, reordering and edited rows. It does not prove the rows match the chain;
+    # verify.py does that against mainnet.
     for a, b in zip(rows, rows[1:]):
-        assert b["supply_prev_end"] == a["supply_end"], "supply chain broken"
-    # the accounting identity, exact in yoctoNEAR: every minted and burnt token is accounted for
-    assert rows[-1]["supply_end"] - rows[0]["supply_prev_end"] == sum(r["mint"] - r["burn"] for r in rows)
+        if b["prev_end_height"] != a["end_height"] or b["supply_prev_end"] != a["supply_end"]:
+            sys.exit(f"data/epochs.csv is not contiguous at height {b['start_height']}. "
+                     f"Restore it with `git checkout data/` or run: python3 fetch.py")
+    for r in rows:
+        assert r["mint"] - r["burn"] == r["supply_end"] - r["supply_prev_end"], f"row {r['start_height']} is inconsistent"
     price = {}
     for r in csv.DictReader(open(os.path.join(ROOT, "data", "price.csv"))):
         price[r["date"]] = float(r["usd"])
@@ -108,7 +110,7 @@ def f_persistence(rows, o):
     return [sum(r["y"] for r in rows[o - H:o]) / H] * H
 
 
-def f_usage(rows, o):
+def f_clock(rows, o):
     """Level of the last H epochs plus a time-of-week profile. Uses no price."""
     hist, last = rows[max(0, o - 400):o], rows[o - H:o]
     mean = sum(r["rate"] for r in hist) / len(hist)
@@ -123,13 +125,15 @@ def f_usage(rows, o):
 
 
 def f_price(rows, o):
-    """Burn explained by NEAR price alone: the rival the thesis must beat."""
-    hist = rows[max(0, o - 400):o]
-    a, b = ols([r["lp"] for r in hist], [r["y"] for r in hist])
-    return [a + b * rows[o - 1]["lp"]] * H
+    """The same recent level, moved by NEAR's price instead of the clock.
+    The price sensitivity is fitted on the last 400 epochs; the forecast uses the last known price."""
+    hist, last = rows[max(0, o - 400):o], rows[o - H:o]
+    _, b = ols([r["lp"] for r in hist], [r["y"] for r in hist])
+    level = sum(r["y"] for r in last) / H
+    return [level + b * (rows[o - 1]["lp"] - sum(r["lp"] for r in last) / H)] * H
 
 
-MODELS = {"persistence": f_persistence, "usage": f_usage, "price": f_price}
+MODELS = {"persistence": f_persistence, "clock": f_clock, "price": f_price}
 
 
 def pinball(y, q, tau):
@@ -158,26 +162,45 @@ def backtest(rows, start=300):
     return out, pool
 
 
-def buyback_forecast(rows):
-    """NEAR the buyback account gains over the next H epochs: the last H-epoch gain, with an
-    interval from how much consecutive H-epoch gains have differed in the past."""
-    buy = []
+# ---- claims about the next H epochs taken as one window
+
+CLAIMS = {  # name: (value of a window of epochs, quantiles of the committed interval)
+    "payback": (lambda w: (sum(r["burn"] for r in w) + sum(r["buy"] for r in w)) / sum(r["mint"] for r in w), (0.05, 0.5, 0.95)),
+    "burn_total": (lambda w: sum(r["burn"] for r in w) / Y, QS),
+    "buyback_total": (lambda w: sum(r["buy"] for r in w) / Y, QS),
+}
+
+
+def window_claims(rows):
+    """Forecast each claim as the last H-epoch value, with an interval from how much consecutive
+    H-epoch windows have differed in the past. Also reports how often that interval would have
+    held if it had been issued at earlier dates using only data available then."""
+    tail = []
     for r in reversed(rows):
         if r["buy"] is None:
             break
-        buy.append(r["buy"])
-    buy.reverse()
-    sums = [sum(buy[i - H:i]) for i in range(H, len(buy) + 1)]
-    ratios = [math.log(sums[i + H] / sums[i]) for i in range(0, len(sums) - H, 5) if sums[i] > 0 and sums[i + H] > 0]
-    if len(ratios) < 10:
-        return None
-    return [round(sums[-1] / Y * math.exp(quantile(ratios, q)), 1) for q in QS]
+        tail.append(r)
+    tail.reverse()
+    out, held = {}, {}
+    for name, (value, qs) in CLAIMS.items():
+        vals = [value(tail[i - H:i]) for i in range(H, len(tail) + 1)]  # vals[j]: window ending at tail[j + H]
+        ratio = lambda i: math.log(vals[i + H] / vals[i])
+        known = lambda p: [ratio(i) for i in range(0, max(0, p - 2 * H + 1), 5)]  # ratios observable at tail[p]
+        if len(known(len(tail))) < 10:
+            out[name] = None
+            continue
+        out[name] = [float(f"{vals[-1] * math.exp(quantile(known(len(tail)), q)):.6g}") for q in qs]
+        hits = [vals[p - H] * math.exp(quantile(known(p), qs[0])) <= vals[p] <= vals[p - H] * math.exp(quantile(known(p), qs[-1]))
+                for p in range(H, len(tail) - H + 1, H) if len(known(p)) >= 10]
+        held[name] = dict(hit=sum(hits), n=len(hits))
+    return out, held
 
 
-def predict(rows, pool):
+def predict(rows, pool, bt):
     o = len(rows)
-    out = {"after_end_height": rows[-1]["end_height"], "horizon_epochs": H, "unit": "NEAR burnt per epoch",
-           "buyback_gain": buyback_forecast(rows), "models": {}}
+    out = {"after_end_height": rows[-1]["end_height"], "horizon_epochs": H, "claims": window_claims(rows)[0],
+           "per_epoch_unit": "NEAR burnt per epoch, 10% / 50% / 90%",
+           "table_model": min(bt, key=lambda m: bt[m]["pinball"]), "models": {}}
     for m, f in MODELS.items():
         pred, offs = f(rows, o), [quantile(pool[m], q) for q in QS]
         out["models"][m] = [[round(math.exp(p + off), 3) for off in offs] for p in pred]
@@ -187,25 +210,27 @@ def predict(rows, pool):
 def ledger(later, commit):
     """Score the committed predictions against epochs that closed after the commit."""
     k = min(len(later), H)
+    done = k == H and all(r["buy"] is not None for r in later[:H])
+    claims = {}
+    for name, q in commit["claims"].items():
+        if q is None:
+            continue
+        got = CLAIMS[name][0](later[:H]) if done else None
+        claims[name] = dict(lo=q[0], mid=q[1], hi=q[2], actual=got,
+                            verdict="PENDING" if got is None else "HIT" if q[0] <= got <= q[2] else "MISS")
     loss, rows = {}, []
     for m, qs in commit["models"].items():
         loss[m] = sum(pinball(later[i]["y"], math.log(q), tau) for i in range(k)
                       for q, tau in zip(qs[i], QS)) / (k * len(QS)) if k else None
     for i in range(H):
-        q10, q50, q90 = commit["models"]["usage"][i]
+        q10, q50, q90 = commit["models"][commit["table_model"]][i]
         a = later[i]["burn"] / Y if i < k else None
         rows.append(dict(k=i + 1, q10=q10, q50=q50, q90=q90, actual=a, hit=a is not None and q10 <= a <= q90))
-    hits = sum(r["hit"] for r in rows)
-    # pre-registered rule: the price-free model beats the price-only model, and its 80% interval is calibrated
-    ok = k == H and loss["usage"] < loss["price"] and 20 <= hits <= 28
-    verdict = "PENDING" if k < H else "PASS" if ok else "FALSIFIED"
-    buyback, q = None, commit.get("buyback_gain")
-    if q and k == H and all(r["buy"] is not None for r in later[:H]):  # second claim: total buyback gain
-        got = sum(r["buy"] for r in later[:H]) / Y
-        buyback = dict(q10=q[0], q50=q[1], q90=q[2], actual=got, verdict="HIT" if q[0] <= got <= q[2] else "MISS")
-    elif q:
-        buyback = dict(q10=q[0], q50=q[1], q90=q[2], actual=None, verdict="PENDING")
-    return dict(buyback=buyback, resolved=k, total=H, hits=hits, loss=loss, verdict=verdict, rows=rows)
+    # the verdict is the payback claim: the thesis number must hold on epochs that did not exist when it was frozen
+    v = claims.get("payback", {}).get("verdict", "PENDING")
+    verdict = {"HIT": "PASS", "MISS": "FALSIFIED"}.get(v, "PENDING")
+    return dict(claims=claims, resolved=k, total=H, hits=sum(r["hit"] for r in rows), loss=loss, verdict=verdict,
+                rows=rows, table_model=commit["table_model"])
 
 
 def sig(x, n=6):  # round floats so the hash does not depend on the platform's libm
@@ -251,6 +276,9 @@ def main():
     d0, d1 = day(w[0]["t0_ns"]).strftime("%Y-%m-%d"), day(w[-1]["t1_ns"]).strftime("%Y-%m-%d")
     days = [r for r in llama if d0 < r["date"] < d1]
     avg = lambda k: sum(float(r[k] or 0) for r in days) / len(days) if days else None
+    # DefiLlama reports USD; convert each day at that day's price so the comparison is in NEAR
+    priced = [r for r in days if r["date"] in price]
+    near = lambda k: sum(float(r[k] or 0) / price[r["date"]] for r in priced) / len(priced) if priced else None
     usd = sum(price[r["date"]] for r in days if r["date"] in price) / max(1, sum(r["date"] in price for r in days))
     pay = now["payback"]
     upto = [r for r in llama if r["date"] < d1]
@@ -273,12 +301,11 @@ def main():
         ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95),
         burn_coverage_growth_per_year=g_burn, payback_growth_per_year=g_pay,
         years_to_breakeven_at_trend=math.log(now["multiple"]) / g_pay if pay and g_pay and g_pay > 0 else None,
-        window_price_usd=usd, burn_usd_per_day=now["burn_per_day"] * usd, llama_burn_usd_per_day=avg("near_burn_usd"),
-        buyback_usd_per_day=None if pay is None else now["buyback_per_day"] * usd,
-        llama_buyback_usd_per_day=avg("intents_buyback_usd"),
+        window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),
+        llama_buyback_near_per_day=near("intents_buyback_usd"),
         lump_transfers=sum(r["lump"] for r in rows),
         lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
-        all_revenue_wallets_per_day=allw, all_revenue_wallets_usd_per_day=None if allw is None else allw * usd,
+        all_revenue_wallets_per_day=allw,
         all_revenue_wallets_payback=None if allw is None else (allw + now["burn_per_day"]) / now["mint_per_day"],
         capture_share=now["buyback_per_day"] * usd / avg("intents_fees_usd") if pay is not None and days else None,
         intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"),
@@ -289,13 +316,13 @@ def main():
         payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
         if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
-    results = sig(dict(summary=summary, backtest=bt, series=roll[::3]))
+    results = sig(dict(summary=summary, backtest=bt, claims_backtest=window_claims(rows)[1], series=roll[::3]))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))
     open(os.path.join(ROOT, "out", "results.json"), "w").write(blob)
     led = None
     if pool:
-        pred = predict(rows, pool)
+        pred = predict(rows, pool, bt)
         json.dump(pred, open(os.path.join(ROOT, "out", "predictions.json"), "w"), sort_keys=True, separators=(",", ":"))
         if commit:  # the committed file must be exactly what this code derives from the frozen data
             assert commit == pred, "predictions.json does not match the model"
@@ -312,8 +339,8 @@ def main():
     if led:
         print(f"LEDGER {led['resolved']}/{led['total']} epochs resolved, {led['hits']} in interval, "
               f"loss {sig(led['loss'], 4)} -> {led['verdict']}")
-        if led["buyback"]:
-            print(f"LEDGER buyback gain {led['buyback']}")
+        for name, c in led["claims"].items():
+            print(f"LEDGER claim {name}: {sig(c['lo'])} to {sig(c['hi'])}, actual {sig(c['actual'])} -> {c['verdict']}")
     print("RESULT sha256=" + sha)
 
 

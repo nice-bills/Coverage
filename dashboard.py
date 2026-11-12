@@ -79,11 +79,11 @@ def render(results, sha, ledger=None):
     pct = lambda x, n=2: f"{100 * x:.{n}f}%"
     num = lambda x: f"{x:,.0f}"
     if s["payback"] is not None:
-        head = (f"NEAR already pays back {pct(s['payback'], 1)} of what it mints. "
+        head = (f"NEAR's fee burn plus Intents buybacks equal {pct(s['payback'], 1)} of what it mints. "
                 f"Break-even is {s['multiple']:.1f}x away.")
-        lede = (f"{pct(s['buyback_coverage'], 1)} is NEAR bought with NEAR Intents fee revenue and "
-                f"{pct(s['burn_coverage'])} is gas fees burnt. A fee-burn dashboard sees only the second number "
-                f"and puts break-even {s['burn_only_multiple']:.0f}x away.")
+        lede = (f"{pct(s['buyback_coverage'], 1)} is NEAR sent by the NEAR Intents contract to the buyback account, "
+                f"where it is held, not burnt. {pct(s['burn_coverage'])} is gas fees burnt. A fee-burn dashboard "
+                f"sees only the second number and puts break-even {s['burn_only_multiple']:.0f}x away.")
         tiles = [(pct(s["payback"], 1), "of new issuance offset by burn plus buybacks"),
                  (f"{s['multiple']:.1f}x", "growth in fee flows that offsets issuance"),
                  (num(s["buyback_per_day"]), "NEAR a day into the buyback account (on-chain balance)"),
@@ -103,34 +103,41 @@ def render(results, sha, ledger=None):
              f"Payback has grown {pct(g, 0)} a year (log scale) and reaches break-even in "
              f"{s['years_to_breakeven_at_trend']:.1f} years at that rate." if s.get("years_to_breakeven_at_trend") else
              f"Payback has changed {pct(g, 0)} a year (log scale); at that rate break-even is not reached.")
-    usd = lambda x: "n/a" if x is None else f"${x:,.0f}"
-    check = (f"<tr><td>Gas fees burnt, USD a day</td><td>{usd(s['burn_usd_per_day'])}</td><td>{usd(s['llama_burn_usd_per_day'])}</td></tr>"
-             f"<tr><td>Buyback wallet gain, USD a day</td><td>{usd(s['buyback_usd_per_day'])}</td><td rowspan='2'>{usd(s['llama_buyback_usd_per_day'])}</td></tr>"
-             f"<tr><td>All three revenue wallets, USD a day</td><td>{usd(s['all_revenue_wallets_usd_per_day'])}</td></tr>")
+    nr = lambda x: "n/a" if x is None else f"{x:,.0f}"
+    check = (f"<tr><td>Gas fees burnt</td><td>{nr(s['burn_per_day'])}</td><td>{nr(s['llama_burn_near_per_day'])} "
+             f"(assumes 70% of {nr(s['llama_fees_near_per_day'])} in fees)</td></tr>"
+             f"<tr><td>Buyback account gain</td><td>{nr(s['buyback_per_day'])}</td><td rowspan='2'>{nr(s['llama_buyback_near_per_day'])} "
+             f"(captured revenue, all wallets)</td></tr>"
+             f"<tr><td>All three revenue wallets, gain</td><td>{nr(s['all_revenue_wallets_per_day'])}</td></tr>")
     rows = "".join(
         f"<tr><td>{e(m)}</td><td>{v['pinball']:.4f}</td><td>{100 * v['skill_vs_persistence']:+.1f}%</td>"
         f"<td>{100 * v['interval_hit']:.0f}%</td><td>{v['n']}</td></tr>" for m, v in results["backtest"].items())
     led = ""
     if ledger:
-        cls = "pass" if ledger["verdict"] == "PASS" else "fail" if ledger["verdict"] == "FALSIFIED" else ""
+        cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
+        names = {"payback": "Payback over the 30 epochs (90% interval). This one sets the verdict.",
+                 "burn_total": "NEAR burnt over the 30 epochs (80% interval)",
+                 "buyback_total": "NEAR gained by the buyback account (80% interval)"}
+        fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
+        cr = "".join(f"<tr><td>{names[n]}</td><td>{fmt(n, c['lo'])} to {fmt(n, c['hi'])}</td><td>{fmt(n, c['actual'])}</td>"
+                     f"<td class='{cls.get(c['verdict'], '')}'>{c['verdict']}</td></tr>" for n, c in ledger["claims"].items())
         lr = "".join(f"<tr><td>{r['k']}</td><td>{r['q10']:.1f}</td><td>{r['q50']:.1f}</td><td>{r['q90']:.1f}</td>"
                      + (f"<td>{r['actual']:.1f}</td><td>{'yes' if r['hit'] else 'no'}</td></tr>" if r["actual"] is not None
                         else "<td>pending</td><td></td></tr>") for r in ledger["rows"])
-        led = (f"<h2>Live ledger</h2><p>Predictions frozen before these epochs existed; commitment <code>{e(ledger['commit'])}</code>. "
-               f"{ledger['resolved']} of {ledger['total']} epochs resolved. Verdict so far: "
-               f"<span class='{cls}'>{e(ledger['verdict'])}</span>.</p><div class='card wrap'><table><tr><th>Epoch</th>"
-               f"<th>10%</th><th>50%</th><th>90%</th><th>Actual</th><th>In interval</th></tr>{lr}</table></div>")
-        led = led.replace("<h2>Live ledger</h2><p>", "<h2>Live ledger</h2><p>NEAR burnt per epoch, forecast by the price-free model. ")
-        if ledger["buyback"]:
-            b = ledger["buyback"]
-            got = "pending" if b["actual"] is None else f"{b['actual']:,.0f} NEAR"
-            led += (f"<p style='margin-top:12px'>Second claim: the buyback account gains between {b['q10']:,.0f} and "
-                    f"{b['q90']:,.0f} NEAR over these 30 epochs. Actual: {got}. <b>{e(b['verdict'])}</b>.</p>")
+        led = (f"<h2>Live ledger</h2><p>These forecasts were frozen before the epochs they describe existed; commitment "
+               f"<code>{e(ledger['commit'])}</code>. {ledger['resolved']} of {ledger['total']} epochs have closed. Verdict: "
+               f"<span class='{cls.get(ledger['verdict'], '')}'>{e(ledger['verdict'])}</span>.</p>"
+               f"<div class='card wrap'><table><tr><th>Claim</th><th>Committed interval</th><th>Actual</th><th>Result</th></tr>{cr}</table></div>"
+               f"<p style='margin-top:16px'>NEAR burnt in each epoch against the committed 80% interval "
+               f"({e(ledger['table_model'])} model). {ledger['hits']} of {ledger['resolved']} inside so far.</p>"
+               f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
+               f"<th>In interval</th></tr>{lr}</table></div>")
     cards = "".join(f"<div class='card' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
                     f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in CHARTS)
-    bt = (f"<h2>Does usage or price explain the burn?</h2><p>Walk-forward backtest of burn per epoch, "
-          f"{next(iter(results['backtest'].values()))['n']} forecasts, 30 epochs ahead. Lower pinball loss is better. "
-          f"The thesis model uses no price; the rival uses only price.</p><div class='card wrap'><table><tr><th>Model</th>"
+    bt = (f"<h2>Does the clock or the price explain the burn?</h2><p>Walk-forward backtest of burn per epoch, "
+          f"{next(iter(results['backtest'].values()))['n']} forecasts, up to 30 epochs ahead. Lower pinball loss is better. "
+          f"All three models share the same recent level; one adds a time-of-week profile, one adds NEAR's price."
+          f"</p><div class='card wrap'><table><tr><th>Model</th>"
           f"<th>Pinball loss</th><th>Skill vs persistence</th><th>80% interval hit rate</th><th>Forecasts</th></tr>{rows}"
           f"</table></div>") if results["backtest"] else ""
     calc = ""
@@ -160,8 +167,8 @@ Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 <div class="grid">{cards}</div>
 {calc}
 <h2>Chain versus the indexer</h2>
-<p>The same two flows over the same days, measured here from the chain and reported by DefiLlama.</p>
-<div class="card wrap"><table><tr><th>Flow</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
+<p>The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
+<div class="card wrap"><table><tr><th>Flow, NEAR a day</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
 {bt}
 {led}
 <p style="margin-top:32px"><small>Result hash <code>{sha}</code></small></p>

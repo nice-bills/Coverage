@@ -80,9 +80,12 @@ change, exploit or fee cut at NEAR Intents removes most of the thesis.
 __BURN_COV__ of issuance. On its own it is __BURN_MULT__x from break-even.
 
 **The window is short.** Buybacks began on 2026-02-23, so there are under nine months of
-history, and one transfer of __LUMP__ NEAR on 2026-09-09 had to be excluded as a treasury
+history, and one gain of __LUMP__ NEAR on 2026-09-09 had to be excluded as a treasury
 movement. The exclusion rule is mechanical and backward-looking, but it is still a rule we
-chose.
+chose. The chain supports it for this case: between heights 214890733 and 214933933 the
+buyback account gained 505,040.6 NEAR while `1csfundsadmin.sputnik-dao.near` lost 502,791.7
+(`view_account` at both heights on the archival RPC). That is revenue captured earlier moving
+between wallets, not new revenue.
 
 **Buyback amounts depend on the NEAR price.** Revenue is earned in dollars and converted to
 NEAR. A higher NEAR price buys fewer NEAR for the same revenue, so payback in NEAR terms falls
