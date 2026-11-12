@@ -140,6 +140,8 @@ def balance(height):
             if e.code != 429:
                 raise
             time.sleep(5)
+        except OSError:  # dropped connection: try again
+            time.sleep(5)
 
 
 REVENUE_WALLETS = [BUYBACK, "fefundsadmin.sputnik-dao.near", "1csfundsadmin.sputnik-dao.near"]
@@ -154,6 +156,8 @@ def query(params):
         except urllib.error.HTTPError as e:
             if e.code != 429:
                 raise
+            time.sleep(5)
+        except OSError:  # dropped connection: try again
             time.sleep(5)
 
 

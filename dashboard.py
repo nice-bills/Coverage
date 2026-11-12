@@ -28,6 +28,7 @@ th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:
 .calc label{display:block;margin:0 0 14px;font-size:14px}.calc output{float:right;color:var(--text2);font-variant-numeric:tabular-nums}
 .calc input{display:block;width:100%;margin-top:6px;accent-color:var(--s1)}
 .meter{height:10px;border-radius:5px;background:var(--grid);overflow:hidden}.meter i{display:block;height:100%;background:var(--s1);width:0}
+.card ul{margin:0;padding-left:20px}.card li{margin:6px 0;color:var(--text2)}
 .banner{border-left:4px solid var(--s1);padding:10px 14px;background:var(--surface);margin:16px 0}
 """
 
@@ -99,10 +100,27 @@ def render(results, sha, ledger=None):
     tiles.append((pct(s["ceiling"], 0), f"burn coverage if blocks were full at today's gas price "
                                         f"(90% range {pct(s['ceiling_p05'], 0)} to {pct(s['ceiling_p95'], 0)})"))
     g = s.get("payback_growth_per_year")
-    trend = ("Not enough history with buyback data for a trend yet." if g is None else
-             f"Payback has grown {pct(g, 0)} a year (log scale) and reaches break-even in "
-             f"{s['years_to_breakeven_at_trend']:.1f} years at that rate." if s.get("years_to_breakeven_at_trend") else
-             f"Payback has changed {pct(g, 0)} a year (log scale); at that rate break-even is not reached.")
+    trend = ""
+    if s["payback"] is not None:
+        trend = (f"Payback was {pct(s['payback_first'], 1)} in the first window with buyback data ({s['payback_first_date']}), "
+                 f"peaked at {pct(s['payback_peak'], 1)} ({s['payback_peak_date']}) and is {pct(s['payback'], 1)} now.")
+        if g is not None:
+            trend += f" Across non-overlapping windows it has changed by {100 * g:+.0f}% a year on a log scale."
+    against = ""
+    if s["payback"] is not None:
+        against = (f"<h2>The case against</h2><div class='card'><ul>"
+                   f"<li>Buybacks are held in a multisig account, not burnt. Supply does not fall and the NEAR can be spent.</li>"
+                   f"<li>Payback has fallen from its peak of {pct(s['payback_peak'], 1)} to {pct(s['payback'], 1)}.</li>"
+                   f"<li>NEAR Intents is not growing: over a year, daily volume is {s['intents_volume_usd_ratio_1y']:.2f}x and gross fees "
+                   f"{s['intents_fees_usd_ratio_1y']:.2f}x (DefiLlama).</li>"
+                   f"<li>One application supplies {pct(s['buyback_coverage'] / s['payback'], 0)} of the payback.</li>"
+                   f"<li>Gas burn alone covers {pct(s['burn_coverage'])} of issuance, {s['burn_only_multiple']:.0f}x from break-even.</li>"
+                   f"</ul></div>")
+    attr = ""
+    if s.get("inflow_transfers"):
+        attr = (f"<p>Sender check: {s['inflow_transfers_from_intents']} of the last {s['inflow_transfers']} transfers into the buyback "
+                f"account came from <code>intents.near</code>, carrying {pct(s['inflow_share_from_intents'], 1)} of the NEAR "
+                f"(NearBlocks, with transaction hashes in <code>data/inflows.csv</code>).</p>")
     nr = lambda x: "n/a" if x is None else f"{x:,.0f}"
     check = (f"<tr><td>Gas fees burnt</td><td>{nr(s['burn_per_day'])}</td><td>{nr(s['llama_burn_near_per_day'])} "
              f"(assumes 70% of {nr(s['llama_fees_near_per_day'])} in fees)</td></tr>"
@@ -169,6 +187,8 @@ Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 <h2>Chain versus the indexer</h2>
 <p>The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
 <div class="card wrap"><table><tr><th>Flow, NEAR a day</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
+{attr}
+{against}
 {bt}
 {led}
 <p style="margin-top:32px"><small>Result hash <code>{sha}</code></small></p>
