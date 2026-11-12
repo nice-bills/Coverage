@@ -20,6 +20,7 @@ def values():
     pct = lambda x, n=1: f"{100 * x:.{n}f}%"
     usd = lambda x: f"${x:,.0f}"
     num = lambda x: f"{x:,.0f}"
+    skill = lambda m: f"{abs(100 * m['skill_vs_persistence']):.0f}% {'better' if m['skill_vs_persistence'] > 0 else 'worse'}"
 
     # one row per frozen round
     rdir = os.path.join(ROOT, "predictions")
@@ -72,6 +73,7 @@ def values():
         PAY_PEAK=pct(s["payback_peak"]), PAY_PEAK_DATE=s["payback_peak_date"],
         BT_N=str(bt["persistence"]["n"]), BT_PERSIST=f"{bt['persistence']['pinball']:.4f}",
         BT_CLOCK=f"{bt['clock']['pinball']:.4f}", BT_PRICE=f"{bt['price']['pinball']:.4f}",
+        BT_PRICE_SKILL=skill(bt["price"]), BT_CLOCK_SKILL=skill(bt["clock"]),
         ROUNDS_TABLE=table, ROUND_HASHES="; ".join(hashes) or "(none)")
 
 

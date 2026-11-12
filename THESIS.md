@@ -71,10 +71,11 @@ blocks at today's effective gas price gives 118% of issuance (90% bootstrap rang
 guarantee.
 
 **Price does not explain burn.** In a walk-forward backtest of burn per epoch
-(510 forecasts), a model that adds NEAR's price to the recent level scores
-0.0938 pinball loss against 0.0865 for the recent level alone. A model that adds
-a time-of-week profile scores 0.0785. Neither addition is a clear improvement, so at this
-horizon burn behaves like a noisy level, not like a function of the token price.
+(510 forecasts, up to 30 epochs ahead), the recent level alone scores 0.0865
+pinball loss. Adding NEAR's price to it scores 0.0938 (9% worse); adding a
+time-of-week profile scores 0.0785 (9% better). Lower is better. Burn follows
+the calendar of use more than it follows the token price. The bands these models produce are
+too narrow: they held about two-thirds of outcomes against a nominal 80%.
 
 ## Evidence against
 
@@ -100,7 +101,7 @@ or loss of flow at NEAR Intents removes most of the thesis.
 **Burn alone is far from break-even.** 0.92% of issuance, 109x away.
 
 **The history is short and needed one exclusion.** Buybacks began on 2026-02-23. One gain of
-604,559 NEAR was excluded by a mechanical rule (more than 20 times the median of the previous
+505,041 NEAR was excluded by a mechanical rule (more than 20 times the median of the previous
 100 epochs). The chain shows what it was: across that epoch, heights 214890733 to 214933933,
 the other two revenue wallets fell by 501,917 NEAR (`data/wallets.csv`). That is revenue
 captured earlier moving between wallets. The rule removes the whole gain, slightly more than
@@ -136,10 +137,11 @@ procedure, run at earlier dates on data available then, contained the outcome
 (`claims_backtest` in `out/results.json`).
 
 - If payback over a round's window falls outside its interval, `run.py` prints `FALSIFIED` for
-  that round. A 90% interval misses about one time in ten even when the model is right; we
-  accept that.
+  that round. The band is the 5% to 95% range of past window-to-window changes. It has held
+  less often than 90% of the time (see the table), so an occasional miss is expected even when
+  the model is right; we accept that.
 - The other two claims are reported as `HIT` or `MISS`. The burn interval has held less often
-  than its nominal 90%, so a burn miss is weaker evidence than a payback miss.
+  than the payback band, so a burn miss is weaker evidence than a payback miss.
 - The payback interval is wide because consecutive windows differ a lot. What it rules out is
   the burn-only picture: its lower bound is several times 0.92%. A result near the
   bounds is weak support, not confirmation.

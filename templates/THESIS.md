@@ -71,10 +71,11 @@ __CEIL_LO__ to __CEIL_HI__). This is an extrapolation from 300 sampled blocks, n
 guarantee.
 
 **Price does not explain burn.** In a walk-forward backtest of burn per epoch
-(__BT_N__ forecasts), a model that adds NEAR's price to the recent level scores
-__BT_PRICE__ pinball loss against __BT_PERSIST__ for the recent level alone. A model that adds
-a time-of-week profile scores __BT_CLOCK__. Neither addition is a clear improvement, so at this
-horizon burn behaves like a noisy level, not like a function of the token price.
+(__BT_N__ forecasts, up to 30 epochs ahead), the recent level alone scores __BT_PERSIST__
+pinball loss. Adding NEAR's price to it scores __BT_PRICE__ (__BT_PRICE_SKILL__); adding a
+time-of-week profile scores __BT_CLOCK__ (__BT_CLOCK_SKILL__). Lower is better. Burn follows
+the calendar of use more than it follows the token price. The bands these models produce are
+too narrow: they held about two-thirds of outcomes against a nominal 80%.
 
 ## Evidence against
 
@@ -136,10 +137,11 @@ procedure, run at earlier dates on data available then, contained the outcome
 (`claims_backtest` in `out/results.json`).
 
 - If payback over a round's window falls outside its interval, `run.py` prints `FALSIFIED` for
-  that round. A 90% interval misses about one time in ten even when the model is right; we
-  accept that.
+  that round. The band is the 5% to 95% range of past window-to-window changes. It has held
+  less often than 90% of the time (see the table), so an occasional miss is expected even when
+  the model is right; we accept that.
 - The other two claims are reported as `HIT` or `MISS`. The burn interval has held less often
-  than its nominal 90%, so a burn miss is weaker evidence than a payback miss.
+  than the payback band, so a burn miss is weaker evidence than a payback miss.
 - The payback interval is wide because consecutive windows differ a lot. What it rules out is
   the burn-only picture: its lower bound is several times __BURN_COV__. A result near the
   bounds is weak support, not confirmation.

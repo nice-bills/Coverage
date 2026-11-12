@@ -157,9 +157,9 @@ def render(results, sha, ledgers=None):
         f"<td>{100 * v['interval_hit']:.0f}%</td><td>{v['n']}</td></tr>" for m, v in results["backtest"].items())
     led = ""
     cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
-    names = {"payback": "Payback over the window (90% interval). This one sets the verdict.",
-             "burn_total": "NEAR burnt over the window (90% interval)",
-             "buyback_total": "NEAR gained by the buyback account (90% interval)"}
+    names = {"payback": "Payback over the window (5% to 95% band). This one sets the verdict.",
+             "burn_total": "NEAR burnt over the window (5% to 95% band)",
+             "buyback_total": "NEAR gained by the buyback account (5% to 95% band)"}
     fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
     for L in ledgers or []:
         cr = "".join(f"<tr><td>{names[n]}</td><td>{fmt(n, c['lo'])} to {fmt(n, c['hi'])}</td><td>{fmt(n, c['actual'])}</td>"
@@ -177,10 +177,14 @@ def render(results, sha, ledgers=None):
                 f"({e(L['table_model'])} model): {L['hits']} of {L['resolved']} inside</summary>"
                 f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
                 f"<th>In band</th></tr>{lr}</table></div></details>")
+    cb = results.get("claims_backtest", {})
+    tot = [sum(v["payback"][k] for v in cb.values() if "payback" in v) for k in ("hit", "n")]
+    held = f"{100 * tot[0] / tot[1]:.0f}%" if tot[1] else "an unknown share"
     if led:
         led = ("<h2>Live ledger</h2><p>Each round was frozen before the epochs it describes existed. The chain scores it; "
                "<code>run.py</code> refuses a round that is not exactly what the code derives from the data up to its height. "
-               "A 90% interval misses about one time in ten even when the model is right.</p>" + led)
+               "A band is the 5% to 95% range of past window-to-window changes; historically the payback band has held "
+               f"{held} of the time, so an occasional miss is expected even when the model is right.</p>" + led)
     def card(src, rows):
         out = ""
         for k, t, sub, m, u, dp, source, say in rows:

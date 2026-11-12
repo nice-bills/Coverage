@@ -20,7 +20,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=53be70e2f056211e9e6444bb0353091b7702050561451c71f68eab34d7f714bf
+RESULT sha256=c773574da1189e5bd6446c9c3f2304c4bbb21d775b911dd7f2e70e6191bf18a9
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
@@ -155,7 +155,7 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 ## Forecasts and the outside judge
 
 Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
-newest cached epoch and never overwritten. A round commits to 90% intervals for payback, total
+newest cached epoch and never overwritten. A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 

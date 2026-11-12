@@ -62,7 +62,7 @@ def rounds():
 
 def mark_lumps(rows):
     for i, r in enumerate(rows):
-        past = [p["raw_buy"] for p in rows[max(0, i - W):i] if p["raw_buy"] is not None]
+        past = [p["raw_buy"] for p in rows[max(0, i - W):i] if p["raw_buy"]]  # epochs with a gain or loss
         r["lump"] = r["buy"] is not None and len(past) >= 10 and r["buy"] > LUMP * quantile(past, 0.5)
         if r["lump"]:
             r["buy"] = 0

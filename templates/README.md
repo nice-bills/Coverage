@@ -155,7 +155,7 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 ## Forecasts and the outside judge
 
 Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
-newest cached epoch and never overwritten. A round commits to 90% intervals for payback, total
+newest cached epoch and never overwritten. A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
