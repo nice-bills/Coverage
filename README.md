@@ -27,7 +27,8 @@ RESULT sha256=2a3ce99539498d55e4b427116c454d924976109aa3e48805b6c4d87b3e201777
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
 `out/results.json` and `dist/index.html`, and prints every headline number. Open
-`dist/index.html` in a browser for the dashboard. Both output files are also committed, so they
+`dist/index.html` in a browser for the dashboard: the flows to scale, the onchain charts with
+their sources, the four models, the forecast rounds and the commands on this page. Both output files are also committed, so they
 can be read without running anything.
 
 It also prints `LEDGER` lines: each frozen forecast round in `predictions/`, scored against the
