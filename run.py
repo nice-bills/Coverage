@@ -283,9 +283,11 @@ def main():
     pay = now["payback"]
     upto = [r for r in llama if r["date"] < d1]
     # wider cross-check: NEAR plus wNEAR in all three NEAR Intents revenue wallets across the same window
-    wal = {}
+    wal, other = {}, {}
     for r in csv.DictReader(open(os.path.join(ROOT, "data", "wallets.csv"))):
         wal[int(r["height"])] = wal.get(int(r["height"]), 0) + int(r["near"]) + int(r["wnear"])
+        if r["account"] != "buybacks.multisignature.near":
+            other[int(r["height"])] = other.get(int(r["height"]), 0) + int(r["near"]) + int(r["wnear"])
     h0, h1 = w[0]["prev_end_height"], w[-1]["end_height"]
     wsecs = (w[-1]["t1_ns"] - w[0]["t0_ns"]) / 1e9
     allw = (wal[h1] - wal[h0]) / Y / wsecs * 86400 if h0 in wal and h1 in wal else None
@@ -303,6 +305,9 @@ def main():
         years_to_breakeven_at_trend=math.log(now["multiple"]) / g_pay if pay and g_pay and g_pay > 0 else None,
         window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),
         llama_buyback_near_per_day=near("intents_buyback_usd"),
+        # how much left the other two revenue wallets during the lump epochs (where those heights are cached)
+        lump_matched_outflow_near=sum(other.get(r["prev_end_height"], 0) - other.get(r["end_height"], 0) for r in rows
+                                      if r["lump"] and r["prev_end_height"] in other and r["end_height"] in other) / Y,
         lump_transfers=sum(r["lump"] for r in rows),
         lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
         all_revenue_wallets_per_day=allw,

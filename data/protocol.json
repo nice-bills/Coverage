@@ -1,0 +1,19 @@
+{
+ "burnt_gas_reward": [
+  0,
+  1
+ ],
+ "epoch_length": 43200,
+ "gas_limit": 1000000000000000,
+ "max_inflation_rate": [
+  1,
+  40
+ ],
+ "min_gas_price": "1000000000",
+ "num_blocks_per_year": 31536000,
+ "protocol_reward_rate": [
+  0,
+  1
+ ],
+ "protocol_version": 88
+}

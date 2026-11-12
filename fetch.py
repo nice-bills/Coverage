@@ -4,6 +4,7 @@
 Usage: python3 fetch.py [--epochs 1300]   epochs, then buyback balances
        python3 fetch.py buybacks          buyback balances only
        python3 fetch.py wallets           all three revenue wallets at the last window's ends
+       python3 fetch.py protocol          protocol parameters cited in the thesis
        python3 fetch.py inflows           who sent NEAR to the buyback account (NearBlocks, third party)
        python3 fetch.py offchain          price and DefiLlama series (third party)
 Resumable: epochs and balances already cached are not refetched.
@@ -158,11 +159,13 @@ def query(params):
 
 def wallets():
     """NEAR plus wNEAR held by all three NEAR Intents revenue wallets at both ends of the last
-    100-epoch window. A wider cross-check of the buyback figure; 12 calls."""
+    100-epoch window, and at any extra heights given. A wider cross-check of the buyback figure."""
     import base64
     rows = sorted(csv.DictReader(open(OUT)), key=lambda r: int(r["start_height"]))
     out = []
-    for h in (int(rows[-100]["prev_end_height"]), int(rows[-1]["end_height"])):
+    # extra heights on the command line, e.g. both ends of an epoch with a lump transfer
+    extra = [int(a) for a in sys.argv[2:]]
+    for h in sorted({int(rows[-100]["prev_end_height"]), int(rows[-1]["end_height"]), *extra}):
         for acct in REVENUE_WALLETS:
             a = query({"request_type": "view_account", "block_id": h, "account_id": acct})
             args = base64.b64encode(json.dumps({"account_id": acct}).encode()).decode()
@@ -175,6 +178,20 @@ def wallets():
         w.writerow(["height", "account", "near", "wnear"])
         w.writerows(out)
     print(f"wrote wallets.csv ({len(out)} rows)")
+
+
+def protocol():
+    """Snapshot of the protocol parameters the thesis cites, from the live protocol config."""
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "EXPERIMENTAL_protocol_config",
+                       "params": {"finality": "final"}}).encode()
+    r = json.load(urllib.request.urlopen(urllib.request.Request(RPC, body, UA), timeout=30))["result"]
+    keep = {k: r[k] for k in ("protocol_version", "epoch_length", "max_inflation_rate", "protocol_reward_rate",
+                              "num_blocks_per_year", "min_gas_price", "gas_limit")}
+    keep["burnt_gas_reward"] = r["runtime_config"]["transaction_costs"]["burnt_gas_reward"]
+    with open(os.path.join(os.path.dirname(OUT), "protocol.json"), "w") as f:
+        json.dump(keep, f, indent=1, sort_keys=True)
+        f.write("\n")
+    print("wrote protocol.json", keep)
 
 
 def inflows(pages=6):
@@ -291,4 +308,4 @@ def main():
 
 
 if __name__ == "__main__":
-    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets, "inflows": inflows}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()
+    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets, "inflows": inflows, "protocol": protocol}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()

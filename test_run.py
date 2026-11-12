@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-check for the scoring maths. Usage: python3 test_run.py"""
+"""Self-check: scoring maths, then an end-to-end run with tamper checks. Usage: python3 test_run.py"""
 import math
 import run
 
@@ -24,4 +24,34 @@ assert run.ledger(later, commit)["verdict"] == "FALSIFIED"
 assert run.ledger(later[:5], commit)["verdict"] == "PENDING" and run.ledger([], commit)["verdict"] == "PENDING"
 later[3]["buy"] = None  # a missing balance must not be scored as zero
 assert run.ledger(later, commit)["verdict"] == "PENDING"
+
+# end to end, on a copy of the repo: the real cache must pass, and tampering must make the command fail
+import json, os, shutil, subprocess, sys, tempfile
+src = os.path.dirname(os.path.abspath(__file__))
+with tempfile.TemporaryDirectory() as tmp:
+    for f in ("run.py", "dashboard.py", "data"):
+        (shutil.copytree if f == "data" else shutil.copy)(os.path.join(src, f), os.path.join(tmp, f))
+    go = lambda: subprocess.run([sys.executable, "run.py"], cwd=tmp, capture_output=True, text=True)
+    first = go()
+    assert first.returncode == 0, first.stderr
+    result = first.stdout.splitlines()[-1]
+    assert result.startswith("RESULT sha256=")
+    # freeze the predictions: the result must not change and the ledger must appear
+    shutil.copy(os.path.join(tmp, "out", "predictions.json"), os.path.join(tmp, "predictions.json"))
+    frozen = go()
+    assert frozen.returncode == 0 and frozen.stdout.splitlines()[-1] == result and "LEDGER" in frozen.stdout
+    # an edited prediction is refused
+    p = json.load(open(os.path.join(tmp, "predictions.json")))
+    p["claims"]["payback"][0] /= 2
+    json.dump(p, open(os.path.join(tmp, "predictions.json"), "w"))
+    assert go().returncode != 0
+    os.remove(os.path.join(tmp, "predictions.json"))
+    # an edited cache row is refused
+    path = os.path.join(tmp, "data", "epochs.csv")
+    lines = open(path).read().splitlines()
+    cells = lines[50].split(",")
+    cells[8] = str(int(cells[8]) + 1)  # one yoctoNEAR added to one epoch's mint
+    lines[50] = ",".join(cells)
+    open(path, "w").write("\n".join(lines) + "\n")
+    assert go().returncode != 0
 print("SELFTEST PASS")
