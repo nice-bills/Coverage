@@ -143,8 +143,10 @@ def render(results, sha, ledger=None):
                f"<code>{e(ledger['commit'])}</code>. {ledger['resolved']} of {ledger['total']} epochs have closed. Verdict: "
                f"<span class='{cls.get(ledger['verdict'], '')}'>{e(ledger['verdict'])}</span>.</p>"
                f"<div class='card wrap'><table><tr><th>Claim</th><th>Committed interval</th><th>Actual</th><th>Result</th></tr>{cr}</table></div>"
-               f"<p style='margin-top:16px'>NEAR burnt in each epoch against the committed 80% interval "
-               f"({e(ledger['table_model'])} model). {ledger['hits']} of {ledger['resolved']} inside so far.</p>"
+               f"<p style='margin-top:16px'>NEAR burnt in each epoch against the committed 10% to 90% band "
+               f"({e(ledger['table_model'])} model). In the backtest this band held "
+               f"{100 * results['backtest'][ledger['table_model']]['interval_hit']:.0f}% of outcomes, less than its nominal 80%. "
+               f"{ledger['hits']} of {ledger['resolved']} inside so far.</p>"
                f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
                f"<th>In interval</th></tr>{lr}</table></div>")
     cards = "".join(f"<div class='card' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
@@ -153,7 +155,7 @@ def render(results, sha, ledger=None):
           f"{next(iter(results['backtest'].values()))['n']} forecasts, up to 30 epochs ahead. Lower pinball loss is better. "
           f"All three models share the same recent level; one adds a time-of-week profile, one adds NEAR's price."
           f"</p><div class='card wrap'><table><tr><th>Model</th>"
-          f"<th>Pinball loss</th><th>Skill vs persistence</th><th>80% interval hit rate</th><th>Forecasts</th></tr>{rows}"
+          f"<th>Pinball loss</th><th>Skill vs persistence</th><th>10-90% band hit rate</th><th>Forecasts</th></tr>{rows}"
           f"</table></div>") if results["backtest"] else ""
     calc = ""
     if s["payback"] is not None and s.get("capture_share"):
