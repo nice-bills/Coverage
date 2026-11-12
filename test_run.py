@@ -17,4 +17,5 @@ led = run.ledger(later, {"models": {"usage": good, "price": off, "persistence": 
 assert led["hits"] == run.H and led["loss"]["usage"] < led["loss"]["price"]
 assert led["verdict"] == "FALSIFIED"  # 30 of 30 hits is outside the 20-28 calibration band: too wide is a fail too
 assert run.ledger(later[:5], {"models": {"usage": good, "price": off, "persistence": off}})["verdict"] == "PENDING"
+assert run.ledger([], {"models": {"usage": good, "price": off, "persistence": off}})["verdict"] == "PENDING"
 print("SELFTEST PASS")

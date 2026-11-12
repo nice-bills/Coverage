@@ -187,19 +187,17 @@ def predict(rows, pool):
 def ledger(later, commit):
     """Score the committed predictions against epochs that closed after the commit."""
     k = min(len(later), H)
-    if not k:
-        return None
     loss, rows = {}, []
     for m, qs in commit["models"].items():
         loss[m] = sum(pinball(later[i]["y"], math.log(q), tau) for i in range(k)
-                      for q, tau in zip(qs[i], QS)) / (k * len(QS))
-    for i in range(k):
+                      for q, tau in zip(qs[i], QS)) / (k * len(QS)) if k else None
+    for i in range(H):
         q10, q50, q90 = commit["models"]["usage"][i]
-        a = later[i]["burn"] / Y
-        rows.append(dict(k=i + 1, q10=q10, q50=q50, q90=q90, actual=a, hit=q10 <= a <= q90))
+        a = later[i]["burn"] / Y if i < k else None
+        rows.append(dict(k=i + 1, q10=q10, q50=q50, q90=q90, actual=a, hit=a is not None and q10 <= a <= q90))
     hits = sum(r["hit"] for r in rows)
     # pre-registered rule: the price-free model beats the price-only model, and its 80% interval is calibrated
-    ok = loss["usage"] < loss["price"] and 20 <= hits <= 28
+    ok = k == H and loss["usage"] < loss["price"] and 20 <= hits <= 28
     verdict = "PENDING" if k < H else "PASS" if ok else "FALSIFIED"
     buyback, q = None, commit.get("buyback_gain")
     if q and k == H and all(r["buy"] is not None for r in later[:H]):  # second claim: total buyback gain
@@ -282,6 +280,7 @@ def main():
         lump_transfers_near=sum(r["raw_buy"] for r in rows if r["lump"]) / Y,
         all_revenue_wallets_per_day=allw, all_revenue_wallets_usd_per_day=None if allw is None else allw * usd,
         all_revenue_wallets_payback=None if allw is None else (allw + now["burn_per_day"]) / now["mint_per_day"],
+        capture_share=now["buyback_per_day"] * usd / avg("intents_fees_usd") if pay is not None and days else None,
         intents_volume_usd_per_day=avg("intents_volume_usd"), intents_fees_usd_per_day=avg("intents_fees_usd"),
         # year on year, first 30 days against last 30 days of the DefiLlama series up to the snapshot
         **{k + "_ratio_1y": sum(float(r[k] or 0) for r in upto[-30:]) / max(1.0, sum(float(r[k] or 0) for r in upto[:30]))
@@ -301,8 +300,7 @@ def main():
         if commit:  # the committed file must be exactly what this code derives from the frozen data
             assert commit == pred, "predictions.json does not match the model"
             led = ledger(later, commit)
-            if led:
-                led["commit"] = hashlib.sha256(open(cpath, "rb").read()).hexdigest()
+            led["commit"] = hashlib.sha256(open(cpath, "rb").read()).hexdigest()
     for k, v in results["summary"].items():
         print(f"{k:30} {v}")
     for m, v in results["backtest"].items():

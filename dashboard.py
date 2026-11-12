@@ -25,10 +25,21 @@ border-radius:6px;font-size:12px;white-space:nowrap;transform:translate(-50%,-13
 th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--grid)}
 th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:500;font-size:13px}
 .wrap{overflow-x:auto}.pass{color:var(--good);font-weight:600}.fail{color:var(--bad);font-weight:600}
+.calc label{display:block;margin:0 0 14px;font-size:14px}.calc output{float:right;color:var(--text2);font-variant-numeric:tabular-nums}
+.calc input{display:block;width:100%;margin-top:6px;accent-color:var(--s1)}
+.meter{height:10px;border-radius:5px;background:var(--grid);overflow:hidden}.meter i{display:block;height:100%;background:var(--s1);width:0}
 .banner{border-left:4px solid var(--s1);padding:10px 14px;background:var(--surface);margin:16px 0}
 """
 
 JS = """
+const C=document.querySelector('.calc');if(C){const g=id=>document.getElementById(id),f=()=>{
+ const v=+g('vol').value,c=+g('cap').value,n=+g('inf').value,c0=+C.dataset.cap;
+ const p=(+C.dataset.burn+ +C.dataset.buy*v*c/c0)*2.5/n;
+ g('o-vol').textContent=v.toFixed(1)+'x today';g('o-cap').textContent=c+'%'+(c==c0?' (today)':'');
+ g('o-inf').textContent=n.toFixed(1)+'% a year'+(n==2.5?' (today)':'');
+ g('bar').style.width=Math.min(100,p*100)+'%';
+ g('o-pay').textContent='Payback: '+(p*100).toFixed(1)+'% of issuance'+(p>=1?'. Break-even reached: supply stops growing net of buybacks.':'. Break-even is '+(1/p).toFixed(1)+'x away.')};
+ C.addEventListener('input',f);f()}
 const D=JSON.parse(document.getElementById('data').textContent),NS='http://www.w3.org/2000/svg';
 function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
 document.querySelectorAll('[data-chart]').forEach(card=>{
@@ -103,11 +114,13 @@ def render(results, sha, ledger=None):
     if ledger:
         cls = "pass" if ledger["verdict"] == "PASS" else "fail" if ledger["verdict"] == "FALSIFIED" else ""
         lr = "".join(f"<tr><td>{r['k']}</td><td>{r['q10']:.1f}</td><td>{r['q50']:.1f}</td><td>{r['q90']:.1f}</td>"
-                     f"<td>{r['actual']:.1f}</td><td>{'yes' if r['hit'] else 'no'}</td></tr>" for r in ledger["rows"])
+                     + (f"<td>{r['actual']:.1f}</td><td>{'yes' if r['hit'] else 'no'}</td></tr>" if r["actual"] is not None
+                        else "<td>pending</td><td></td></tr>") for r in ledger["rows"])
         led = (f"<h2>Live ledger</h2><p>Predictions frozen before these epochs existed; commitment <code>{e(ledger['commit'])}</code>. "
                f"{ledger['resolved']} of {ledger['total']} epochs resolved. Verdict so far: "
                f"<span class='{cls}'>{e(ledger['verdict'])}</span>.</p><div class='card wrap'><table><tr><th>Epoch</th>"
                f"<th>10%</th><th>50%</th><th>90%</th><th>Actual</th><th>In interval</th></tr>{lr}</table></div>")
+        led = led.replace("<h2>Live ledger</h2><p>", "<h2>Live ledger</h2><p>NEAR burnt per epoch, forecast by the price-free model. ")
         if ledger["buyback"]:
             b = ledger["buyback"]
             got = "pending" if b["actual"] is None else f"{b['actual']:,.0f} NEAR"
@@ -120,6 +133,20 @@ def render(results, sha, ledger=None):
           f"The thesis model uses no price; the rival uses only price.</p><div class='card wrap'><table><tr><th>Model</th>"
           f"<th>Pinball loss</th><th>Skill vs persistence</th><th>80% interval hit rate</th><th>Forecasts</th></tr>{rows}"
           f"</table></div>") if results["backtest"] else ""
+    calc = ""
+    if s["payback"] is not None and s.get("capture_share"):
+        cap = max(1, round(100 * s["capture_share"]))
+        calc = f"""<h2>What closes the gap</h2>
+<p>Payback is burn plus buybacks over issuance. Three levers move it. Two of them are governance decisions.</p>
+<div class="card calc" data-burn="{s['burn_coverage']}" data-buy="{s['buyback_coverage']}" data-cap="{cap}">
+<label>NEAR Intents volume <output id="o-vol">1.0x today</output>
+<input type="range" id="vol" min="1" max="20" step="0.5" value="1"></label>
+<label>Share of gross Intents fees reaching the buyback account <output id="o-cap">{cap}% (today)</output>
+<input type="range" id="cap" min="{cap}" max="100" step="1" value="{cap}"></label>
+<label>Issuance rate <output id="o-inf">2.5% a year (today)</output>
+<input type="range" id="inf" min="0.5" max="2.5" step="0.1" value="2.5"></label>
+<div class="meter"><i id="bar"></i></div>
+<p id="o-pay" aria-live="polite" style="margin:8px 0 0;color:var(--text)"></p></div>"""
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: what NEAR pays back</title>
 <style>{CSS}</style></head><body><main>
@@ -131,6 +158,7 @@ Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 <div class="banner">{e(trend)}</div>
 <div class="tiles">{''.join(f"<div class='tile'><b>{e(a)}</b><span>{e(b)}</span></div>" for a, b in tiles)}</div>
 <div class="grid">{cards}</div>
+{calc}
 <h2>Chain versus the indexer</h2>
 <p>The same two flows over the same days, measured here from the chain and reported by DefiLlama.</p>
 <div class="card wrap"><table><tr><th>Flow</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
