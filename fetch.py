@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Rebuild data/epochs.csv from NEAR mainnet block headers. No keys, stdlib only.
+
+Usage: python3 fetch.py [--epochs 1400]
+Resumable: epochs already in data/epochs.csv are not refetched.
+
+Per epoch (exact, integer yoctoNEAR):
+  mint = supply(first block) - supply(last block of previous epoch) + burnt(first block)
+  burn = burnt(first block) + supply(first block) - supply(last block)
+Per epoch (sampled, K blocks seeded by the epoch's first height): gas used, gas limit.
+"""
+import csv, json, os, random, sys, time, urllib.error, urllib.request
+
+RPC = os.environ.get("NEAR_RPC", "https://archival-rpc.mainnet.fastnear.com")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "epochs.csv")
+K = 3  # sampled blocks per epoch; the free sources allow short bursts, then block for minutes
+FIELDS = ["start_height", "end_height", "prev_end_height", "t0_ns", "t1_ns",
+          "supply_prev_end", "supply_start", "supply_end", "mint", "burn",
+          "gas_price", "shards", "sample_n", "sample_gas_used", "sample_gas_limit"]
+
+
+NEARDATA = os.environ.get("NEARDATA", "https://mainnet.neardata.xyz")
+UA = {"Content-Type": "application/json", "User-Agent": "coverage-fetch"}
+
+
+def rpc_block(block_id):
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "block", "params": {"block_id": block_id}}).encode()
+    r = json.load(urllib.request.urlopen(urllib.request.Request(RPC, body, UA), timeout=30))
+    if "result" in r:
+        return r["result"]
+    if (r["error"].get("cause") or {}).get("name") == "UNKNOWN_BLOCK":
+        return None
+    raise RuntimeError(r["error"])
+
+
+def neardata_block(height):  # same header and chunk fields as the RPC; null for a skipped height
+    return json.load(urllib.request.urlopen(urllib.request.Request(
+        f"{NEARDATA}/v0/block/{height}/headers", headers=UA), timeout=30))
+
+
+turn = 0
+
+
+def block(block_id):
+    """Block by height or hash. None if the height was skipped.
+
+    The two free sources have separate rate limits, so heights alternate between them.
+    """
+    global turn
+    sources = [rpc_block, neardata_block] if isinstance(block_id, int) else [rpc_block]
+    err, tries = None, 0
+    while tries < 7:
+        limited = 0
+        for k in range(len(sources)):
+            src = sources[(turn + k) % len(sources)]
+            try:
+                b = src(block_id)
+                turn += 1
+                return b
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    limited += 1
+                else:
+                    err = e
+            except Exception as e:
+                err = e
+        if limited == len(sources):  # every source is rate limited: wait for a window, never give up
+            time.sleep(3)
+            continue
+        tries += 1
+        time.sleep(2 ** tries)
+    sys.exit(f"fetch failed for block {block_id}: {err}")
+
+
+def chunks(b):
+    h = b["header"]["height"]
+    return [c for c in b["chunks"] if c["height_included"] == h]
+
+
+def burnt(b):
+    return sum(int(c["balance_burnt"]) for c in chunks(b))
+
+
+def fetch_epoch(end):
+    """end = last block of the epoch. Returns (row, last block of the previous epoch)."""
+    prev_end = block(end["header"]["next_epoch_id"])
+    h = prev_end["header"]["height"] + 1
+    while (start := block(h)) is None:
+        h += 1
+    assert start["header"]["prev_hash"] == prev_end["header"]["hash"], "epoch boundary not contiguous"
+    assert start["header"]["epoch_id"] == end["header"]["epoch_id"] != prev_end["header"]["epoch_id"]
+    s0, s1, s2 = (int(b["header"]["total_supply"]) for b in (prev_end, start, end))
+    sh, eh = start["header"]["height"], end["header"]["height"]
+    heights = sorted(random.Random(sh).sample(range(sh + 1, eh + 1), K))
+    sample = [b for b in map(block, heights) if b]
+    cs = [c for b in sample for c in chunks(b)]
+    row = dict(start_height=sh, end_height=eh, prev_end_height=prev_end["header"]["height"],
+               t0_ns=prev_end["header"]["timestamp"], t1_ns=end["header"]["timestamp"],
+               supply_prev_end=s0, supply_start=s1, supply_end=s2,
+               mint=s1 - s0 + burnt(start), burn=burnt(start) + s1 - s2,
+               gas_price=start["header"]["gas_price"], shards=len(start["chunks"]),
+               sample_n=len(sample), sample_gas_used=sum(c["gas_used"] for c in cs),
+               sample_gas_limit=sum(c["gas_limit"] for c in cs))
+    return row, prev_end
+
+
+def save(rows):
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    with open(OUT + ".tmp", "w", newline="") as f:
+        w = csv.DictWriter(f, FIELDS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(sorted(rows.values(), key=lambda r: int(r["start_height"])))
+    os.replace(OUT + ".tmp", OUT)
+
+
+def main():
+    n = int(sys.argv[sys.argv.index("--epochs") + 1]) if "--epochs" in sys.argv else 1300
+    rows = {}
+    if os.path.exists(OUT):
+        rows = {int(r["end_height"]): r for r in csv.DictReader(open(OUT))}
+    final = json.load(urllib.request.urlopen(urllib.request.Request(
+        RPC, json.dumps({"jsonrpc": "2.0", "id": 1, "method": "block",
+                         "params": {"finality": "final"}}).encode(), UA), timeout=30))["result"]
+    end = block(final["header"]["next_epoch_id"])  # last block of the newest complete epoch
+    end_h = end["header"]["height"]
+    for i in range(n):
+        if end_h in rows:  # cached: jump back without touching the chain
+            end, end_h = None, int(rows[end_h]["prev_end_height"])
+            continue
+        row, end = fetch_epoch(end or block(end_h))
+        rows[end_h] = row
+        end_h = end["header"]["height"]
+        if i % 10 == 0:
+            save(rows)
+            print(f"{i + 1}/{n} epochs, at height {end_h}", flush=True)
+    save(rows)
+    print(f"wrote {len(rows)} epochs to {OUT}")
+
+
+if __name__ == "__main__":
+    main()
