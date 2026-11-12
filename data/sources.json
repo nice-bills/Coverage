@@ -1,0 +1,9 @@
+{
+ "inflows.csv": {
+  "fetched_utc": "2026-11-12T20:46:08Z",
+  "sha256": "be8684397f2d4b08680ace6d0870c038b29554ab8509c90d896363517dd21c6c",
+  "urls": [
+   "https://api.nearblocks.io/v1/account/buybacks.multisignature.near/receipts?per_page=250&order=desc&page=N"
+  ]
+ }
+}

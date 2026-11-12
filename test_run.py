@@ -20,14 +20,14 @@ assert [i for i, r in enumerate(rows) if r["lump"]] == [30] and rows[30]["buy"] 
 
 # window claims: a perfectly steady history gives a zero-width interval at the last value, and it always held
 steady = [{"burn": 2 * run.Y, "buy": 8 * run.Y, "mint": 100 * run.Y} for _ in range(200)]
-claims, held = run.window_claims(steady)
+claims, held = run.window_claims(steady, run.H)
 assert claims["payback"] == [0.1, 0.1, 0.1] and claims["burn_total"][1] == 2.0 * run.H
 assert held["payback"]["hit"] == held["payback"]["n"] > 0
 
 # ledger: claims are scored only when all 30 epochs have closed, and the payback claim sets the verdict
-later = [{"y": math.log(100.0), "burn": 100 * run.Y, "buy": 900 * run.Y, "mint": 10000 * run.Y} for _ in range(run.H)]
+later = [{"y": math.log(100.0), "burn": 100 * run.Y, "buy": 900 * run.Y, "mint": 10000 * run.Y, "t1_ns": 0} for _ in range(run.H)]
 per_epoch = [[90.0, 100.0, 110.0]] * run.H
-commit = {"claims": {"payback": [0.08, 0.1, 0.12], "burn_total": [2000.0, 3000.0, 3500.0], "buyback_total": [1.0, 2.0, 3.0]},
+commit = {"horizon_epochs": run.H, "after_end_height": 1, "claims": {"payback": [0.08, 0.1, 0.12], "burn_total": [2000.0, 3000.0, 3500.0], "buyback_total": [1.0, 2.0, 3.0]},
           "table_model": "persistence", "models": {"persistence": per_epoch, "clock": per_epoch, "price": per_epoch}}
 led = run.ledger(later, commit)
 assert led["verdict"] == "PASS" and abs(led["claims"]["payback"]["actual"] - 0.1) < 1e-12
@@ -50,16 +50,20 @@ with tempfile.TemporaryDirectory() as tmp:
     assert first.returncode == 0, first.stderr
     result = first.stdout.splitlines()[-1]
     assert result.startswith("RESULT sha256=")
-    # freeze the predictions: the result must not change and the ledger must appear
-    shutil.copy(os.path.join(tmp, "out", "predictions.json"), os.path.join(tmp, "predictions.json"))
+    # freeze two rounds: the result must not change and the ledger must appear
+    fr = subprocess.run([sys.executable, "run.py", "freeze", "5", "10"], cwd=tmp, capture_output=True, text=True)
+    assert fr.returncode == 0 and fr.stdout.count("ROUND ") == 2, fr.stderr
     frozen = go()
-    assert frozen.returncode == 0 and frozen.stdout.splitlines()[-1] == result and "LEDGER" in frozen.stdout
-    # an edited prediction is refused
-    p = json.load(open(os.path.join(tmp, "predictions.json")))
+    assert frozen.returncode == 0 and frozen.stdout.splitlines()[-1] == result and frozen.stdout.count("-> PENDING") >= 2
+    # a frozen round is never rewritten
+    assert subprocess.run([sys.executable, "run.py", "freeze", "5"], cwd=tmp, capture_output=True).returncode != 0
+    # an edited round is refused
+    name = sorted(os.listdir(os.path.join(tmp, "predictions")))[0]
+    p = json.load(open(os.path.join(tmp, "predictions", name)))
     p["claims"]["payback"][0] /= 2
-    json.dump(p, open(os.path.join(tmp, "predictions.json"), "w"))
+    json.dump(p, open(os.path.join(tmp, "predictions", name), "w"))
     assert go().returncode != 0
-    os.remove(os.path.join(tmp, "predictions.json"))
+    shutil.rmtree(os.path.join(tmp, "predictions"))
     # an edited cache row is refused
     path = os.path.join(tmp, "data", "epochs.csv")
     lines = open(path).read().splitlines()

@@ -29,6 +29,7 @@ th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:
 .calc input{display:block;width:100%;margin-top:6px;accent-color:var(--s1)}
 .meter{height:10px;border-radius:5px;background:var(--grid);overflow:hidden}.meter i{display:block;height:100%;background:var(--s1);width:0}
 .card ul{margin:0;padding-left:20px}.card li{margin:6px 0;color:var(--text2)}
+summary{cursor:pointer;color:var(--text2);font-size:14px}h3 .pass,h3 .fail{margin-left:6px}
 .banner{border-left:4px solid var(--s1);padding:10px 14px;background:var(--surface);margin:16px 0}
 """
 
@@ -82,7 +83,7 @@ WEEKLY = [
 ]
 
 
-def render(results, sha, ledger=None):
+def render(results, sha, ledgers=None):
     s, e = results["summary"], html.escape
     pct = lambda x, n=2: f"{100 * x:.{n}f}%"
     num = lambda x: f"{x:,.0f}"
@@ -136,27 +137,31 @@ def render(results, sha, ledger=None):
         f"<tr><td>{e(m)}</td><td>{v['pinball']:.4f}</td><td>{100 * v['skill_vs_persistence']:+.1f}%</td>"
         f"<td>{100 * v['interval_hit']:.0f}%</td><td>{v['n']}</td></tr>" for m, v in results["backtest"].items())
     led = ""
-    if ledger:
-        cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
-        names = {"payback": "Payback over the 30 epochs (90% interval). This one sets the verdict.",
-                 "burn_total": "NEAR burnt over the 30 epochs (90% interval)",
-                 "buyback_total": "NEAR gained by the buyback account (90% interval)"}
-        fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
+    cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
+    names = {"payback": "Payback over the window (90% interval). This one sets the verdict.",
+             "burn_total": "NEAR burnt over the window (90% interval)",
+             "buyback_total": "NEAR gained by the buyback account (90% interval)"}
+    fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
+    for L in ledgers or []:
         cr = "".join(f"<tr><td>{names[n]}</td><td>{fmt(n, c['lo'])} to {fmt(n, c['hi'])}</td><td>{fmt(n, c['actual'])}</td>"
-                     f"<td class='{cls.get(c['verdict'], '')}'>{c['verdict']}</td></tr>" for n, c in ledger["claims"].items())
+                     f"<td class='{cls.get(c['verdict'], '')}'>{c['verdict']}</td></tr>" for n, c in L["claims"].items())
         lr = "".join(f"<tr><td>{r['k']}</td><td>{r['q10']:.1f}</td><td>{r['q50']:.1f}</td><td>{r['q90']:.1f}</td>"
                      + (f"<td>{r['actual']:.1f}</td><td>{'yes' if r['hit'] else 'no'}</td></tr>" if r["actual"] is not None
-                        else "<td>pending</td><td></td></tr>") for r in ledger["rows"])
-        led = (f"<h2>Live ledger</h2><p>These forecasts were frozen before the epochs they describe existed; commitment "
-               f"<code>{e(ledger['commit'])}</code>. {ledger['resolved']} of {ledger['total']} epochs have closed. Verdict: "
-               f"<span class='{cls.get(ledger['verdict'], '')}'>{e(ledger['verdict'])}</span>.</p>"
-               f"<div class='card wrap'><table><tr><th>Claim</th><th>Committed interval</th><th>Actual</th><th>Result</th></tr>{cr}</table></div>"
-               f"<p style='margin-top:16px'>NEAR burnt in each epoch against the committed 10% to 90% band "
-               f"({e(ledger['table_model'])} model). In the backtest this band held "
-               f"{100 * results['backtest'][ledger['table_model']]['interval_hit']:.0f}% of outcomes, less than its nominal 80%. "
-               f"{ledger['hits']} of {ledger['resolved']} inside so far.</p>"
-               f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
-               f"<th>In interval</th></tr>{lr}</table></div>")
+                        else "<td>pending</td><td></td></tr>") for r in L["rows"])
+        when = f" The window closed {L['ends']}." if L["ends"] else ""
+        led += (f"<h3 style='margin:28px 0 4px'>Round frozen after height {L['after_end_height']}: next {L['total']} epochs. "
+                f"<span class='{cls.get(L['verdict'], '')}'>{e(L['verdict'])}</span></h3>"
+                f"<p>{L['resolved']} of {L['total']} epochs have closed.{when} Commitment <code>{e(L['commit'])}</code> "
+                f"(<code>predictions/{e(L['file'])}</code>).</p>"
+                f"<div class='card wrap'><table><tr><th>Claim</th><th>Committed interval</th><th>Actual</th><th>Result</th></tr>{cr}</table></div>"
+                f"<details style='margin-top:8px'><summary>NEAR burnt in each epoch against the committed 10% to 90% band "
+                f"({e(L['table_model'])} model): {L['hits']} of {L['resolved']} inside</summary>"
+                f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
+                f"<th>In band</th></tr>{lr}</table></div></details>")
+    if led:
+        led = ("<h2>Live ledger</h2><p>Each round was frozen before the epochs it describes existed. The chain scores it; "
+               "<code>run.py</code> refuses a round that is not exactly what the code derives from the data up to its height. "
+               "A 90% interval misses about one time in ten even when the model is right.</p>" + led)
     card = lambda src, rows: "".join(
         f"<div class='card' data-src='{src}' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
         f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in rows)
