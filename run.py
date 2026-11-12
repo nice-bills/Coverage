@@ -4,7 +4,7 @@
 Usage: python3 run.py        (no network, no keys, stdlib only)
 Prints `RESULT sha256=...` over out/results.json; the README states the expected value.
 """
-import csv, datetime, hashlib, json, math, os
+import csv, datetime, hashlib, json, math, os, random
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 Y = 10 ** 24          # yoctoNEAR per NEAR
@@ -165,8 +165,7 @@ def ledger(later, commit):
     # pre-registered rule: the price-free model beats the price-only model, and its 80% interval is calibrated
     ok = loss["usage"] < loss["price"] and 20 <= hits <= 28
     verdict = "PENDING" if k < H else "PASS" if ok else "FALSIFIED"
-    return dict(resolved=k, total=H, hits=hits, loss=loss, verdict=verdict, rows=rows,
-                commit=hashlib.sha256(open(os.path.join(ROOT, "predictions.json"), "rb").read()).hexdigest())
+    return dict(resolved=k, total=H, hits=hits, loss=loss, verdict=verdict, rows=rows)
 
 
 def sig(x, n=6):  # round floats so the hash does not depend on the platform's libm
@@ -191,11 +190,22 @@ def main():
     roll = rolling(rows)
     now = roll[-1]
     secs = (rows[-1]["t1_ns"] - rows[0]["t0_ns"]) / 1e9
-    a, b = ols([r["t"] / 86400 for r in roll], [math.log(r["coverage"]) for r in roll])
+    # trend on non-overlapping windows, so the points are independent
+    blocks = [rows[i - W:i] for i in range(len(rows), W - 1, -W)][::-1]
+    bx = [b[-1]["t1_ns"] / 1e9 / 86400 for b in blocks]
+    by = [math.log(sum(r["burn"] for r in b) / sum(r["mint"] for r in b)) for b in blocks]
+    a, b = ols(bx, by) if len(blocks) > 2 else (0.0, 0.0)
+    # sampling error of the ceiling: resample the window's epochs (fixed seed, so the hash is stable)
+    rnd, w, boot = random.Random(0), rows[-W:], []
+    for _ in range(500):
+        s = [w[rnd.randrange(W)] for _ in range(W)]
+        boot.append(sum(r["burn"] for r in s) / sum(r["mint"] for r in s)
+                    * sum(r["sample_gas_limit"] for r in s) / sum(r["sample_gas_used"] for r in s))
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
         coverage=now["coverage"], utilization=now["utilization"], ceiling=now["ceiling"],
+        ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95), trend_windows=len(blocks),
         multiple=now["multiple"], breakeven_utilization=1 / now["ceiling"],
         burn_per_day=now["burn_per_day"], mint_per_day=now["mint_per_day"],
         realized_inflation=sum(r["mint"] for r in rows) / rows[-1]["supply_end"] * YEAR / secs,
@@ -213,6 +223,8 @@ def main():
         if commit:  # the committed file must be exactly what this code derives from the frozen data
             assert commit == pred, "predictions.json does not match the model"
             led = ledger(later, commit)
+            if led:
+                led["commit"] = hashlib.sha256(open(cpath, "rb").read()).hexdigest()
     for k, v in results["summary"].items():
         print(f"{k:30} {v}")
     for m, v in results["backtest"].items():

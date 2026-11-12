@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: NEAR burn vs issuance</title>
+<style>
+:root{color-scheme:light;--bg:#f5f4f1;--surface:#fcfcfb;--text:#0b0b0b;--text2:#52514e;--muted:#8a897f;
+--grid:#e4e3de;--s1:#2a78d6;--good:#1a7f37;--bad:#c62828}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#111110;--surface:#1a1a19;--text:#f0efec;
+--text2:#c3c2b7;--muted:#8a897f;--grid:#2e2e2b;--s1:#3987e5;--good:#4cc26a;--bad:#ef6b6b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
+font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:28px;line-height:1.2;margin:0 0 8px;text-wrap:balance}h2{font-size:17px;margin:40px 0 4px}
+p{margin:0 0 12px;color:var(--text2);max-width:72ch}code{font:13px ui-monospace,monospace;overflow-wrap:anywhere}
+.grid>*,.tiles>*{min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:24px 0}
+.tile,.card{background:var(--surface);border:1px solid var(--grid);border-radius:10px;padding:16px}
+.tile b{display:block;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{color:var(--text2);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card h3{font-size:14px;margin:0;font-weight:600}.card small{color:var(--text2)}
+svg{display:block;width:100%;height:auto;overflow:visible}svg text{fill:var(--muted);font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--text);color:var(--surface);padding:4px 8px;
+border-radius:6px;font-size:12px;white-space:nowrap;transform:translate(-50%,-130%);display:none}
+.card{position:relative}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--grid)}
+th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:500;font-size:13px}
+.wrap{overflow-x:auto}.pass{color:var(--good);font-weight:600}.fail{color:var(--bad);font-weight:600}
+.banner{border-left:4px solid var(--s1);padding:10px 14px;background:var(--surface);margin:16px 0}
+</style></head><body><main>
+<h1>NEAR burns back 0.93% of what it mints. Break-even is 108x away, and inside current capacity.</h1>
+<p>Every number here comes from NEAR mainnet block headers, 2026-10-10 to 2026-11-12
+(111 epochs, heights 219383534 to 224178736). Mint and burn are exact to the yoctoNEAR.
+Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
+<div class="banner">Coverage has not grown over this window; at this trend break-even is never reached.</div>
+<div class="tiles"><div class='tile'><b>0.93%</b><span>of issuance burnt back by fees</span></div><div class='tile'><b>108x</b><span>usage multiple to break-even</span></div><div class='tile'><b>119%</b><span>coverage if blocks were full at today&#x27;s gas price (90% range 102% to 135%)</span></div><div class='tile'><b>0.78%</b><span>of block capacity in use</span></div><div class='tile'><b>2.491%</b><span>realized annual inflation, measured</span></div></div>
+<div class="grid"><div class='card' data-chart='coverage' data-mul='100' data-unit='%' data-dp='2'><h3>Coverage</h3><small>Fee burn as % of issuance, 100-epoch rolling</small></div><div class='card' data-chart='utilization' data-mul='100' data-unit='%' data-dp='2'><h3>Block utilization</h3><small>Gas used as % of gas limit, sampled</small></div><div class='card' data-chart='burn_per_day' data-mul='1' data-unit=' NEAR' data-dp='0'><h3>Burn</h3><small>NEAR burnt per day</small></div><div class='card' data-chart='multiple' data-mul='1' data-unit='x' data-dp='0'><h3>Distance to break-even</h3><small>Multiple of current burn that offsets issuance</small></div></div>
+<h2>Does usage or price explain the burn?</h2>
+<p>Walk-forward backtest of burn per epoch, {} forecasts,
+30 epochs ahead. Lower pinball loss is better. The thesis model uses no price; the rival uses only price.</p>
+<div class="card wrap"><table><tr><th>Model</th><th>Pinball loss</th><th>Skill vs persistence</th>
+<th>80% interval hit rate</th><th>Forecasts</th></tr></table></div>
+
+<p style="margin-top:32px"><small>Result hash <code>6904010af3ce0f2d2bc72812a09ad79b914491315cc09cfe64bd4a7e47a2c6cb</code></small></p>
+</main><script type="application/json" id="data">[{"date":"2026-11-09","t":1794190000.0,"coverage":0.0106649,"utilization":0.00888962,"ceiling":1.1997,"multiple":93.7654,"burn_per_day":953.588,"mint_per_day":89413.6,"inflation":0.0249074},{"date":"2026-11-09","t":1794270000.0,"coverage":0.00952446,"utilization":0.00811836,"ceiling":1.1732,"multiple":104.993,"burn_per_day":851.424,"mint_per_day":89393.4,"inflation":0.0249003},{"date":"2026-11-10","t":1794340000.0,"coverage":0.0093096,"utilization":0.00807236,"ceiling":1.15327,"multiple":107.416,"burn_per_day":832.454,"mint_per_day":89418.9,"inflation":0.0249059},{"date":"2026-11-11","t":1794420000.0,"coverage":0.00928892,"utilization":0.00796694,"ceiling":1.16593,"multiple":107.655,"burn_per_day":830.444,"mint_per_day":89401.5,"inflation":0.0248996}]</script>
+<script>
+const D=JSON.parse(document.getElementById('data').textContent),NS='http://www.w3.org/2000/svg';
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
+document.querySelectorAll('[data-chart]').forEach(card=>{
+ const key=card.dataset.chart,mul=+card.dataset.mul,unit=card.dataset.unit,dp=+card.dataset.dp;
+ const xs=D.map(d=>d.t),ys=D.map(d=>d[key]*mul),W=480,Ht=200,L=44,R=8,T=10,B=22;
+ const x0=xs[0],x1=xs[xs.length-1],y1=Math.max(...ys)*1.08,sx=x=>L+(x-x0)/(x1-x0)*(W-L-R),sy=y=>Ht-B-y/y1*(Ht-T-B);
+ const svg=el('svg',{viewBox:`0 0 ${W} ${Ht}`,role:'img','aria-label':card.querySelector('h3').textContent},card);
+ for(let i=0;i<=4;i++){const v=y1*i/4;el('line',{x1:L,x2:W-R,y1:sy(v),y2:sy(v),stroke:'var(--grid)'},svg);
+  el('text',{x:L-6,y:sy(v)+4,'text-anchor':'end'},svg).textContent=v.toFixed(dp)}
+ [0,.5,1].forEach(f=>{const i=Math.round(f*(D.length-1));
+  el('text',{x:sx(xs[i]),y:Ht-6,'text-anchor':f==0?'start':f==1?'end':'middle'},svg).textContent=D[i].date});
+ el('path',{d:'M'+xs.map((x,i)=>sx(x).toFixed(1)+','+sy(ys[i]).toFixed(1)).join('L'),fill:'none',stroke:'var(--s1)','stroke-width':2,'stroke-linejoin':'round'},svg);
+ const ch=el('line',{y1:T,y2:Ht-B,stroke:'var(--muted)',visibility:'hidden'},svg),dot=el('circle',{r:4,fill:'var(--s1)',stroke:'var(--surface)','stroke-width':2,visibility:'hidden'},svg);
+ const tip=document.createElement('div');tip.className='tip';card.appendChild(tip);
+ svg.addEventListener('pointermove',e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;
+  let i=0;for(let j=1;j<xs.length;j++)if(Math.abs(sx(xs[j])-px)<Math.abs(sx(xs[i])-px))i=j;
+  ch.setAttribute('x1',sx(xs[i]));ch.setAttribute('x2',sx(xs[i]));ch.setAttribute('visibility','visible');
+  dot.setAttribute('cx',sx(xs[i]));dot.setAttribute('cy',sy(ys[i]));dot.setAttribute('visibility','visible');
+  tip.textContent=D[i].date+': '+ys[i].toFixed(dp+1)+unit;tip.style.display='block';
+  tip.style.left=(svg.offsetLeft+sx(xs[i])/W*r.width)+'px';tip.style.top=(svg.offsetTop+sy(ys[i])/Ht*r.height)+'px'});
+ svg.addEventListener('pointerleave',()=>{tip.style.display='none';ch.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden')});
+});
+</script></body></html>

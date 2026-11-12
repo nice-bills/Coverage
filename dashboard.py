@@ -66,7 +66,8 @@ def render(results, sha, ledger=None):
     pct = lambda x, n=2: f"{100 * x:.{n}f}%"
     tiles = [(pct(s["coverage"]), "of issuance burnt back by fees"),
              (f"{s['multiple']:.0f}x", "usage multiple to break-even"),
-             (pct(s["ceiling"], 0), "coverage if blocks were full at today's gas price"),
+             (pct(s["ceiling"], 0), f"coverage if blocks were full at today's gas price "
+                                     f"(90% range {pct(s['ceiling_p05'], 0)} to {pct(s['ceiling_p95'], 0)})"),
              (pct(s["utilization"]), "of block capacity in use"),
              (pct(s["realized_inflation"], 3), "realized annual inflation, measured")]
     trend = (f"At the measured trend, coverage grows {pct(s['coverage_growth_per_year'], 0)} a year (log scale) and "
