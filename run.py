@@ -166,8 +166,8 @@ def backtest(rows, start=300):
 
 CLAIMS = {  # name: (value of a window of epochs, quantiles of the committed interval)
     "payback": (lambda w: (sum(r["burn"] for r in w) + sum(r["buy"] for r in w)) / sum(r["mint"] for r in w), (0.05, 0.5, 0.95)),
-    "burn_total": (lambda w: sum(r["burn"] for r in w) / Y, QS),
-    "buyback_total": (lambda w: sum(r["buy"] for r in w) / Y, QS),
+    "burn_total": (lambda w: sum(r["burn"] for r in w) / Y, (0.05, 0.5, 0.95)),
+    "buyback_total": (lambda w: sum(r["buy"] for r in w) / Y, (0.05, 0.5, 0.95)),
 }
 
 

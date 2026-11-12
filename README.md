@@ -139,8 +139,8 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 ## Forecasts and the outside judge
 
 `predictions.json` commits to three claims about the 30 epochs after height __LAST_HEIGHT__:
-payback (90% interval), total NEAR burnt (80%) and total NEAR gained by the buyback account
-(80%). Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows
+payback (90% interval), total NEAR burnt (90%) and total NEAR gained by the buyback account
+(90%). Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows
 have differed historically. `out/results.json` records, under `claims_backtest`, how often the
 same procedure held when run at earlier dates.
 

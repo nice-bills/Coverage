@@ -77,7 +77,7 @@ this thesis takes it to mean.
 
 **Payback has been falling.** The first 100-epoch window with buyback data (ending
 __PAY_FIRST_DATE__) shows __PAY_FIRST__; the peak is __PAY_PEAK__ (__PAY_PEAK_DATE__); the
-latest is __PAYBACK__. __TREND_SENTENCE__
+latest is __PAYBACK__. The history is too short to fit a trend.
 
 **NEAR Intents is not growing.** Comparing the first and last 30 days of the year to __LAST__
 (DefiLlama): daily Intents volume is __VOL_RATIO__x, gross Intents fees __FEE_RATIO__x, and
@@ -118,8 +118,8 @@ commits to three claims about the 30 epochs after that height (about 9 days):
 | Claim | Committed interval | Held in past windows |
 |---|---|---|
 | Payback over the 30 epochs (90% interval) | __C_PAY__ | __H_PAY__ |
-| NEAR burnt over the 30 epochs (80% interval) | __C_BURN__ | __H_BURN__ |
-| NEAR gained by the buyback account (80% interval) | __C_BUY__ | __H_BUY__ |
+| NEAR burnt over the 30 epochs (90% interval) | __C_BURN__ | __H_BURN__ |
+| NEAR gained by the buyback account (90% interval) | __C_BUY__ | __H_BUY__ |
 
 Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows have
 differed historically. "Held in past windows" is how often the same procedure, run at earlier

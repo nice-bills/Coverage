@@ -99,13 +99,10 @@ def render(results, sha, ledger=None):
                  (num(s["mint_per_day"]), "NEAR a day minted to validators (exact)")]
     tiles.append((pct(s["ceiling"], 0), f"burn coverage if blocks were full at today's gas price "
                                         f"(90% range {pct(s['ceiling_p05'], 0)} to {pct(s['ceiling_p95'], 0)})"))
-    g = s.get("payback_growth_per_year")
     trend = ""
     if s["payback"] is not None:
         trend = (f"Payback was {pct(s['payback_first'], 1)} in the first window with buyback data ({s['payback_first_date']}), "
                  f"peaked at {pct(s['payback_peak'], 1)} ({s['payback_peak_date']}) and is {pct(s['payback'], 1)} now.")
-        if g is not None:
-            trend += f" Across non-overlapping windows it has changed by {100 * g:+.0f}% a year on a log scale."
     against = ""
     if s["payback"] is not None:
         against = (f"<h2>The case against</h2><div class='card'><ul>"
@@ -134,8 +131,8 @@ def render(results, sha, ledger=None):
     if ledger:
         cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
         names = {"payback": "Payback over the 30 epochs (90% interval). This one sets the verdict.",
-                 "burn_total": "NEAR burnt over the 30 epochs (80% interval)",
-                 "buyback_total": "NEAR gained by the buyback account (80% interval)"}
+                 "burn_total": "NEAR burnt over the 30 epochs (90% interval)",
+                 "buyback_total": "NEAR gained by the buyback account (90% interval)"}
         fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
         cr = "".join(f"<tr><td>{names[n]}</td><td>{fmt(n, c['lo'])} to {fmt(n, c['hi'])}</td><td>{fmt(n, c['actual'])}</td>"
                      f"<td class='{cls.get(c['verdict'], '')}'>{c['verdict']}</td></tr>" for n, c in ledger["claims"].items())
