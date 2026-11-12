@@ -225,6 +225,15 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <input type="range" id="inf" min="0.5" max="2.5" step="0.1" value="2.5"></label>
 <div class="meter"><i id="bar"></i></div>
 <p id="o-pay" aria-live="polite" style="margin:8px 0 0;color:var(--text)"></p></div>"""
+    by = results.get("breakeven_years")
+    if by and calc:
+        yr = lambda x: "over 100" if x is None else f"{x:.1f}"
+        rows_ = "".join(f"<tr><td>{g} a year</td><td>{yr(v['constant_issuance'])}</td><td>{yr(v['hsp029'])}</td></tr>"
+                        for g, v in sorted(by.items(), key=lambda kv: int(kv[0][:-1])))
+        calc += (f"<p style='margin-top:16px'>Years until burn plus buybacks equal issuance, if they grow at a constant rate. "
+                 f"For scale: NEAR Intents volume is {s['intents_volume_usd_ratio_1y']:.2f}x its level a year ago.</p>"
+                 f"<div class='card wrap'><table><tr><th>Growth in burn plus buybacks</th><th>Issuance stays at 2.5%</th>"
+                 f"<th>Issuance ramps to 1.6% (HSP-029)</th></tr>{rows_}</table></div>")
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: what NEAR pays back</title>
 <style>{CSS}</style></head><body><main>

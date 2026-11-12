@@ -20,6 +20,7 @@ def values():
     pct = lambda x, n=1: f"{100 * x:.{n}f}%"
     usd = lambda x: f"${x:,.0f}"
     num = lambda x: f"{x:,.0f}"
+    yr = lambda x: "over 100" if x is None else f"{x:.1f}"
     skill = lambda m: f"{abs(100 * m['skill_vs_persistence']):.0f}% {'better' if m['skill_vs_persistence'] > 0 else 'worse'}"
 
     # one row per frozen round
@@ -74,6 +75,9 @@ def values():
         BT_N=str(bt["persistence"]["n"]), BT_PERSIST=f"{bt['persistence']['pinball']:.4f}",
         BT_CLOCK=f"{bt['clock']['pinball']:.4f}", BT_PRICE=f"{bt['price']['pinball']:.4f}",
         BT_PRICE_SKILL=skill(bt["price"]), BT_CLOCK_SKILL=skill(bt["clock"]),
+        YEARS_TABLE="| Growth in burn plus buybacks | Years to break-even, issuance at 2.5% | Years, issuance ramping to 1.6% (HSP-029) |\n|---|---|---|\n"
+        + "\n".join(f"| {g} a year | {yr(v['constant_issuance'])} | {yr(v['hsp029'])} |"
+                    for g, v in sorted(r["breakeven_years"].items(), key=lambda kv: int(kv[0][:-1]))),
         ROUNDS_TABLE=table, ROUND_HASHES="; ".join(hashes) or "(none)")
 
 

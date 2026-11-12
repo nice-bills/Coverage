@@ -340,6 +340,18 @@ def main():
     inf = [r for r in inf if int(r["block_height"]) <= rows[-1]["end_height"]]
     paid = [r for r in roll if r["payback"] is not None]
     peak = max(paid, key=lambda r: r["payback"]) if paid else None
+    def years_to_breakeven(growth, ramp):
+        """Years until burn plus buybacks, growing at a constant yearly rate, equal issuance.
+        ramp=True lowers issuance linearly from 2.5% to 1.6% over 24 months (HSP-029)."""
+        for month in range(1, 12 * 100 + 1):
+            issuance = 1 - (1 - 1.6 / 2.5) * min(month, 24) / 24 if ramp else 1.0
+            if (1 + growth) ** (month / 12) >= now["multiple"] * issuance:
+                return month / 12
+        return None
+
+    paths = None if now["multiple"] is None else {
+        f"{round(100 * g)}%": dict(constant_issuance=years_to_breakeven(g, False), hsp029=years_to_breakeven(g, True))
+        for g in (0.1, 0.25, 0.5, 1.0)}
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
@@ -388,7 +400,7 @@ def main():
         payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
         if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
-    results = sig(dict(summary=summary, backtest=bt, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
+    results = sig(dict(summary=summary, backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
                        series=roll[::3], weekly=weekly))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))

@@ -5,5 +5,19 @@
   "urls": [
    "https://api.nearblocks.io/v1/account/buybacks.multisignature.near/receipts?per_page=250&order=desc&page=N"
   ]
+ },
+ "protocol.json": {
+  "fetched_utc": "2026-11-12T21:00:30Z",
+  "sha256": "cf36505a31d58f3825f2c28f208ddf5223fdb03f75b9502fdcb03f7c26033ede",
+  "urls": [
+   "https://archival-rpc.mainnet.fastnear.com EXPERIMENTAL_protocol_config"
+  ]
+ },
+ "wallets.csv": {
+  "fetched_utc": "2026-11-12T21:00:28Z",
+  "sha256": "5449f9ba8cc49c90d9cd1848e4e018c9c4d684cd56dcce26ca4261ee1ddc887d",
+  "urls": [
+   "https://archival-rpc.mainnet.fastnear.com query view_account / call_function wrap.near ft_balance_of"
+  ]
  }
 }

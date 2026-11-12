@@ -166,6 +166,8 @@ Beyond the rounds, rerunning `fetch.py` and `run.py` would change our mind if:
 The investment question is whether the flows that offset issuance can grow about __MULT__x. The
 evidence supports a conditional answer, not a forecast:
 
+__YEARS_TABLE__
+
 | Path to break-even | What it requires |
 |---|---|
 | Growth alone, issuance unchanged | burn plus buybacks growing __G3__ a year for 3 years, __G5__ for 5, or __G10__ for 10 |

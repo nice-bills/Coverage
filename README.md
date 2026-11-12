@@ -7,7 +7,7 @@ and NEAR gained by `buybacks.multisignature.near`, the account that receives NEA
 Intents contract. Mint and burn come from block headers. It needs no API key, no cloud account
 and no dependencies beyond Python 3.9+.
 
-Result for the 100 epochs ending 2026-11-12: burn plus buybacks equal 11.8% of issuance
+Result for the 100 epochs ending 2026-11-12: burn plus buybacks equal 12.0% of issuance
 (burn alone: 0.92%). The thesis, the evidence against it and what would change our mind
 are in [THESIS.md](THESIS.md).
 
@@ -20,7 +20,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=c773574da1189e5bd6446c9c3f2304c4bbb21d775b911dd7f2e70e6191bf18a9
+RESULT sha256=fa54cce57fcfac3f52b3f3027c293f614718fa49cf7f25d3df79a1b99fe4406a
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
@@ -92,7 +92,7 @@ newest round's height; later epochs are used only for scoring.
 ## Rebuild the cache from the chain (slow)
 
 ```
-python3 fetch.py --epochs 900
+python3 fetch.py --epochs 901
 python3 fetch.py wallets 214890733 214933933
 python3 fetch.py inflows
 python3 fetch.py protocol
@@ -159,7 +159,11 @@ newest cached epoch and never overwritten. A round commits to bands (the 5% to 9
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
-(no rounds frozen yet)
+| Round | Epochs | Expected to close (UTC) | Payback | NEAR burnt | Buyback gain, NEAR | Payback interval held in the past | sha256 |
+|---|---|---|---|---|---|---|---|
+| `round-224265136-h05.json` | 5 | about 2026-11-14 07:00 | 6.9% to 27.2% | 1,193 to 1,880 | 7,318 to 35,576 | 134 of 168 | `e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba` |
+| `round-224265136-h10.json` | 10 | about 2026-11-15 19:00 | 6.3% to 30.8% | 2,174 to 3,554 | 14,073 to 86,748 | 71 of 83 | `2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f` |
+| `round-224265136-h20.json` | 20 | about 2026-11-18 17:00 | 6.9% to 26.8% | 2,820 to 6,524 | 34,148 to 133,348 | 35 of 40 | `926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5` |
 
 Rule, checked by `run.py` once a round's epochs have closed:
 

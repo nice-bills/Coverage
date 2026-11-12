@@ -1,0 +1,5 @@
+verify.py n=3 at 2026-11-12 21:00:39 UTC, sources https://archival-rpc.mainnet.fastnear.com and https://mainnet.neardata.xyz
+epoch 194629925-194673124: MATCH  mint=26891.134 burn=163.969 NEAR
+epoch 220247534-220290733: MATCH  mint=26829.968 burn=239.643 NEAR
+epoch 207676334-207719533: MATCH  mint=26461.174 burn=155.027 NEAR
+VERIFY seed=20261112 PASS (3/3 epochs match the chain, 6 blocks checked against their parents)
