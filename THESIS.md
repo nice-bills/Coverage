@@ -170,7 +170,7 @@ evidence supports a conditional answer, not a forecast:
 |---|---|
 | Growth alone, issuance unchanged | burn plus buybacks growing __G3__ a year for 3 years, __G5__ for 5, or __G10__ for 10 |
 | Capture all gross Intents fees, at today's volume | payback of __LEVER__; the rest must come from growth or lower issuance |
-| Halve issuance again | the multiple halves; NEAR has done this once |
+| Halve the issuance rate | the multiple halves |
 
 For: the flow exists, is measurable on chain, scales with a product's volume (correlation
 __CORR__), and two of the three levers are governance decisions. Against: the product's volume
@@ -178,7 +178,7 @@ is flat year on year, the flow is under nine months old and has fallen from its 
 NEAR is held, not destroyed. On this evidence NEAR is closer to offsetting its issuance than
 fee-burn analysis shows, and still far from doing so. A long-term case needs either sustained
 volume growth of the size in the table or a governance decision on capture or issuance. The
-30-epoch test below checks only that the flow persists, which is necessary for that case and
+30-epoch test above checks only that the flow persists, which is necessary for that case and
 not sufficient.
 
 ## How to read the multiple

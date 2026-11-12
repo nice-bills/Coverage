@@ -10,6 +10,20 @@ assert abs(a - 1) < 1e-12 and abs(b - 2) < 1e-12
 assert run.pinball(2.0, 1.0, 0.9) == 0.9 and abs(run.pinball(1.0, 2.0, 0.9) - 0.1) < 1e-12
 assert run.sig(0.123456789) == 0.123457 and run.sig({"a": [1.23456789e-9]}) == {"a": [1.23457e-9]}
 
+# lump rule: one gain 50x the trailing median is excluded; ordinary gains and unknown balances are left alone
+rows = [{"raw_buy": 100, "buy": 100} for _ in range(40)]
+rows[30] = {"raw_buy": 5000, "buy": 5000}
+rows[35] = {"raw_buy": None, "buy": None}
+rows[5] = {"raw_buy": 5000, "buy": 5000}  # fewer than 10 earlier epochs: not judged
+run.mark_lumps(rows)
+assert [i for i, r in enumerate(rows) if r["lump"]] == [30] and rows[30]["buy"] == 0 and rows[31]["buy"] == 100
+
+# window claims: a perfectly steady history gives a zero-width interval at the last value, and it always held
+steady = [{"burn": 2 * run.Y, "buy": 8 * run.Y, "mint": 100 * run.Y} for _ in range(200)]
+claims, held = run.window_claims(steady)
+assert claims["payback"] == [0.1, 0.1, 0.1] and claims["burn_total"][1] == 2.0 * run.H
+assert held["payback"]["hit"] == held["payback"]["n"] > 0
+
 # ledger: claims are scored only when all 30 epochs have closed, and the payback claim sets the verdict
 later = [{"y": math.log(100.0), "burn": 100 * run.Y, "buy": 900 * run.Y, "mint": 10000 * run.Y} for _ in range(run.H)]
 per_epoch = [[90.0, 100.0, 110.0]] * run.H

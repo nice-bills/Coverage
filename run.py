@@ -47,13 +47,17 @@ def load():
     # A gain above LUMP x the median of the previous W epochs is a treasury transfer of revenue captured
     # earlier, not that epoch's revenue. It is excluded everywhere and reported separately. The rule only
     # looks backwards, so it applies unchanged to epochs that close after the predictions are frozen.
+    mark_lumps(rows)
+    llama = list(csv.DictReader(open(os.path.join(ROOT, "data", "llama.csv"))))
+    return rows, price, llama
+
+
+def mark_lumps(rows):
     for i, r in enumerate(rows):
         past = [p["raw_buy"] for p in rows[max(0, i - W):i] if p["raw_buy"] is not None]
         r["lump"] = r["buy"] is not None and len(past) >= 10 and r["buy"] > LUMP * quantile(past, 0.5)
         if r["lump"]:
             r["buy"] = 0
-    llama = list(csv.DictReader(open(os.path.join(ROOT, "data", "llama.csv"))))
-    return rows, price, llama
 
 
 def day(ns):
