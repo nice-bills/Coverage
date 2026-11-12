@@ -291,6 +291,22 @@ def main():
     h0, h1 = w[0]["prev_end_height"], w[-1]["end_height"]
     wsecs = (w[-1]["t1_ns"] - w[0]["t0_ns"]) / 1e9
     allw = (wal[h1] - wal[h0]) / Y / wsecs * 86400 if h0 in wal and h1 in wal else None
+    # NEAR Intents by complete week since buybacks began (DefiLlama, USD): does captured revenue follow volume?
+    wk = {}
+    for r in upto:
+        if r["date"] >= "2026-02-23":
+            d = datetime.date.fromisoformat(r["date"])
+            k = wk.setdefault(d - datetime.timedelta(days=d.weekday()), [0.0, 0.0, 0.0, 0])
+            for i, c in enumerate(("intents_volume_usd", "intents_fees_usd", "intents_buyback_usd")):
+                k[i] += float(r[c] or 0)
+            k[3] += 1
+    weekly = [dict(date=str(d), t=datetime.datetime(d.year, d.month, d.day, tzinfo=datetime.timezone.utc).timestamp(),
+                   volume_musd=v / 7e6, fees_kusd=f / 7e3, captured_kusd=b / 7e3, take_bps=b / v * 1e4, capture_share=b / f)
+              for d, (v, f, b, n) in sorted(wk.items()) if n == 7 and v > 0 and f > 0]
+    vs, bs = [x["volume_musd"] for x in weekly], [x["captured_kusd"] for x in weekly]
+    mv, mb = sum(vs) / max(1, len(vs)), sum(bs) / max(1, len(bs))
+    corr = (sum((x - mv) * (y - mb) for x, y in zip(vs, bs))
+            / math.sqrt(sum((x - mv) ** 2 for x in vs) * sum((y - mb) ** 2 for y in bs))) if len(weekly) > 2 else None
     # who sent NEAR to the buyback account (NearBlocks indexer; each row has a transaction hash)
     inf = list(csv.DictReader(open(os.path.join(ROOT, "data", "inflows.csv"))))
     inf = [r for r in inf if int(r["block_height"]) <= rows[-1]["end_height"]]
@@ -311,6 +327,11 @@ def main():
         window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),
         llama_buyback_near_per_day=near("intents_buyback_usd"),
         # how much left the other two revenue wallets during the lump epochs (where those heights are cached)
+        intents_weeks=len(weekly), intents_volume_captured_correlation=corr,
+        intents_take_bps_median=quantile([x["take_bps"] for x in weekly], 0.5) if weekly else None,
+        intents_take_bps_min=min((x["take_bps"] for x in weekly), default=None),
+        intents_take_bps_max=max((x["take_bps"] for x in weekly), default=None),
+        intents_volume_musd_low=min(vs, default=None), intents_volume_musd_latest=vs[-1] if vs else None,
         inflow_transfers=len(inf), inflow_first_height=int(inf[0]["block_height"]) if inf else None,
         inflow_share_from_intents=sum(float(r["near"]) for r in inf if r["predecessor"] == "intents.near")
         / sum(float(r["near"]) for r in inf) if inf else None,
@@ -332,7 +353,7 @@ def main():
         payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
         if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
-    results = sig(dict(summary=summary, backtest=bt, claims_backtest=window_claims(rows)[1], series=roll[::3]))
+    results = sig(dict(summary=summary, backtest=bt, claims_backtest=window_claims(rows)[1], series=roll[::3], weekly=weekly))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))
     open(os.path.join(ROOT, "out", "results.json"), "w").write(blob)

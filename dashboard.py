@@ -41,10 +41,10 @@ const C=document.querySelector('.calc');if(C){const g=id=>document.getElementByI
  g('bar').style.width=Math.min(100,p*100)+'%';
  g('o-pay').textContent='Payback: '+(p*100).toFixed(1)+'% of issuance'+(p>=1?'. Break-even reached: supply stops growing net of buybacks.':'. Break-even is '+(1/p).toFixed(1)+'x away.')};
  C.addEventListener('input',f);f()}
-const D=JSON.parse(document.getElementById('data').textContent),NS='http://www.w3.org/2000/svg';
+const ALL=JSON.parse(document.getElementById('data').textContent),NS='http://www.w3.org/2000/svg';
 function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
 document.querySelectorAll('[data-chart]').forEach(card=>{
- const key=card.dataset.chart,mul=+card.dataset.mul,unit=card.dataset.unit,dp=+card.dataset.dp;
+ const key=card.dataset.chart,mul=+card.dataset.mul,unit=card.dataset.unit,dp=+card.dataset.dp,D=ALL[card.dataset.src];
  const P=D.filter(d=>d[key]!=null);if(P.length<2){card.remove();return}const xs=P.map(d=>d.t),ys=P.map(d=>d[key]*mul),W=480,Ht=200,L=44,R=8,T=10,B=22;
  const x0=xs[0],x1=xs[xs.length-1],y1=Math.max(...ys)*1.08,sx=x=>L+(x-x0)/(x1-x0)*(W-L-R),sy=y=>Ht-B-y/y1*(Ht-T-B);
  const svg=el('svg',{viewBox:`0 0 ${W} ${Ht}`,role:'img','aria-label':card.querySelector('h3').textContent},card);
@@ -72,6 +72,13 @@ CHARTS = [  # key, title, subtitle, multiplier, unit, decimals
     ("burn_per_day", "Burn", "NEAR burnt in gas fees per day (exact)", 1, " NEAR", 0),
     ("coverage", "Burn-only coverage", "Fee burn as % of issuance (exact)", 100, "%", 2),
     ("utilization", "Block utilization", "Gas used as % of gas limit, sampled", 100, "%", 2),
+]
+
+
+WEEKLY = [
+    ("volume_musd", "NEAR Intents volume", "USD millions a day, weekly average", 1, "M", 0),
+    ("captured_kusd", "Revenue captured by NEAR", "USD thousands a day, all revenue wallets", 1, "k", 0),
+    ("take_bps", "Take rate", "Captured revenue per unit of volume, basis points", 1, " bps", 1),
 ]
 
 
@@ -149,8 +156,17 @@ def render(results, sha, ledger=None):
                f"{ledger['hits']} of {ledger['resolved']} inside so far.</p>"
                f"<div class='card wrap'><table><tr><th>Epoch</th><th>10%</th><th>50%</th><th>90%</th><th>Actual</th>"
                f"<th>In interval</th></tr>{lr}</table></div>")
-    cards = "".join(f"<div class='card' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
-                    f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in CHARTS)
+    card = lambda src, rows: "".join(
+        f"<div class='card' data-src='{src}' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
+        f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in rows)
+    cards = card("series", CHARTS)
+    intents = ""
+    if results.get("weekly"):
+        intents = (f"<h2>The application behind the flow</h2><p>NEAR Intents by week since buybacks began (DefiLlama, USD). "
+                   f"Over {s['intents_weeks']} weeks, captured revenue and volume move together (correlation "
+                   f"{s['intents_volume_captured_correlation']:.2f}), and NEAR keeps a median {s['intents_take_bps_median']:.1f} "
+                   f"basis points of volume (range {s['intents_take_bps_min']:.1f} to {s['intents_take_bps_max']:.1f}).</p>"
+                   f"<div class='grid'>{card('weekly', WEEKLY)}</div>")
     bt = (f"<h2>Does the clock or the price explain the burn?</h2><p>Walk-forward backtest of burn per epoch, "
           f"{next(iter(results['backtest'].values()))['n']} forecasts, up to 30 epochs ahead. Lower pinball loss is better. "
           f"All three models share the same recent level; one adds a time-of-week profile, one adds NEAR's price."
@@ -182,6 +198,7 @@ Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 <div class="banner">{e(trend)}</div>
 <div class="tiles">{''.join(f"<div class='tile'><b>{e(a)}</b><span>{e(b)}</span></div>" for a, b in tiles)}</div>
 <div class="grid">{cards}</div>
+{intents}
 {calc}
 <h2>Chain versus the indexer</h2>
 <p>The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
@@ -191,5 +208,5 @@ Rebuild with <code>python3 run.py</code>: no keys, no network.</p>
 {bt}
 {led}
 <p style="margin-top:32px"><small>Result hash <code>{sha}</code></small></p>
-</main><script type="application/json" id="data">{json.dumps(results['series'], separators=(',', ':'))}</script>
+</main><script type="application/json" id="data">{json.dumps(dict(series=results['series'], weekly=results.get('weekly', [])), separators=(',', ':'))}</script>
 <script>{JS}</script></body></html>"""
