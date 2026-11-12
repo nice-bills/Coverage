@@ -53,11 +53,12 @@ epoch's last block, to match. It also checks on two random blocks per epoch that
 `total_supply` fell by exactly the fees burnt in that block. Expected last line:
 
 ```
-VERIFY seed=12345 PASS (3/3 epochs match the chain)
+VERIFY seed=12345 PASS (3/3 epochs match the chain, 6 blocks checked against their parents)
 ```
 
 [VERIFY.txt](VERIFY.txt) is the recorded output of one run. The free endpoints rate-limit, so a
-run can pause for a minute or two; it retries on its own.
+run can pause for minutes; it waits and retries for as long as they do. Stop it with Ctrl-C at
+any time.
 
 ## Score the frozen predictions (network, no keys)
 
@@ -70,7 +71,7 @@ python3 run.py
 
 ```
 LEDGER 12/30 epochs resolved, 10 in interval, loss {...} -> PENDING
-LEDGER claim payback: 0.08 to 0.19, actual None -> PENDING
+LEDGER claim payback: <low> to <high>, actual None -> PENDING
 ```
 
 The verdict is `PENDING` until 30 epochs have closed, then `PASS` or `FALSIFIED`. The
@@ -132,7 +133,8 @@ that is wrong in a self-consistent way; `verify.py` compares rows with the chain
 | `data/llama.csv` | daily USD: NEAR fees, NEAR Intents volume, fees, captured revenue | DefiLlama API (third party) | none |
 | `data/price.csv` | daily NEAR price in USD | CoinGecko API (third party) | none |
 
-The two header sources return identical fields and `fetch.py` alternates between them. The
+`data/sources.json` records when each third-party or snapshot file was fetched, from which
+URLs, and its sha256. The two header sources return identical fields and `fetch.py` alternates between them. The
 third-party files never feed mint, burn, buyback gain, payback or the multiple. They are used
 for sender attribution, a cross-check table, the price-based forecasting model and USD context.
 

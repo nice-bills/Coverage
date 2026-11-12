@@ -181,7 +181,20 @@ def wallets():
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["height", "account", "near", "wnear"])
         w.writerows(out)
+    stamp("wallets.csv", [RPC + " query view_account / call_function wrap.near ft_balance_of"])
     print(f"wrote wallets.csv ({len(out)} rows)")
+
+
+def stamp(name, urls):
+    """Record when a file in data/ was fetched, from where, and its sha256, in data/sources.json."""
+    import hashlib
+    path = os.path.join(os.path.dirname(OUT), "sources.json")
+    src = json.load(open(path)) if os.path.exists(path) else {}
+    src[name] = {"fetched_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "urls": urls,
+                 "sha256": hashlib.sha256(open(os.path.join(os.path.dirname(OUT), name), "rb").read()).hexdigest()}
+    with open(path, "w") as f:
+        json.dump(src, f, indent=1, sort_keys=True)
+        f.write("\n")
 
 
 def protocol():
@@ -195,6 +208,7 @@ def protocol():
     with open(os.path.join(os.path.dirname(OUT), "protocol.json"), "w") as f:
         json.dump(keep, f, indent=1, sort_keys=True)
         f.write("\n")
+    stamp("protocol.json", [RPC + " EXPERIMENTAL_protocol_config"])
     print("wrote protocol.json", keep)
 
 
@@ -225,6 +239,7 @@ def inflows(pages=6):
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["block_height", "transaction_hash", "predecessor", "near"])
         w.writerows(sorted(out.values()))
+    stamp("inflows.csv", [f"https://api.nearblocks.io/v1/account/{BUYBACK}/receipts?per_page=250&order=desc&page=N"])
     print(f"wrote inflows.csv ({len(out)} transfers)")
 
 
@@ -274,6 +289,8 @@ def offchain():
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["date"] + list(LLAMA))
         w.writerows([d] + [cols[k].get(d, "") for k in LLAMA] for d in dates)
+    stamp("price.csv", ["https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily"])
+    stamp("llama.csv", list(LLAMA.values()))
     print(f"wrote price.csv and llama.csv ({len(dates)} days)")
 
 

@@ -1,4 +1,4 @@
-# Thesis: NEAR's token flow moved to the application layer, and break-even is single-digit multiples away
+# Thesis: NEAR's token flow moved to the application layer. At today's flows, break-even is __MULT__x away, not __BURN_MULT__x
 
 Every figure in this file is printed by `python3 run.py` (no keys, no network) and stored in
 `out/results.json`. Figures are for the last 100 epochs, about 28 days, ending __LAST__ at
@@ -23,8 +23,8 @@ revenue.
 
 The thesis has three parts:
 
-1. Burn plus buybacks equal __PAYBACK__ of issuance, not __BURN_COV__. Break-even is
-   __MULT__x away, not __BURN_MULT__x. "Payback" is our name for that ratio; buybacks are held,
+1. Burn plus buybacks equal __PAYBACK__ of issuance, not __BURN_COV__. If issuance and these
+   flows stayed as they are, break-even would be __MULT__x away, not __BURN_MULT__x. "Payback" is our name for that ratio; buybacks are held,
    not destroyed (see Evidence against).
 2. More than nine-tenths of the payback comes from application revenue, not gas. The token's
    flow is tied to NEAR Intents fees, not to block space.
@@ -123,7 +123,8 @@ commits to three claims about the 30 epochs after that height (about 9 days):
 
 Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows have
 differed historically. "Held in past windows" is how often the same procedure, run at earlier
-dates on data available then, contained the outcome.
+dates on data available then, contained the outcome. The sample is small, and the burn
+interval has held less often than its nominal 90%; read these as rough calibration, not proof.
 
 - If payback over those 30 epochs falls outside its interval, `run.py` prints `FALSIFIED`. A
   90% interval fails about one time in ten even when the model is right; we accept that.

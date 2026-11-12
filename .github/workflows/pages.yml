@@ -22,7 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 test_run.py
-      - run: python3 fetch.py --epochs 45   # only epochs newer than the cache are fetched
+      - name: Fetch epochs newer than the cache
+        run: python3 fetch.py --epochs 45
+        timeout-minutes: 30
+        continue-on-error: true   # rate limited or offline: publish from the committed cache
       - run: python3 run.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
