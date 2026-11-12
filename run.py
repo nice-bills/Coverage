@@ -343,11 +343,14 @@ def main():
     summary = dict(
         epochs=len(rows), first=day(rows[0]["t0_ns"]).strftime("%Y-%m-%d"), last=now["date"],
         first_height=rows[0]["start_height"], last_height=rows[-1]["end_height"],
+        last_end_utc=day(rows[-1]["t1_ns"]).strftime("%Y-%m-%d %H:%M"),
         mint_per_day=now["mint_per_day"], burn_per_day=now["burn_per_day"], buyback_per_day=now["buyback_per_day"],
         burn_coverage=now["coverage"], buyback_coverage=now["buyback_coverage"], payback=pay,
         multiple=now["multiple"], burn_only_multiple=1 / now["coverage"],
         realized_inflation=sum(r["mint"] for r in rows) / rows[-1]["supply_end"] * YEAR / secs,
         inflation_if_buybacks_were_burnt=None if pay is None else now["inflation"] * (1 - pay),
+        # HSP-029 would lower maximum issuance from 2.5% to 1.6% a year; at today's flows the multiple scales with it
+        multiple_at_1_6_issuance=None if pay is None else now["multiple"] * 1.6 / 2.5,
         window_days=(w[-1]["t1_ns"] - w[0]["t0_ns"]) / 86400e9,
         # constant yearly growth in burn plus buybacks that reaches break-even in 3, 5 and 10 years
         **({} if pay is None else {f"growth_needed_{n}y": now["multiple"] ** (1 / n) - 1 for n in (3, 5, 10)}),

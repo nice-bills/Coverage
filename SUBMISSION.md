@@ -15,7 +15,7 @@ What makes it checkable:
 - Attribution: __INFLOW_INTENTS__ of the last __INFLOW_N__ transfers into the buyback account come from intents.near. A separate pipeline (DefiLlama, via Dune) gives __LLAMA_BUY_NEAR__ NEAR a day for all revenue wallets; ours gives __ALL_NEAR__.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. predictions.json commits to intervals for payback, burn and buyback gain over the 30 epochs after height __LAST_HEIGHT__. Its sha256 is __PRED_HASH__. As epochs close during judging, `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED. The command refuses to score unless predictions.json is exactly what the code derives from the frozen data, so we cannot edit the outcome.
+The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses a round that is not exactly what the code derives from the data up to its height, so we cannot edit the outcome. Round hashes: __ROUND_HASHES__
 
 ## X post (attach the video)
 
@@ -24,12 +24,11 @@ NEAR's burn offsets __BURN_COV__ of its issuance. Burn plus NEAR Intents buyback
 Measured from the chain, break-even is __MULT__x away, not __BURN_MULT__x.
 
 No keys: python3 run.py
-Forecasts frozen; mainnet scores them.
-sha256 __PRED_HASH16__…
+Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
 [repo link]
 
-(Reply to it with the demo link and the full hash: __PRED_HASH__)
+(Reply to it with the demo link and the round hashes: __ROUND_HASHES__)
 
 ## 60-second video
 

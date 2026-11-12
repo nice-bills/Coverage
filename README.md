@@ -24,12 +24,12 @@ RESULT sha256=__RESULT_HASH__
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
-`out/results.json`, `out/predictions.json` and `dist/index.html`, and prints every headline
-number. Open `dist/index.html` in a browser for the dashboard. The three output files are also
-committed, so they can be read without running anything.
+`out/results.json` and `dist/index.html`, and prints every headline number. Open
+`dist/index.html` in a browser for the dashboard. Both output files are also committed, so they
+can be read without running anything.
 
-Because `predictions.json` is committed, the command also prints `LEDGER` lines: the frozen
-forecasts scored against any cached epochs newer than height __LAST_HEIGHT__.
+It also prints `LEDGER` lines: each frozen forecast round in `predictions/`, scored against the
+cached epochs that closed after it.
 
 ## Self-test (offline, about 2 seconds)
 
@@ -38,8 +38,9 @@ python3 test_run.py
 ```
 
 Expected output: `SELFTEST PASS`. It tests the scoring maths, then runs `run.py` on a copy of
-the repo and confirms that (a) the result hash is unchanged once predictions are frozen, (b) an
-edited `predictions.json` is refused, and (c) one yoctoNEAR added to one cached row is refused.
+the repo and confirms that (a) the result hash is unchanged once rounds are frozen, (b) a frozen
+round cannot be rewritten, (c) an edited round is refused, and (d) one yoctoNEAR added to one
+cached row is refused.
 
 ## Check the cache against the chain (network, no keys, about a minute)
 
@@ -67,16 +68,16 @@ python3 fetch.py --epochs 45
 python3 run.py
 ```
 
-`fetch.py` adds only epochs and balances newer than the cache. `run.py` then prints lines such as:
+`fetch.py` adds only epochs and balances newer than the cache. `run.py` then prints, per round:
 
 ```
-LEDGER 12/30 epochs resolved, 10 in interval, loss {...} -> PENDING
-LEDGER claim payback: <low> to <high>, actual None -> PENDING
+LEDGER round-<height>-h10.json: 7/10 epochs closed -> PENDING
+LEDGER   payback: <low> to <high>, actual None -> PENDING
 ```
 
-The verdict is `PENDING` until 30 epochs have closed, then `PASS` or `FALSIFIED`. The
-`RESULT sha256` does not change when newer epochs are added, because the analysis is frozen at
-the height recorded in `predictions.json`; newer epochs are used only for scoring.
+A round is `PENDING` until all its epochs have closed, then `PASS` or `FALSIFIED`. The
+`RESULT sha256` does not change when newer epochs are added, because the analysis stops at the
+newest round's height; later epochs are used only for scoring.
 
 ## Rebuild the cache from the chain (slow)
 
@@ -143,24 +144,22 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 
 ## Forecasts and the outside judge
 
-`predictions.json` commits to three claims about the 30 epochs after height __LAST_HEIGHT__:
-payback (90% interval), total NEAR burnt (90%) and total NEAR gained by the buyback account
-(90%). Each interval is the last 30-epoch value scaled by how much consecutive 30-epoch windows
-have differed historically. `out/results.json` records, under `claims_backtest`, how often the
-same procedure held when run at earlier dates.
+Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
+newest cached epoch and never overwritten. A round commits to 90% intervals for payback, total
+NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
+per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
-Rule, checked by `run.py` once 30 epochs have closed:
+__ROUNDS_TABLE__
+
+Rule, checked by `run.py` once a round's epochs have closed:
 
 - payback inside its interval: `PASS`; outside: `FALSIFIED`;
 - the other two claims: `HIT` or `MISS`.
 
-`predictions.json` also holds per-epoch burn forecasts from three models (`persistence`, `clock`,
-`price`), scored with pinball loss as epochs close. The same three are compared on history in
-the dashboard.
-
-Its sha256 is `__PRED_HASH__`, published before the epochs it predicts had closed (see
-[THESIS.md](THESIS.md)). `run.py` refuses to score unless the file is byte-for-byte what the
-code derives from the frozen data, so the method is frozen with the numbers.
+`out/results.json` records under `claims_backtest` how often the same procedure held at earlier
+dates. Each round file has an OpenTimestamps proof beside it (`.ots`), anchoring its sha256 in
+Bitcoin: `ots verify predictions/<file>.ots`. `run.py` refuses a round that is not exactly what
+the code derives from the data up to that round's height.
 
 ## Files
 
@@ -171,7 +170,7 @@ code derives from the frozen data, so the method is frozen with the numbers.
 | `dashboard.py` | renders `dist/index.html`; no external assets |
 | `verify.py` | spot-checks cached epochs against the chain |
 | `test_run.py` | self-test and tamper checks |
-| `predictions.json` | the frozen forecasts |
+| `predictions/` | the frozen forecast rounds and their OpenTimestamps proofs |
 | `VERIFY.txt` | recorded output of one `verify.py` run |
 | `THESIS.md` | claim, evidence for and against, what would change our mind |
 | `.github/workflows/pages.yml` | rebuilds the hosted dashboard every 6 hours without changing `main` |

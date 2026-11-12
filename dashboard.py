@@ -30,6 +30,8 @@ th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:
 .meter{height:10px;border-radius:5px;background:var(--grid);overflow:hidden}.meter i{display:block;height:100%;background:var(--s1);width:0}
 .card ul{margin:0;padding-left:20px}.card li{margin:6px 0;color:var(--text2)}
 summary{cursor:pointer;color:var(--text2);font-size:14px}h3 .pass,h3 .fail{margin-left:6px}
+.say{margin:8px 0 4px;color:var(--text);font-size:14px;max-width:none}.src{margin:0;font-size:12px}.src code{font-size:11px}
+.card svg{order:3}.card{display:flex;flex-direction:column}.card .tip{order:9}
 .banner{border-left:4px solid var(--s1);padding:10px 14px;background:var(--surface);margin:16px 0}
 """
 
@@ -66,20 +68,37 @@ document.querySelectorAll('[data-chart]').forEach(card=>{
 });
 """
 
-CHARTS = [  # key, title, subtitle, multiplier, unit, decimals
-    ("payback", "Payback", "Burn plus buybacks as % of issuance, 100-epoch rolling", 100, "%", 1),
-    ("multiple", "Distance to break-even", "Multiple of today's burn plus buybacks that offsets issuance", 1, "x", 1),
-    ("buyback_per_day", "Buybacks", "NEAR added to the buyback account per day", 1, " NEAR", 0),
-    ("burn_per_day", "Burn", "NEAR burnt in gas fees per day (exact)", 1, " NEAR", 0),
-    ("coverage", "Burn-only coverage", "Fee burn as % of issuance (exact)", 100, "%", 2),
-    ("utilization", "Block utilization", "Gas used as % of gas limit, sampled", 100, "%", 2),
+P = lambda x, n=1: f"{100 * x:.{n}f}%"
+CHARTS = [  # key, title, subtitle, multiplier, unit, decimals, source, one sentence on what it shows
+    ("payback", "Payback", "Burn plus buybacks as % of issuance, 100-epoch rolling", 100, "%", 1,
+     "(burn + buyback gain) / mint, from data/epochs.csv and data/buybacks.csv",
+     lambda s: f"Burn plus buybacks offset {P(s['payback'])} of issuance, down from a peak of {P(s['payback_peak'])} on {s['payback_peak_date']}."),
+    ("multiple", "Distance to break-even", "Multiple of today's burn plus buybacks that equals issuance", 1, "x", 1,
+     "mint / (burn + buyback gain)",
+     lambda s: f"Flows would have to grow {s['multiple']:.1f}x at constant issuance to equal it; on burn alone the figure is {s['burn_only_multiple']:.0f}x."),
+    ("buyback_per_day", "Buybacks", "NEAR added to the buyback account per day", 1, " NEAR", 0,
+     "view_account balance of buybacks.multisignature.near at each epoch's last block, differenced",
+     lambda s: f"The account gains {s['buyback_per_day']:,.0f} NEAR a day; it is held, not burnt, and its balance fell in {s['buyback_outflow_epochs']} of {s['buyback_epochs']} epochs."),
+    ("burn_per_day", "Burn", "NEAR burnt in gas fees per day (exact)", 1, " NEAR", 0,
+     "block header total_supply: supply(first block) - supply(last block) + burnt(first block), per epoch",
+     lambda s: f"Gas fees burn {s['burn_per_day']:,.0f} NEAR a day against {s['mint_per_day']:,.0f} minted."),
+    ("coverage", "Burn-only coverage", "Fee burn as % of issuance (exact)", 100, "%", 2,
+     "burn / mint, both from block header total_supply",
+     lambda s: f"Burn alone offsets {P(s['burn_coverage'], 2)} of issuance, which is what a fee-burn dashboard reports."),
+    ("utilization", "Block utilization", "Gas used as % of gas limit, sampled", 100, "%", 2,
+     "chunk gas_used / gas_limit over 3 seeded random heights per epoch",
+     lambda s: f"Blocks are {P(s['utilization'], 2)} full, so burn is limited by demand for block space, not by capacity."),
 ]
-
-
 WEEKLY = [
-    ("volume_musd", "NEAR Intents volume", "USD millions a day, weekly average", 1, "M", 0),
-    ("captured_kusd", "Revenue captured by NEAR", "USD thousands a day, all revenue wallets", 1, "k", 0),
-    ("take_bps", "Take rate", "Captured revenue per unit of volume, basis points", 1, " bps", 1),
+    ("volume_musd", "NEAR Intents volume", "USD millions a day, weekly average", 1, "M", 0,
+     "DefiLlama summary/dexs/near-intents, in data/llama.csv",
+     lambda s: f"Volume is ${s['intents_volume_musd_latest']:.0f}M a day, up from a weekly low of ${s['intents_volume_musd_low']:.0f}M and {s['intents_volume_usd_ratio_1y']:.2f}x its level a year ago."),
+    ("captured_kusd", "Revenue captured by NEAR", "USD thousands a day, all revenue wallets", 1, "k", 0,
+     "DefiLlama summary/fees/near-intents dailyHoldersRevenue, in data/llama.csv",
+     lambda s: f"Captured revenue moves with volume (correlation {s['intents_volume_captured_correlation']:.2f} over {s['intents_weeks']} weeks)."),
+    ("take_bps", "Take rate", "Captured revenue per unit of volume, basis points", 1, " bps", 1,
+     "captured revenue / volume, weekly, from data/llama.csv",
+     lambda s: f"NEAR keeps a median {s['intents_take_bps_median']:.1f} basis points of volume, between {s['intents_take_bps_min']:.1f} and {s['intents_take_bps_max']:.1f}: the rate is not stable."),
 ]
 
 
@@ -162,9 +181,17 @@ def render(results, sha, ledgers=None):
         led = ("<h2>Live ledger</h2><p>Each round was frozen before the epochs it describes existed. The chain scores it; "
                "<code>run.py</code> refuses a round that is not exactly what the code derives from the data up to its height. "
                "A 90% interval misses about one time in ten even when the model is right.</p>" + led)
-    card = lambda src, rows: "".join(
-        f"<div class='card' data-src='{src}' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{d}'>"
-        f"<h3>{e(t)}</h3><small>{e(sub)}</small></div>" for k, t, sub, m, u, d in rows)
+    def card(src, rows):
+        out = ""
+        for k, t, sub, m, u, dp, source, say in rows:
+            try:
+                sentence = say(s)
+            except (TypeError, KeyError):  # a figure this sentence needs is not available yet
+                sentence = ""
+            out += (f"<div class='card' data-src='{src}' data-chart='{k}' data-mul='{m}' data-unit='{u}' data-dp='{dp}'>"
+                    f"<h3>{e(t)}</h3><small>{e(sub)}</small><p class='say'>{e(sentence)}</p>"
+                    f"<p class='src'>Source: <code>{e(source)}</code></p></div>")
+        return out
     cards = card("series", CHARTS)
     intents = ""
     if results.get("weekly"):
@@ -183,7 +210,8 @@ def render(results, sha, ledgers=None):
     if s["payback"] is not None and s.get("capture_share"):
         cap = max(1, round(100 * s["capture_share"]))
         calc = f"""<h2>What closes the gap</h2>
-<p>Payback is burn plus buybacks over issuance. Three levers move it. Two of them are governance decisions.</p>
+<p>Payback is burn plus buybacks over issuance. Three levers move it. Two of them are governance decisions, and one is in motion:
+HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification, would lower maximum issuance to 1.6% a year.</p>
 <div class="card calc" data-burn="{s['burn_coverage']}" data-buy="{s['buyback_coverage']}" data-cap="{cap}">
 <label>NEAR Intents volume <output id="o-vol">1.0x today</output>
 <input type="range" id="vol" min="1" max="20" step="0.5" value="1"></label>
