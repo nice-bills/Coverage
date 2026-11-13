@@ -47,7 +47,12 @@ code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
 .mast nav{display:flex;gap:22px;font-size:13.5px;color:var(--ink-2)}.mast nav a{text-decoration:none}.mast nav a:hover{color:var(--ink)}
 .toggle{flex:none;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;font:500 12.5px var(--sans);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .toggle:hover{border-color:var(--muted)}
-.toggle.quick{text-decoration:none;color:var(--ink);margin-left:auto}
+.toggle.quick{text-decoration:none;margin-left:auto;background:var(--teal);border-color:var(--teal);color:#fff;font-size:14px;font-weight:600;padding:8px 16px}
+.quick-cta{grid-column:1/-1;justify-self:start;width:fit-content;display:inline-flex;align-items:center;gap:16px;margin:32px 0 28px;padding:18px 26px;border-radius:18px;background:var(--teal);color:#fff;text-decoration:none;box-shadow:0 10px 30px -12px var(--teal);max-width:100%;transition:transform .2s var(--ease),box-shadow .2s}
+.quick-cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px var(--teal)}
+.quick-cta .ic{font-size:28px;line-height:1}.quick-cta b{display:block;font:600 clamp(18px,2.2vw,22px)/1.25 var(--sans)}
+.quick-cta small{display:block;font-size:15px;opacity:.9;margin-top:2px}.quick-cta .ar{font-size:26px;margin-left:auto}
+@media screen and (prefers-reduced-motion:no-preference){.quick-cta .ar{animation:qnudge 1.6s ease-in-out infinite}@keyframes qnudge{50%{transform:translateX(5px)}}}
 .toggle i{width:10px;height:10px;border-radius:50%;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%);border:1px solid var(--ink);display:inline-block}
 .hero{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding:clamp(40px,7vw,96px) 0 40px}
 .hero{position:relative;isolation:isolate;overflow-x:clip}
@@ -405,7 +410,7 @@ function drawPayback(){const box=$('#ch-payback');if(!box)return;const W=box.cli
 // small multiples: one series, its last value and its low, with a tooltip
 function spark(box){const k=box.dataset.key,src=D[box.dataset.src],mul=+box.dataset.mul,dp=+box.dataset.dp,pre=box.dataset.pre||'',unit=box.dataset.unit||'',teal=box.dataset.color=='teal',
  P=src.filter(p=>p[k]!=null);if(P.length<2){box.closest('.mult').remove();return}
- const W=box.clientWidth,H=150,ml=4,mr=52,mt=16,mb=22,n=P.length,vals=P.map(p=>p[k]*mul),mx=Math.max(...vals)*1.12||1,
+ const W=box.clientWidth,H=150,ml=4,mr=62,mt=16,mb=22,n=P.length,vals=P.map(p=>p[k]*mul),mx=Math.max(...vals)*1.12||1,
  X=i=>ml+i/(n-1)*(W-ml-mr),Y=v=>mt+(1-Math.max(v,0)/mx)*(H-mt-mb),f=v=>pre+fmt(v,dp)+unit;let ln='';
  vals.forEach((v,i)=>ln+=(i?'L':'M')+X(i).toFixed(1)+','+Y(v).toFixed(1));
  let s=el('line',{x1:ml,x2:W-mr,y1:Y(0),y2:Y(0),stroke:'var(--rule)'});
@@ -414,7 +419,7 @@ function spark(box){const k=box.dataset.key,src=D[box.dataset.src],mul=+box.data
  s+=el('path',{d:ln,fill:'none',stroke:teal?'var(--teal)':box.dataset.color=='terra'?'var(--terra)':'var(--ink-2)','stroke-width':1.75,'stroke-linejoin':'round',class:'draw',pathLength:1});
  const mi=vals.indexOf(Math.min(...vals));
  s+=el('circle',{cx:X(n-1),cy:Y(vals[n-1]),r:3.5,fill:teal?'var(--teal)':'var(--ink)'})+el('text',{x:X(n-1)+7,y:Y(vals[n-1])+4,class:'lab'},f(vals[n-1]));
- if(mi<n-3){s+=el('circle',{cx:X(mi),cy:Y(vals[mi]),r:2.5,fill:'var(--card)',stroke:'var(--muted)'})+el('text',{x:Math.max(X(mi),24),y:Math.min(Y(vals[mi])+15,H-mb+12),'text-anchor':'middle','font-size':10.5},'low '+f(vals[mi]))}
+ if(mi<n-3){s+=el('circle',{cx:X(mi),cy:Y(vals[mi]),r:2.5,fill:'var(--card)',stroke:'var(--muted)'})+((ly,x)=>el('text',ly<H-mb?{x:Math.max(x,28),y:ly,'text-anchor':'middle','font-size':10.5}:x<72?{x:52,y:H-4,'text-anchor':'start','font-size':10.5}:x>W-mr-72?{x:W-mr-52,y:H-4,'text-anchor':'end','font-size':10.5}:{x,y:H-4,'text-anchor':'middle','font-size':10.5},'low '+f(vals[mi])))(Y(vals[mi])+15,X(mi))}
  s+=el('text',{x:ml,y:H-4},dlab(P[0].date))+el('text',{x:W-mr,y:H-4,'text-anchor':'end'},dlab(P[n-1].date));
  box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" height="'+H+'" role="img" aria-label="'+esc(box.dataset.aria||'')+'">'+s+'<line class="xh" x1="0" x2="0" y1="'+mt+'" y2="'+(H-mb)+'" stroke="var(--ink)" opacity="0"/></svg>';
  interact(box,n,X,i=>Y(vals[i]),i=>'<b>'+dlab(P[i].date)+' '+P[i].date.slice(0,4)+'</b><br>'+pre+fmt(vals[i],dp+1)+unit)}
@@ -1376,7 +1381,7 @@ def render(results, sha, ledgers=None, tape=None):
 <header class="mast"><div class="brand"><b>Coverage</b><span>A research report on what NEAR pays back</span></div>
 <nav aria-label="Chapters">{nav}</nav><a class="toggle quick" href="quick.html">60-second version</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
 <section class="hero" id="top" aria-label="{e(meta)}"><div class="meta"><span class="eyebrow">NEAR mainnet</span><span class="eyebrow">{span}</span><span class="eyebrow">{s['epochs']:,} epochs</span></div>
-<h1>{h1}</h1><p class="dek">{dek}</p><p class="byline">{byline}</p></section>
+<h1>{h1}</h1><a class="quick-cta" href="quick.html"><span class="ic">⏱</span><span><b>Short on time? Read it in 60 seconds</b><small>One idea per step, in plain words</small></span><span class="ar">→</span></a><p class="dek">{dek}</p><p class="byline">{byline}</p></section>
 {ruler}{live}{scale}
 <div class="body"><aside class="index" aria-label="Contents"><div class="eyebrow">Contents</div><ol id="idx">{idx}</ol>{foot}</aside>
 <main><div class="mobile-index"><details><summary><span class="row"><b id="mi-t">01 {chapters[0][1] if chapters else ''}</b><span id="mi-n" class="eyebrow">1 / {len(chapters)}</span></span><span class="p" style="display:block"><i id="mi-p"></i></span></summary><ol>{midx}</ol></details></div>

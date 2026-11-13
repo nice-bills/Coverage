@@ -37,7 +37,12 @@ code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
 .mast nav{display:flex;gap:22px;font-size:13.5px;color:var(--ink-2)}.mast nav a{text-decoration:none}.mast nav a:hover{color:var(--ink)}
 .toggle{flex:none;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;font:500 12.5px var(--sans);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .toggle:hover{border-color:var(--muted)}
-.toggle.quick{text-decoration:none;color:var(--ink);margin-left:auto}
+.toggle.quick{text-decoration:none;margin-left:auto;background:var(--teal);border-color:var(--teal);color:#fff;font-size:14px;font-weight:600;padding:8px 16px}
+.quick-cta{grid-column:1/-1;justify-self:start;width:fit-content;display:inline-flex;align-items:center;gap:16px;margin:32px 0 28px;padding:18px 26px;border-radius:18px;background:var(--teal);color:#fff;text-decoration:none;box-shadow:0 10px 30px -12px var(--teal);max-width:100%;transition:transform .2s var(--ease),box-shadow .2s}
+.quick-cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px var(--teal)}
+.quick-cta .ic{font-size:28px;line-height:1}.quick-cta b{display:block;font:600 clamp(18px,2.2vw,22px)/1.25 var(--sans)}
+.quick-cta small{display:block;font-size:15px;opacity:.9;margin-top:2px}.quick-cta .ar{font-size:26px;margin-left:auto}
+@media screen and (prefers-reduced-motion:no-preference){.quick-cta .ar{animation:qnudge 1.6s ease-in-out infinite}@keyframes qnudge{50%{transform:translateX(5px)}}}
 .toggle i{width:10px;height:10px;border-radius:50%;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%);border:1px solid var(--ink);display:inline-block}
 .hero{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding:clamp(40px,7vw,96px) 0 40px}
 .hero{position:relative;isolation:isolate;overflow-x:clip}
@@ -416,12 +421,12 @@ html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 </style></head><body>
 <div class="q-wrap"><header class="q-mast"><div class="brand"><b>Coverage</b><span>in 60 seconds</span></div>
 <div class="acts"><a class="q-btn small" href="index.html">Full report</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></div></header></div>
-<div class="q-prog" aria-hidden="true"><div class="q-wrap"><div class="row"><b id="q-n">Step 1 of 6</b><span id="q-t">NEAR makes new coins</span></div><div class="bar"><i id="q-bar"></i></div></div></div>
+<div class="q-prog" aria-hidden="true"><div class="q-wrap"><div class="row"><b id="q-n">Step 1 of 7</b><span id="q-t">NEAR makes new coins</span></div><div class="bar"><i id="q-bar"></i></div></div></div>
 <main class="q-wrap">
 <section class="q-hero"><span class="eyebrow">NEAR · the short version</span>
 <h1>NEAR makes new coins. We measured how much it <em>wins back</em>.</h1>
-<p class="lead">6 quick steps. One idea each. Every number is real and you can check it.</p>
-<ul class="chips"><li>About 60 seconds</li><li>6 steps</li><li>Last 29 days of NEAR mainnet</li></ul></section>
+<p class="lead">7 quick steps. One idea each. Every number is real and you can check it.</p>
+<ul class="chips"><li>About 60 seconds</li><li>7 steps</li><li>Last 29 days of NEAR mainnet</li></ul></section>
 <section class='q-step' id='s1' data-t='NEAR makes new coins'><div class='tag'><span class='n'>1</span>NEAR makes new coins</div>
 <h2>Every day, NEAR makes new coins.</h2>
 <div class="big num">89,783<small>new NEAR a day</small></div>
@@ -455,11 +460,16 @@ html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 <li><span class="ic">i</span><div><b>Bought back isn't burnt.</b><span>The NEAR sits in an account. Its owners could spend it.</span></div></li>
 <li><span class="ic">ii</span><div><b>It has dipped.</b><span>From a peak of 16.5% down to 12.0% now.</span></div></li>
 <li><span class="ic">iii</span><div><b>One app does most of it.</b><span>NEAR Intents supplies 92% of what's won back.</span></div></li>
-</ul></section><section class='q-step' id='s6' data-t='Check it yourself'><div class='tag'><span class='n'>6</span>Check it yourself</div>
+</ul></section><section class='q-step' id='s6' data-t='Ranges, not guesses'><div class='tag'><span class='n'>6</span>Ranges, not guesses</div>
+<h2>We give ranges, not guesses.</h2>
+<p class="say">One exact number is almost always wrong. So for every forecast we give a <b>range</b>, like "between 7% and 27%".</p>
+<div class="big num teal">82%</div>
+<p class="say">of the time, the real number landed <b>inside</b> our range when we tested it on past data.</p>
+<p class="plain">That's the honest bar: tight enough to be useful, wide enough to be right most of the time. Expect the odd miss. A range that is never wrong is too wide to mean anything.</p></section><section class='q-step' id='s7' data-t='Check it yourself'><div class='tag'><span class='n'>7</span>Check it yourself</div>
 <h2>Don't trust us. Check it.</h2>
 <p class="say">One command rebuilds every number on this page from the chain data, in under 2 seconds:</p>
 <div class="q-cmd">$ python3 run.py<br><span class="ok">RESULT sha256=544723ab97176cc6…</span></div>
-<p class="plain">We also locked in predictions <b>before</b> the data existed, stamped them in Bitcoin, and let NEAR's own chain score them live.</p></section>
+<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p></section>
 <section class="q-end"><h2>That's it.</h2><p>NEAR wins back <b>12.0%</b> of what it makes, and break-even is <b>8.4×</b> away, not 108×.</p>
 <div class="acts"><a class="q-btn solid" href="index.html">Read the full report</a><a class="q-btn" href="https://github.com/nice-bills/Coverage">See the code</a></div></section>
 <footer class="q-foot"><span>Coverage · MIT licence · result <code>544723ab9717</code></span><span>Same numbers as the full report, from <code>out/results.json</code>.</span></footer>

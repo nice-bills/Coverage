@@ -177,11 +177,22 @@ def render(results, sha):
 <li><span class="ic">iii</span><div><b>One app does most of it.</b><span>NEAR Intents supplies {pct(s['buyback_coverage'] / s['payback'], 0)} of what's won back.</span></div></li>
 </ul>""")
 
+    cb = results.get("claims_backtest") or {}
+    tot = [sum(v["payback"][k] for v in cb.values() if "payback" in v) for k in ("hit", "n")]
+    held = tot[0] / tot[1] if tot[1] else None
+    if held is not None:
+        step("ranges", "Ranges, not guesses", f"""
+<h2>We give ranges, not guesses.</h2>
+<p class="say">One exact number is almost always wrong. So for every forecast we give a <b>range</b>, like "between 7% and 27%".</p>
+<div class="big num teal">{pct(held, 0)}</div>
+<p class="say">of the time, the real number landed <b>inside</b> our range when we tested it on past data.</p>
+<p class="plain">That's the honest bar: tight enough to be useful, wide enough to be right most of the time. Expect the odd miss. A range that is never wrong is too wide to mean anything.</p>""")
+
     step("check", "Check it yourself", f"""
 <h2>Don't trust us. Check it.</h2>
 <p class="say">One command rebuilds every number on this page from the chain data, in under 2 seconds:</p>
 <div class="q-cmd">$ python3 run.py<br><span class="ok">RESULT sha256={sha[:16]}…</span></div>
-<p class="plain">We also locked in predictions <b>before</b> the data existed, stamped them in Bitcoin, and let NEAR's own chain score them live.</p>""")
+<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p>""")
 
     n = len(steps)
     body = "".join(
