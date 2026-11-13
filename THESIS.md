@@ -381,14 +381,14 @@ public NEAR dataset (`bigquery-public-data.crypto_near_mainnet_us`) measure it, 
 
 | Query | Measures | Table | Result |
 |---|---|---|---|
-| [`queries/daily_active_accounts.sql`](queries/daily_active_accounts.sql) | Daily active accounts: distinct transaction signers per UTC day | `transactions` | pending |
-| [`queries/daily_transactions.sql`](queries/daily_transactions.sql) | Transactions included on chain per UTC day | `transactions` | pending |
-| [`queries/intents_share.sql`](queries/intents_share.sql) | Contract usage: receipts and function calls per day, and how many went to intents.near | `receipt_actions` | pending |
-| [`queries/top_contracts.sql`](queries/top_contracts.sql) | Contract usage: the 25 contracts with the most function calls, first and last 30 days of the window | `receipt_actions` | pending |
+| [`queries/daily_active_accounts.sql`](queries/daily_active_accounts.sql) | Daily active accounts: distinct transaction signers per UTC day | `transactions` | 273 rows, sha256 `6500fe36b716` |
+| [`queries/daily_transactions.sql`](queries/daily_transactions.sql) | Transactions included on chain per UTC day | `transactions` | 273 rows, sha256 `041770c13100` |
+| [`queries/intents_share.sql`](queries/intents_share.sql) | Contract usage: receipts and function calls per day, and how many went to intents.near | `receipt_actions` | 273 rows, sha256 `9bc771ecfab2` |
+| [`queries/top_contracts.sql`](queries/top_contracts.sql) | Contract usage: the 25 contracts with the most function calls, first and last 30 days of the window | `receipt_actions` | 50 rows, sha256 `d8c82da3344a` |
 
-Status: the queries are written; their results are not committed yet, so the dashboard shows each query with its SQL and no chart. They never feed the headline numbers or the result hash.
+Status: 4 of 4 query results loaded from `data/bq/`, block dates 2026-02-13 to 2026-11-12.
 
-Finding: Pending until `data/bq/intents_share.csv` is added.
+Finding: intents.near received 7.8% of all receipts over the last 30 days, against 0.7% over the first 30: its share of network activity rose.
 
 This is context, not evidence for the claim. Payback depends on the fees Intents sends to the
 buyback account, not on how many receipts it handles, so these figures do not enter the

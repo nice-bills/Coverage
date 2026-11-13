@@ -56,7 +56,7 @@ evidence someone else can reproduce."
 |---|---|---|
 | Onchain analytics from public data | `fetch.py`: mint and burn from `total_supply` in block headers for every one of 901 epochs; buyback balance by `view_account` | Free keyless endpoints; a full rebuild takes hours because they rate-limit |
 | An Intents data pull | `data/inflows.csv` (transfers into the buyback account, with senders) and `data/llama.csv` (DefiLlama's public NEAR Intents volume and fee series) | Third-party (NearBlocks, DefiLlama). They never feed mint, burn, payback or the multiple. No Intents Explorer API pull, on purpose: its terms forbid keeping the data beyond 24 hours (see [BigQuery queries](#network-activity-from-bigquery-needs-a-google-account)) |
-| SQL against the NEAR BigQuery public dataset: daily active accounts, transaction counts, contract usage | Four files in `queries/`, each filtered on `block_date` over 2026-02-13 to 2026-11-12, with the bytes it scans and how to run it in its header. Chapter 06 of the dashboard draws each result with its SQL and one sentence written from the data | the queries are written; their results are not committed yet, so the dashboard shows each query with its SQL and no chart. They never feed the headline numbers or the result hash. The results stay out of `out/results.json`, so the hash never depends on them |
+| SQL against the NEAR BigQuery public dataset: daily active accounts, transaction counts, contract usage | Four files in `queries/`, each filtered on `block_date` over 2026-02-13 to 2026-11-12, with the bytes it scans and how to run it in its header. Chapter 06 of the dashboard draws each result with its SQL and one sentence written from the data | 4 of 4 query results loaded from `data/bq/`, block dates 2026-02-13 to 2026-11-12. The results stay out of `out/results.json`, so the hash never depends on them |
 | One command rebuilds every figure | `python3 run.py`, offline, under 2 seconds, prints a hash that must match this file | Rebuilds from the committed cache; `verify.py` compares the cache with mainnet |
 | A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source. It draws every epoch as one column, reads the current block and buyback balance from mainnet in your browser, and its "Check a random epoch" button refetches three block headers and compares mint, burn and the buyback gain with the cache to the yoctoNEAR. Its "Check it yourself" chapter shows the recorded output of `run.py` and `test_run.py` from the build that produced the page, with a link to that run's GitHub Actions log | One static file, no build step; only the fonts load from Google Fonts, with system fallbacks. The live parts call a free keyless RPC from the browser and say so when it rate-limits |
 | Reproducible models | Four, listed on the dashboard under Models with the `run.py` functions behind each | The burn forecasters' bands are too narrow (about two-thirds held against a nominal 80%); stated, not hidden |
@@ -132,12 +132,12 @@ tables are partitioned on, so BigQuery reads only the days in the window.
 
 | Query | Measures | Table | Result |
 |---|---|---|---|
-| [`queries/daily_active_accounts.sql`](queries/daily_active_accounts.sql) | Daily active accounts: distinct transaction signers per UTC day | `transactions` | pending |
-| [`queries/daily_transactions.sql`](queries/daily_transactions.sql) | Transactions included on chain per UTC day | `transactions` | pending |
-| [`queries/intents_share.sql`](queries/intents_share.sql) | Contract usage: receipts and function calls per day, and how many went to intents.near | `receipt_actions` | pending |
-| [`queries/top_contracts.sql`](queries/top_contracts.sql) | Contract usage: the 25 contracts with the most function calls, first and last 30 days of the window | `receipt_actions` | pending |
+| [`queries/daily_active_accounts.sql`](queries/daily_active_accounts.sql) | Daily active accounts: distinct transaction signers per UTC day | `transactions` | 273 rows, sha256 `6500fe36b716` |
+| [`queries/daily_transactions.sql`](queries/daily_transactions.sql) | Transactions included on chain per UTC day | `transactions` | 273 rows, sha256 `041770c13100` |
+| [`queries/intents_share.sql`](queries/intents_share.sql) | Contract usage: receipts and function calls per day, and how many went to intents.near | `receipt_actions` | 273 rows, sha256 `9bc771ecfab2` |
+| [`queries/top_contracts.sql`](queries/top_contracts.sql) | Contract usage: the 25 contracts with the most function calls, first and last 30 days of the window | `receipt_actions` | 50 rows, sha256 `d8c82da3344a` |
 
-Status: the queries are written; their results are not committed yet, so the dashboard shows each query with its SQL and no chart. They never feed the headline numbers or the result hash.
+Status: 4 of 4 query results loaded from `data/bq/`, block dates 2026-02-13 to 2026-11-12.
 
 To run them (free, no card):
 
