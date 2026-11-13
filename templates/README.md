@@ -26,6 +26,24 @@ and commits it. Nobody edits the numbers by hand.
 - Every number above is rebuilt offline by `python3 run.py` and checked against mainnet by
   `python3 verify.py`; forecasts frozen before judging are scored by the chain during it.
 
+## The dashboard in four pictures
+
+Every epoch since February, with the 100-epoch payback and the frozen forecast bands on the right:
+
+![Every epoch since 13 Feb, one column each](docs/shot-epochs.jpg)
+
+The path to break-even, bear to bull, with and without HSP-029:
+
+![Payback over the next ten years, bear to bull](docs/shot-path.jpg)
+
+The case for and against, at equal weight:
+
+![The case, both ways](docs/shot-both-ways.jpg)
+
+Forecasts frozen before the epochs existed, scored by mainnet while you judge:
+
+![Forecast rounds and their committed bands](docs/shot-check.jpg)
+
 ## Where each track requirement is met
 
 Track: Investment Thesis (id `thesis`): "Build a long-term investment thesis for NEAR and back it

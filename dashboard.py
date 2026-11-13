@@ -1242,7 +1242,7 @@ def render(results, sha, ledgers=None, tape=None):
         elif end and L["after_end_height"] == s["last_height"]:
             t = end + datetime.timedelta(hours=s["window_days"] * 24 / 100 * L["total"])
             closes.append(t)
-            when = "≈ " + f"{t.day} {MONTHS[t.month - 1][:3]} {t:%H}:00 UTC"
+            when = "≈ " + f"{t.day} {MONTHS[t.month - 1][:3]} {t:%H}:00<small>UTC</small>"
         else:
             when = "open"
         dd = lambda n: (lambda c: f"{fmtc(n, c['lo'])} – {fmtc(n, c['hi'])}" + (
