@@ -855,7 +855,7 @@ def path_chapter(sc, s, num_, fnk):
         "bear": (f"If gross Intents fees keep shrinking as they did over the past year, the flow shrinks with them and never reaches issuance."
                  if c["bear"]["growth"] < 0 else "At the slowest year-long rate in the data, break-even does not come this century."
                  if c["bear"]["year"] is None else f"Even at the slowest year-long rate in the data, break-even comes in {c['bear']['year']}."),
-        "base": f"At the median year-long rate, payback is {pct(c['base']['payback_10y'], 0)} of issuance in ten years. Break-even is decades away, not years."
+        "base": f"At the median year-long rate, payback is {pct(c['base']['payback_10y'], 0)} of issuance in ten years. At this pace, growth alone is too slow; capture is the lever."
                 if c["base"]["year"] and c["base"]["years"] > 15 else f"At the median year-long rate, break-even comes in {c['base']['year'] or 'over a century'}.",
         "bull": f"If Intents volume keeps the trend it set over the past year, break-even comes in about {c['bull']['years']:.0f} years. "
                 f"Five-year break-even needs {pct(s['growth_needed_5y'], 0)} a year.",
@@ -883,8 +883,10 @@ def path_chapter(sc, s, num_, fnk):
             f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; "
             f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months from {sc['start']}. Dashed lines: with HSP-029. Shaded: between bear and bull. "
             f"<code>run.py: scenarios</code>, <code>scenarios</code> in <code>out/results.json</code>.")
-    head = ("At the past year's pace, break-even is decades away. At the year's best trend, about five years."
-            if c["base"]["year"] and c["base"]["years"] > 15 and c["bull"]["years"] is not None and c["bull"]["years"] <= 10 else
+    full = sc["levers"]["capture"][-1]  # every Intents fee captured, at the base growth rate
+    head = (f"Break-even turns on growth and capture. At Intents' volume trend it comes in about {c['bull']['years']:.0f} years; "
+            f"at slow growth, capturing every Intents fee with HSP-029 brings it to {full['years_base_hsp029']:.0f}."
+            if c["bull"]["years"] is not None and full.get("years_base_hsp029") is not None and full["share"] == 1.0 else
             "Where the flow goes from here, under three growth rates the data set.")
     return f"""<section class="chapter paths" id="c-path" data-t="The path to break-even"><div class="ch-head"><div class="ch-num"><span class="n">{num_}</span><span class="eyebrow">The path to break-even</span><span class="line"></span></div>
 <h2>{head}</h2><p>Not a forecast: three growth rates taken from the data by one rule, and where each takes payback from today's {pct(s['payback'])}. HSP-029, passed on 2 November 2026 and awaiting ratification, moves every date earlier; it does not change which paths arrive.{fn}</p></div>
