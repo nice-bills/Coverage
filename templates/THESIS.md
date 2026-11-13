@@ -59,6 +59,21 @@ __LLAMA_BUY_NEAR__ NEAR a day over the same days. Balance changes of those three
 with 12 RPC calls, give __ALL_NEAR__ NEAR a day. The thesis uses only the buyback wallet,
 __BUY__ NEAR a day, which is the lower figure.
 
+**Other teams' published figures agree once the wallet scope is matched.** Several entries in
+this hackathon measured the same flow independently. As published in their READMEs on
+2026-11-13 (typed in from those pages, not computed here):
+
+| Source | Their figure | Scope | Ours on the same scope |
+|---|---|---|---|
+| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR internal transfer | three revenue wallets | __ALL_PAY__; __BUY_SHARE__; __LUMP__ NEAR excluded as a transfer |
+| [NEAR Agent Census](https://github.com/daodudestiny56-netizen/near-thesis-) | Intents revenue covers 15.1% of issuance; burn 0.58% | DefiLlama revenue, sampled burn, 2026-06 to 2026-11 | __ALL_PAY__; __BURN_COV__ (exact, last __WINDOW_DAYS__ days) |
+| [near-thesis](https://github.com/soldanoandrea/near-thesis) | 7.2x to offset issuance | all captured revenue | __ALL_MULT__x |
+
+The headline here is lower (__PAYBACK__, __MULT__x) because it counts only the wallet NEAR names
+for buybacks and reads it as a balance change. Counting all three revenue wallets gives
+__ALL_PAY__ and __ALL_MULT__x. The periods differ, so agreement is approximate; the point is that
+separate code on separate data sources lands in the same range.
+
 **Realized inflation matches stated policy.** Measured mint annualizes to __INFL__ of supply
 over the whole cache; the protocol config has `max_inflation_rate` at 1/40
 (`data/protocol.json`). If the buyback NEAR were burnt rather than held, net inflation would be
@@ -97,6 +112,12 @@ NEAR gas fees in USD __GAS_RATIO__x. Within the year volume fell to a weekly low
 $__VOL_LOW__M a day and has recovered to $__VOL_NOW__M, so the year-on-year figure hides a round trip,
 not steady growth. The buyback flow exists because capture was switched on in February 2026. At today's capture share, break-even needs
 __MULT__x the volume.
+
+**Public volume may be undercounted from now on.** Another entry
+([Tideline](https://github.com/ervhint/tideline-thesis)) reports that since 2026-10-27 a growing
+share of Intents swaps settles privately, out of public view. We have not verified that. If it
+is right, the DefiLlama volume and fee series used here for context will understate activity.
+Payback is unaffected: it is a balance change in the buyback account, not a count of swaps.
 
 **The payback is concentrated.** One application supplies over 90% of it. A fee cut, exploit
 or loss of flow at NEAR Intents removes most of the thesis.

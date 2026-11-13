@@ -2,7 +2,26 @@
 
 How much of NEAR's token issuance is offset by protocol flows, and how far is break-even?
 
+[![pages](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml/badge.svg)](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml)
+
 Live dashboard, rebuilt from the chain every 6 hours: https://nice-bills.github.io/Coverage/
+
+![The dashboard](docs/dashboard.jpg)
+
+## Where each track requirement is met
+
+Track: Investment Thesis ("a data-backed case for NEAR's long-term potential using onchain
+analytics, dashboards and reproducible models").
+
+| Requirement | Where | Honest note |
+|---|---|---|
+| Onchain analytics from public data | `fetch.py`: mint and burn from `total_supply` in block headers for every one of __EPOCHS__ epochs; buyback balance by `view_account` | Free keyless endpoints; a full rebuild takes hours because they rate-limit |
+| An Intents data pull | `data/inflows.csv` (transfers into the buyback account, with senders) and `data/llama.csv` | Third-party (NearBlocks, DefiLlama). They never feed mint, burn, payback or the multiple |
+| One command rebuilds every figure | `python3 run.py`, offline, under 2 seconds, prints a hash that must match this file | Rebuilds from the committed cache; `verify.py` compares the cache with mainnet |
+| A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source | One static file, no build step, no external assets |
+| Reproducible models | Four, listed on the dashboard under Models with the `run.py` functions behind each | The burn forecasters' bands are too narrow (about two-thirds held against a nominal 80%); stated, not hidden |
+| Claim, evidence for, evidence against, what would change our mind | [THESIS.md](THESIS.md), generated from the results | The case against has equal weight; the headline counts held buybacks, which are not burns |
+| Evidence someone else can check | Result hash, tamper tests (`test_run.py`), seeded mainnet check (`verify.py`), forecast rounds timestamped in Bitcoin and scored by the chain | The rounds test that the flow persists over days. They do not test the multi-year case |
 
 Coverage measures three flows on NEAR mainnet: NEAR minted to validators, NEAR burnt in gas fees,
 and NEAR gained by `buybacks.multisignature.near`, the account that receives NEAR from the NEAR

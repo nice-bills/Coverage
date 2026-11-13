@@ -70,6 +70,8 @@ def values():
         LUMP=num(s["lump_transfers_near"]), LUMP_OUT=num(s["lump_matched_outflow_near"]),
         OUT_N=str(s["buyback_outflow_epochs"]), OUT_NEAR=num(s["buyback_outflow_near"]),
         BUY_EPOCHS=str(s["buyback_epochs"]),
+        ALL_PAY=pct(s["all_revenue_wallets_payback"]), ALL_MULT=f"{1 / s['all_revenue_wallets_payback']:.1f}",
+        BUY_SHARE=pct(s["buyback_per_day"] / s["llama_buyback_near_per_day"], 0),
         LUMP_IN=str(s["lump_epochs_in_window"]), OUT_IN=str(s["outflow_epochs_in_window"]),
         PAY_LO=pct(s["payback_p05"]), PAY_HI=pct(s["payback_p95"]),
         PAY_FIRST=pct(s["payback_first"]), PAY_FIRST_DATE=s["payback_first_date"],
