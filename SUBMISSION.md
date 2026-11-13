@@ -14,10 +14,10 @@ What makes it checkable:
 - One command, `python3 run.py`: no keys, no network, no dependencies. It prints a result hash that must equal the one in the README.
 - `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
 - `python3 test_run.py` shows the command refuses a cache with one yoctoNEAR changed and refuses edited predictions.
-- Attribution: 2979 of the last 2996 transfers into the buyback account come from intents.near. A separate pipeline (DefiLlama, via Dune) gives 13,589 NEAR a day for all revenue wallets; ours gives 13,984.
+- Audit: all 3,374 receipts of the buyback account reconcile with chain balances to the yoctoNEAR in 658 of 658 transfer-only epochs. intents.near sent 77.2% of the NEAR; 0.53% has left; 2 of 4 keys can move it.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from 16.5% to 12.0%; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. Hashes are in the README.
+The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. A scheduled job freezes and commits a new round about daily.
 
 ## X post (attach the video; fits 280 characters)
 

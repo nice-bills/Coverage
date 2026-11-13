@@ -32,6 +32,13 @@
    "https://api.llama.fi/summary/fees/near-intents?dataType=dailyHoldersRevenue"
   ]
  },
+ "multisig.json": {
+  "fetched_utc": "2026-11-13T05:44:48Z",
+  "sha256": "46dd9b96fdc55e429c039fb00ad4f9f13c16ae0ff965ec1de4da2b3322b2c1ca",
+  "urls": [
+   "https://archival-rpc.mainnet.fastnear.com query call_function, view_access_key_list, view_account"
+  ]
+ },
  "price.csv": {
   "fetched_utc": "2026-11-12T13:45:49Z",
   "sha256": "c7aa06de54584ced4e3541b4ef23b2c8ec96cf6cbf37c12ace3278e0d8cfbb44",
@@ -39,11 +46,26 @@
    "https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily"
   ]
  },
+ "private_sample.csv": {
+  "fetched_utc": "2026-11-13T06:23:30Z",
+  "sha256": "b8f704b7819abb22b435f57bf6b8de37b94f3ae66acdc58a41b8dd87c1a32d7e",
+  "urls": [
+   "https://mainnet.neardata.xyz/v0/block/{h}"
+  ]
+ },
  "protocol.json": {
   "fetched_utc": "2026-11-12T21:00:30Z",
   "sha256": "cf36505a31d58f3825f2c28f208ddf5223fdb03f75b9502fdcb03f7c26033ede",
   "urls": [
    "https://archival-rpc.mainnet.fastnear.com EXPERIMENTAL_protocol_config"
+  ]
+ },
+ "wallet_history.csv": {
+  "fetched_utc": "2026-11-13T05:58:46Z",
+  "sha256": "d83e1555096774607379d580b93554179399d889f9295e13c118393a1ec833a6",
+  "urls": [
+   "https://tx.main.fastnear.com/v0/account",
+   "https://tx.main.fastnear.com/v0/transactions"
   ]
  },
  "wallets.csv": {

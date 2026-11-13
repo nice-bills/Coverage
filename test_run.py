@@ -79,4 +79,12 @@ _src = json.load(open(os.path.join(_d, "sources.json")))
 for _f in sorted(os.listdir(_d)):
     if _f != "sources.json":
         assert _src[_f]["sha256"] == hashlib.sha256(open(os.path.join(_d, _f), "rb").read()).hexdigest(), _f
+
+# The buyback account reconciles: in every epoch where it only received or sent transfers, receipts
+# sum to the balance change read from the chain, to the yoctoNEAR.
+_w = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "results.json"))).get("wallet")
+if _w:
+    assert _w["quiet_exact"] == _w["epochs_quiet"] and _w["quiet_worst_yocto"] == "0", _w
+    assert abs(_w["call_residual_near"]) < 1, _w  # gas and contract rewards in the epochs with multisig calls
+
 print("SELFTEST PASS")

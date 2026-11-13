@@ -386,12 +386,39 @@ def render(results, sha, ledgers=None, tape=None):
              f"<tr><td>Buyback account gain</td><td>{nr(s['buyback_per_day'])}</td><td rowspan='2'>{nr(s['llama_buyback_near_per_day'])} "
              f"<small>(captured revenue, all wallets)</small></td></tr>"
              f"<tr><td>All three revenue wallets, gain</td><td>{nr(s['all_revenue_wallets_per_day'])}</td></tr>")
+    audit, w = "", results.get("wallet")
+    if w:
+        c, top, out = w["custody"], w["top_senders"], sum(x["near"] for x in w["paid"])
+        tiles = [("Epochs that reconcile to the yoctoNEAR", f"{w['exact_with_receipts']} of {w['epochs_with_receipts']}",
+                  f"<small>{num(w['receipts'])} receipts against balances read from the chain. {w['call_epochs']} epochs with multisig calls differ by "
+                  f"{abs(w['call_residual_near']):.2f} NEAR of gas.</small>"),
+                 (f"Share sent by {top[0]['account']}", pct(top[0]["share"], 1),
+                  f"<small>{pct(top[1]['share'], 1)} came from <code>{e(top[1]['account'])}</code> in {top[1]['transfers']} transfers, "
+                  f"including the one the headline excludes.</small>"),
+                 ("NEAR that has left the account", num(out),
+                  f"<small>{pct(out / w['inflow_near'], 2)} of what came in. The largest went to a bridge account on "
+                  f"{max(w['paid'], key=lambda x: x['near'])['date']}; not traced further. None burnt.</small>"),
+                 ("Keys needed to move it", f"{c['confirmations_required']} of {c['function_call_keys']}",
+                  f"<small>{c['full_access_keys']} full-access keys, {c['requests_ever']} requests ever, {c['requests_pending']} pending. "
+                  f"The chain does not say who holds the keys.</small>")]
+        audit = ("<h3 style='margin-top:28px'>The buyback account, audited like a short seller would</h3>"
+                 "<p class='sub'>Does the balance add up, who pays in, has it sold, and who can move it. Rebuild with "
+                 "<code>python3 fetch.py history</code> and <code>python3 fetch.py multisig</code>; <code>test_run.py</code> fails if an epoch is unexplained.</p>"
+                 "<dl class='facts' style='margin-top:14px'>" + "".join(f"<div><dt>{e(a)}</dt><dd>{e(b)}{x}</dd></div>" for a, b, x in tiles) + "</dl>")
+    plog, pl = "", results.get("private_logs") or {}
+    if pl and pl["before"]["share"] is not None and pl["since"]["share"] is not None:
+        row = lambda name, x: (f"<tr><td>{name}</td><td>{x['blocks']}</td><td>{num(x['events'])}</td><td>{pct(x['share'], 0)}</td>"
+                               f"<td>{pct(x['share_p05'], 0)} to {pct(x['share_p95'], 0)}</td></tr>")
+        plog = ("<p class='sub' style='margin-top:14px'>Checked from raw mainnet blocks: the share of <code>intents.near</code> event logs that name the "
+                "Confidential Intents treasury, in seeded random blocks (<code>data/private_sample.csv</code>).</p>"
+                "<div class='wrap'><table><tr><th>Period</th><th>Blocks sampled</th><th>Event logs</th><th>Share naming the treasury</th><th>90% interval</th></tr>"
+                + row("30 days before 2026-10-27", pl["before"]) + row("Since", pl["since"]) + "</table></div>")
     private, pv = "", results.get("private_settlement") or {}
     if pv.get("before") and pv.get("since"):
         b, a = pv["before"], pv["since"]
         private = (f"<h3 style='margin-top:28px'>The flow did not fall when swaps went private</h3>"
                    f"<p class='sub'>Since 2026-10-27 a growing share of Intents swaps settles on a private chain (reported by the "
-                   f"<a href='https://github.com/ervhint/tideline-thesis'>Tideline</a> entry; share not verified here), which hides "
+                   f"<a href='https://github.com/ervhint/tideline-thesis'>Tideline</a> entry; our own check of mainnet logs is below), which hides "
                    f"their fees from public swap data. The buyback account is a mainnet balance and still records what arrives.</p>"
                    f"<div class='wrap'><table><tr><th>Period</th><th>Buyback gain, NEAR a day</th><th>Payback</th><th>Epochs with an inflow</th></tr>"
                    f"<tr><td>{b['days']:.0f} days before 2026-10-27</td><td>{num(b['buyback_per_day'])}</td><td>{pct(b['payback'], 1)}</td>"
@@ -466,7 +493,18 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
              "buyback_total": "NEAR gained by the buyback account"}
     fmt = lambda n, x: "pending" if x is None else f"{100 * x:.1f}%" if n == "payback" else f"{x:,.0f}"
     end = datetime.datetime.strptime(s["last_end_utc"], "%Y-%m-%d %H:%M") if s.get("last_end_utc") else None
+    newest = max((L["after_end_height"] for L in ledgers or []), default=0)
+    day = {r[1]: datetime.datetime.fromtimestamp(r[3], datetime.timezone.utc).strftime("%Y-%m-%d") for r in (tape or {}).get("E", [])}
+    board, tally = "", {}
+    for L in sorted(ledgers or [], key=lambda L: (-L["after_end_height"], L["total"])):
+        c = L["claims"]["payback"]
+        tally[L["verdict"]] = tally.get(L["verdict"], 0) + 1
+        board += (f"<tr><td>{day.get(L['after_end_height'], L['after_end_height'])}</td><td>{L['total']} epochs</td>"
+                  f"<td>{fmt('payback', c['lo'])} to {fmt('payback', c['hi'])}</td><td>{fmt('payback', c['actual'])}</td>"
+                  f"<td>{L['resolved']} of {L['total']}</td><td><span class='pill {cls.get(L['verdict'], 'pending')}'>{e(L['verdict'])}</span></td></tr>")
     for L in ledgers or []:
+        if L["after_end_height"] != newest and L["verdict"] != "PENDING":
+            continue  # closed older rounds live in the scoreboard only
         if L["ends"]:
             when = f"closed {L['ends']}"
         elif end and L["after_end_height"] == s["last_height"]:
@@ -494,7 +532,12 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
                f"describes existed, and its hash is anchored in Bitcoin. <code>run.py</code> refuses a round that is not exactly what "
                f"the code derives from the data up to its height, so neither the numbers nor the method can be edited afterwards. "
                f"Historically the payback band has held {held} of the time, so an occasional miss is expected even when the model "
-               f"is right, and a pass near the bounds is weak support.</p>{led}</section>")
+               f"is right, and a pass near the bounds is weak support.</p>"
+               f"<h3>Scoreboard</h3><p class='sub'>{len(ledgers)} rounds frozen: "
+               + ", ".join(f"{n} {k.lower()}" for k, n in sorted(tally.items())) +
+               ". A scheduled job freezes a new 5-epoch round about once a day, timestamps it and commits it; nothing is ever removed.</p>"
+               f"<div class='wrap'><table><tr><th>Frozen</th><th>Window</th><th>Committed payback</th><th>Actual</th>"
+               f"<th>Epochs closed</th><th>Verdict</th></tr>{board}</table></div>{led}</section>")
 
     # ---- for and against ----
     case = ""
@@ -557,11 +600,11 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <p>Mint and burn are read from <code>total_supply</code> in block headers and are exact to the yoctoNEAR. The buyback gain is the
 change in the account's balance between epoch ends. Every point is a 100-epoch rolling window; hover a chart for values.</p>
 <div class="figs">{figs('series', CHARTS, 'payback')}</div>
-{private}
+{private}{plog}
 <h3 style="margin-top:28px">Chain versus the indexer</h3>
 <p class="sub">The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
 <div class="wrap"><table><tr><th>Flow, NEAR a day</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
-{attr}</section>
+{attr}{audit}</section>
 {intents}
 <section id="models"><h2>Models</h2>
 <p>Four models, each a few functions in <code>run.py</code>, each rebuilt by <code>python3 run.py</code> from the cached data with

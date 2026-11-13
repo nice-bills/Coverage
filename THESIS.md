@@ -77,13 +77,27 @@ separate code on separate data sources lands in the same range.
 **The flow did not fall when swaps went private.** Another entry
 ([Tideline](https://github.com/ervhint/tideline-thesis)) reports that since 2026-10-27 a growing
 share of Intents swaps settles on a private chain, and that fees on those swaps cannot be seen
-in public data. We take the date from them and have not verified the share. The buyback
-account does not depend on seeing swaps: it is a balance on NEAR mainnet.
+in public data. We take the date from them. The buyback account does not depend on seeing
+swaps: it is a balance on NEAR mainnet.
 
 | Period | Buyback gain, NEAR a day | Payback | Epochs with an inflow |
 |---|---|---|---|
 | 30 days before 2026-10-27 | 9,298 | 11.7% | 101 of 101 |
 | 17 days since | 10,452 | 12.5% | 58 of 58 |
+
+We also checked the shift itself from raw mainnet blocks. `fetch.py private` draws seeded
+random blocks from each period and counts the event logs emitted by `intents.near`, and how
+many name the Confidential Intents treasury account that Tideline identifies
+(`data/private_sample.csv`).
+
+| Period | Blocks sampled | `intents.near` event logs | Share naming the treasury | 90% interval |
+|---|---|---|---|---|
+| 30 days before 2026-10-27 | 250 | 438 | 13% | 8% to 18% |
+| Since, to height 224265136 | 250 | 631 | 43% | 36% to 49% |
+
+The share rose, and the two intervals do not overlap, so the shift is visible in mainnet logs alone. The treasury account already appears in the logs before 2026-10-27, so that date
+marks a step up, not a start. The interval resamples whole blocks, because events in one block
+are not independent. This counts events, not dollars.
 
 So the one public measure of Intents revenue that still works shows it arriving at least as
 fast as before. In dollars it is lower, because the NEAR price fell over the same weeks. The
@@ -117,6 +131,46 @@ too narrow: they held about two-thirds of outcomes against a nominal 80%.
 key holders can spend or sell it. The balance has already fallen once: by 10,283 NEAR, net
 of inflows, in 1 of the 663 epochs with buyback data. If outflows become
 regular, the flow does not mean what this thesis takes it to mean.
+
+**We audited the account the way a short seller would.** Four questions, all answered from
+committed data (`python3 fetch.py history` and `python3 fetch.py multisig` rebuild it).
+
+*Does the balance add up?* `data/wallet_history.csv` lists all 3,374 receipts to or
+from the account with exact amounts, from the FastNear index. `data/buybacks.csv` has the
+balance at each epoch end, read from the chain. In all 658 epochs where the account only
+received or sent transfers, the receipts sum to the balance change to the yoctoNEAR. The
+5 epochs with multisig calls differ by 0.34 NEAR in total, which is gas and its refunds.
+`test_run.py` fails if any epoch is unexplained.
+
+*Who pays in?* 13 senders, counting the protocol's own gas refunds, sent 2,274,740 NEAR. `intents.near` sent 77.2% of
+it in 3,327 transfers. `1csfundsadmin.sputnik-dao.near` sent 22.4% in 3 transfers
+(510,068 NEAR, which includes the one transfer the headline excludes). Everyone else
+sent 0.39%. So the flow has two sources, and one of them is a DAO treasury that paid
+in a lump. The headline counts only the steady source plus small transfers.
+
+*Has it sold?* 12,025 NEAR has left, 0.53% of what came in.
+
+| Recipient | Transfers | NEAR | Epoch ending |
+|---|---|---|---|
+| `508aa18569e5a59d63b0f4c445e02e7b5fc53b86337328e756b32745ebac50e7` | 1 | 12,000 | 2026-07-10 |
+| `nf-payments.near` | 2 | 25 | 2026-03-20 |
+
+The 12,000 NEAR went to an implicit account that forwarded it to `bridge-mng.near` 14 blocks
+later (heights 206365726 and 206365740, visible in any explorer). We did not trace it past that
+account, so we cannot say whether it was sold. Nothing was burnt.
+
+*Who can move it?* At height 224265136 the account has 0 full-access keys and
+4 function-call keys, and its contract needs 2 confirmations per request
+(`data/multisig.json`). It has made 4 requests in its life and 0 are pending. One
+of them replaced the contract code on 2026-05-27 (now `2v9kZJHN4sogHuKtKHaqYAqQBazkqH2cjY1rrjQYvNQa`). The chain does not say who
+holds the keys. Any two of them can move the whole balance, so "held" is a policy, not a
+guarantee.
+
+**Most gross fees never reach the account.** NEAR Intents charges a protocol fee of 0.0001% and
+a distribution fee set by each partner, shared between NEAR and the partner
+([fees](https://docs.near-intents.org/resources/fees),
+[tokenomics post](https://www.near.org/blog/evolving-near-tokenomics)). We measure what
+arrives, not the split, which is not published per swap.
 
 **Payback has been falling.** The first 100-epoch window with buyback data (ending
 2026-03-15) shows 2.5%; the peak is 16.5% (2026-09-19); the

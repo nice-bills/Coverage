@@ -283,6 +283,122 @@ def buybacks():
     print(f"wrote {len(have)} balances to {BOUT}")
 
 
+def post(url, obj):
+    while True:
+        try:
+            return json.load(urllib.request.urlopen(urllib.request.Request(url, json.dumps(obj).encode(), UA), timeout=60))
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+            time.sleep(15)
+        except OSError:
+            time.sleep(15)
+
+
+def history():
+    """Every receipt to or from the buyback account, with exact yoctoNEAR deposits, from the FastNear
+    transaction index (third party, no key). run.py checks it against the balances read from the chain."""
+    FN = "https://tx.main.fastnear.com/v0/"
+    hashes, token = [], None
+    while True:
+        page = post(FN + "account", dict(account_id=BUYBACK, **({"resume_token": token} if token else {})))
+        hashes += [x["transaction_hash"] for x in page["account_txs"]]
+        token = page.get("resume_token")
+        print(f"history: {len(hashes)} transactions listed", flush=True)
+        if not token or not page["account_txs"]:
+            break
+    hashes, out = sorted(set(hashes)), {}
+    for i in range(0, len(hashes), 20):
+        for tx in post(FN + "transactions", dict(tx_hashes=hashes[i:i + 20]))["transactions"]:
+            for r in tx["receipts"]:
+                rc, oc = r["receipt"], r["execution_outcome"]
+                act = (rc["receipt"].get("Action") or {}).get("actions") or []
+                if BUYBACK not in (rc["predecessor_id"], rc["receiver_id"]):
+                    continue
+                kinds = [(k, v) for a in act for k, v in (a.items() if isinstance(a, dict) else [(a, {})])]
+                out[rc["receipt_id"]] = [oc["block_height"], rc["receipt_id"], tx["transaction"]["hash"], tx["transaction"]["signer_id"],
+                                         rc["predecessor_id"], rc["receiver_id"],
+                                         sum(int(v.get("deposit") or 0) for _, v in kinds if isinstance(v, dict)),
+                                         oc["outcome"]["tokens_burnt"], int("Failure" not in oc["outcome"]["status"]),
+                                         "+".join(sorted({(v.get("method_name") if isinstance(v, dict) else None) or k for k, v in kinds}))]
+        if i % 400 == 0:
+            print(f"history: {i}/{len(hashes)} transactions read", flush=True)
+    with open(os.path.join(os.path.dirname(OUT), "wallet_history.csv"), "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["block_height", "receipt_id", "transaction_hash", "signer", "predecessor", "receiver", "yocto", "tokens_burnt", "ok", "actions"])
+        w.writerows(sorted(out.values()))
+    stamp("wallet_history.csv", [FN + "account", FN + "transactions"])
+    print(f"wrote wallet_history.csv ({len(out)} receipts from {len(hashes)} transactions)")
+
+
+def multisig(height=224265136):
+    """Who can move the buyback account, read from the account itself at one pinned height."""
+    import base64
+    at = {"block_id": height}
+    call = lambda m: json.loads(bytes(query({"request_type": "call_function", "account_id": BUYBACK, "method_name": m,
+                                             "args_base64": base64.b64encode(b"{}").decode(), **at})["result"]))
+    keys = query({"request_type": "view_access_key_list", "account_id": BUYBACK, **at})["keys"]
+    acct = query({"request_type": "view_account", "account_id": BUYBACK, **at})
+    out = dict(account=BUYBACK, block_height=height, code_hash=acct["code_hash"], balance_yocto=acct["amount"],
+               confirmations_required=call("get_num_confirmations"), requests_ever=call("get_request_nonce"),
+               requests_pending=len(call("list_request_ids")),
+               full_access_keys=sum(k["access_key"]["permission"] == "FullAccess" for k in keys),
+               function_call_keys=sum(k["access_key"]["permission"] != "FullAccess" for k in keys))
+    with open(os.path.join(os.path.dirname(OUT), "multisig.json"), "w") as f:
+        json.dump(out, f, indent=1, sort_keys=True)
+        f.write("\n")
+    stamp("multisig.json", [RPC + " query call_function, view_access_key_list, view_account"])
+    print(out)
+
+
+TREASURY = "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe"  # Confidential Intents treasury, as named by the Tideline entry
+PRIVATE_FROM = 1793059200  # 2026-10-27 00:00 UTC
+
+
+def private(n=250):
+    """Seeded random blocks from the 30 days before and the days since 2026-10-27. For each, count the
+    event logs emitted by intents.near and how many of them name the Confidential Intents treasury.
+    Resumable: heights already in data/private_sample.csv are kept."""
+    path = os.path.join(os.path.dirname(OUT), "private_sample.csv")
+    rows = list(csv.DictReader(open(OUT)))
+    have = {int(r["height"]): r for r in csv.DictReader(open(path))} if os.path.exists(path) else {}
+    rnd = random.Random(20261027)
+    spans = {"before": [r for r in rows if PRIVATE_FROM - 30 * 86400 <= int(r["t1_ns"]) / 1e9 < PRIVATE_FROM],
+             "since": [r for r in rows if int(r["t1_ns"]) / 1e9 >= PRIVATE_FROM and int(r["end_height"]) <= 224265136]}  # fixed range, so the sample is the same on any later cache
+    plan = [(k, rnd.randint(int(e["start_height"]), int(e["end_height"]))) for k, es in spans.items()
+            for e in (rnd.choice(es) for _ in range(n))]
+    for i, (k, h) in enumerate(plan):
+        if h in have:
+            continue
+        while True:
+            try:
+                b = json.load(urllib.request.urlopen(urllib.request.Request(f"https://mainnet.neardata.xyz/v0/block/{h}", headers=UA), timeout=60))
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429:
+                    raise
+                time.sleep(30)
+            except OSError:
+                time.sleep(30)
+        ev = tr = 0
+        for s in (b or {}).get("shards") or []:  # a skipped height has no block: recorded as zero events
+            for o in s.get("receipt_execution_outcomes") or []:
+                if o["receipt"]["receiver_id"] == "intents.near":
+                    for l in o["execution_outcome"]["outcome"]["logs"]:
+                        if l.startswith("EVENT_JSON:"):
+                            ev += 1
+                            tr += TREASURY in l
+        have[h] = dict(height=h, period=k, block=int(b is not None), events=ev, treasury_events=tr)
+        with open(path, "w", newline="") as f:
+            w = csv.DictWriter(f, ["height", "period", "block", "events", "treasury_events"])
+            w.writeheader()
+            w.writerows(have[x] for x in sorted(have))
+        if i % 25 == 0:
+            print(f"private {i}/{len(plan)}", flush=True)
+    stamp("private_sample.csv", ["https://mainnet.neardata.xyz/v0/block/{h}"])
+    print(f"wrote private_sample.csv ({len(have)} blocks)")
+
+
 def offchain():
     """Daily NEAR price and DefiLlama series. Only complete UTC days are kept."""
     get = lambda u: json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60))
@@ -341,4 +457,4 @@ def main():
 
 
 if __name__ == "__main__":
-    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets, "inflows": inflows, "protocol": protocol}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()
+    {"buybacks": buybacks, "offchain": offchain, "wallets": wallets, "inflows": inflows, "history": history, "multisig": multisig, "private": private, "protocol": protocol}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()

@@ -1,0 +1,11 @@
+{
+ "account": "buybacks.multisignature.near",
+ "balance_yocto": "2262719321198340534141108992837",
+ "block_height": 224265136,
+ "code_hash": "2v9kZJHN4sogHuKtKHaqYAqQBazkqH2cjY1rrjQYvNQa",
+ "confirmations_required": 2,
+ "full_access_keys": 0,
+ "function_call_keys": 4,
+ "requests_ever": 4,
+ "requests_pending": 0
+}

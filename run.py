@@ -270,6 +270,82 @@ def freeze(rows, horizons):
         print(f"ROUND {name} sha256={hashlib.sha256(blob.encode()).hexdigest()}")
 
 
+BUYBACK = "buybacks.multisignature.near"
+
+
+def wallet(every, snap):
+    """Reconcile the buyback account: every receipt in or out (data/wallet_history.csv, exact yoctoNEAR,
+    from an indexer) against the balance changes read from the chain (data/buybacks.csv). Also who sends,
+    who was paid, and who can move the account (data/multisig.json)."""
+    import bisect
+    path = os.path.join(ROOT, "data", "wallet_history.csv")
+    if not os.path.exists(path):
+        return None
+    H = list(csv.DictReader(open(path)))
+    covered = max(int(r["block_height"]) for r in H)  # the history is complete up to its last receipt
+    H = [r for r in H if int(r["block_height"]) <= snap]
+    ends = [r["end_height"] for r in every]
+    net, calls, senders, paid = {}, set(), {}, {}
+    for r in H:
+        i = bisect.bisect_left(ends, int(r["block_height"]))
+        y = int(r["yocto"])
+        if r["receiver"] == BUYBACK and r["ok"] == "1":
+            net[i] = net.get(i, 0) + y
+            if y:
+                c = senders.setdefault(r["predecessor"], [0, 0])
+                c[0] += 1
+                c[1] += y
+        if r["predecessor"] == BUYBACK and r["receiver"] != BUYBACK:
+            net[i] = net.get(i, 0) - y
+            if y:
+                c = paid.setdefault(r["receiver"], [0, 0, i])
+                c[0] += 1
+                c[1] += y
+        if r["actions"] != "Transfer" or r["signer"] == BUYBACK:
+            calls.add(i)  # the account ran code or paid gas in this epoch, so its balance also moves by fees and rewards
+    known = [i for i, r in enumerate(every) if r["raw_buy"] is not None and r["end_height"] <= min(snap, covered)]
+    quiet = [i for i in known if i not in calls]
+    resid = {i: every[i]["raw_buy"] - net.get(i, 0) for i in known}
+    total_in = sum(c[1] for c in senders.values())
+    top = sorted(senders.items(), key=lambda kv: -kv[1][1])
+    busy = [i for i in quiet if i in net]
+    out = dict(receipts=len(H), epochs_checked=len(known), epochs_quiet=len(quiet), epochs_with_receipts=len(busy),
+               exact_with_receipts=sum(resid[i] == 0 for i in busy),
+               non_intents_transfers=sum(c[0] for a, c in senders.items() if a != "intents.near"),
+               non_intents_near=sum(c[1] for a, c in senders.items() if a != "intents.near") / Y,
+               quiet_exact=sum(resid[i] == 0 for i in quiet), quiet_worst_yocto=str(max((abs(resid[i]) for i in quiet), default=0)),
+               call_epochs=len(known) - len(quiet), call_residual_near=sum(resid[i] for i in known if i in calls) / Y,
+               inflow_near=total_in / Y, senders=len(senders),
+               top_senders=[dict(account=a, transfers=c[0], near=c[1] / Y, share=c[1] / total_in) for a, c in top[:5]],
+               paid=[dict(account=a, transfers=c[0], near=c[1] / Y, date=day(every[c[2]]["t1_ns"]).strftime("%Y-%m-%d")) for a, c in sorted(paid.items(), key=lambda kv: -kv[1][1])])
+    mp = os.path.join(ROOT, "data", "multisig.json")
+    if os.path.exists(mp):
+        out["custody"] = {k: v for k, v in json.load(open(mp)).items() if k != "balance_yocto"}
+    return out
+
+
+def private_logs():
+    """Share of intents.near event logs that name the Confidential Intents treasury, in seeded random
+    blocks from the 30 days before and the days since 2026-10-27 (data/private_sample.csv). The interval
+    resamples whole blocks, because events in one block are not independent."""
+    path = os.path.join(ROOT, "data", "private_sample.csv")
+    if not os.path.exists(path):
+        return None
+    out, rnd = {}, random.Random(2)
+    for k in ("before", "since"):
+        s = [(int(r["events"]), int(r["treasury_events"])) for r in csv.DictReader(open(path)) if r["period"] == k]
+        ev, tr = sum(a for a, _ in s), sum(b for _, b in s)
+        boot = []
+        for _ in range(2000):
+            d = [rnd.choice(s) for _ in s]
+            if sum(a for a, _ in d):
+                boot.append(sum(b for _, b in d) / sum(a for a, _ in d))
+        out[k] = dict(blocks=len(s), events=ev, treasury_events=tr, share=tr / ev if ev else None,
+                      share_p05=quantile(boot, 0.05) if boot else None, share_p95=quantile(boot, 0.95) if boot else None,
+                      events_per_block=ev / len(s) if s else None)
+    return out
+
+
 def sig(x, n=6):  # round floats so the hash does not depend on the platform's libm
     if isinstance(x, float):
         return float(f"{x:.{n}g}")
@@ -283,6 +359,10 @@ def sig(x, n=6):  # round floats so the hash does not depend on the platform's l
 def main():
     every, price, llama = load()
     prep(every, price)
+    if sys.argv[1:2] == ["freeze-if-due"]:  # the scheduled job: a new round once 3 epochs have closed since the newest
+        newest = max((c["after_end_height"] for _, c in rounds()), default=0)
+        due = sum(r["end_height"] > newest for r in every) >= 3 and every[-1]["buy"] is not None
+        return freeze(every, [int(a) for a in sys.argv[2:]] or [5]) if due else print("no round due")
     if sys.argv[1:2] == ["freeze"]:
         return freeze(every, [int(a) for a in sys.argv[2:]] or [10])
     # Once a round is frozen, the analysis stops at the newest round's height. Epochs after a
@@ -422,7 +502,7 @@ def main():
         payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
         if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
-    results = sig(dict(summary=summary, private_settlement=private, backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
+    results = sig(dict(summary=summary, private_settlement=private, private_logs=private_logs(), wallet=wallet(every, snap), backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
                        series=roll[::3], weekly=weekly))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))
@@ -447,7 +527,8 @@ def main():
     open(os.path.join(ROOT, "dist", "index.html"), "w").write(dashboard.render(results, sha, leds, dict(
         E=[[r["start_height"], r["end_height"], r["prev_end_height"], r["t1_ns"] // 10**9, str(r["mint"]), str(r["burn"]),
             None if r["raw_buy"] is None else str(r["raw_buy"]), int(r["lump"])] for r in every],
-        snap=snap, rounds=[dict(n=l["total"], lo=l["claims"]["payback"]["lo"], hi=l["claims"]["payback"]["hi"]) for l in leds],
+        snap=snap, rounds=[dict(n=l["total"], lo=l["claims"]["payback"]["lo"], hi=l["claims"]["payback"]["hi"]) for l in leds
+                           if l["after_end_height"] == snap],
         bal=next((r["balance"] for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))
                   if int(r["end_height"]) == snap), None))))
     for led in leds:

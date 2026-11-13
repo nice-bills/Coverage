@@ -14,10 +14,10 @@ What makes it checkable:
 - One command, `python3 run.py`: no keys, no network, no dependencies. It prints a result hash that must equal the one in the README.
 - `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
 - `python3 test_run.py` shows the command refuses a cache with one yoctoNEAR changed and refuses edited predictions.
-- Attribution: __INFLOW_INTENTS__ of the last __INFLOW_N__ transfers into the buyback account come from intents.near. A separate pipeline (DefiLlama, via Dune) gives __LLAMA_BUY_NEAR__ NEAR a day for all revenue wallets; ours gives __ALL_NEAR__.
+- Audit: all __W_RECEIPTS__ receipts of the buyback account reconcile with chain balances to the yoctoNEAR in __W_BUSY__ of __W_BUSY__ transfer-only epochs. intents.near sent __W_TOP1_SHARE__ of the NEAR; __W_PAID_SHARE__ has left; __C_CONF__ of __C_KEYS__ keys can move it.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. Hashes are in the README.
+The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. A scheduled job freezes and commits a new round about daily.
 
 ## X post (attach the video; fits 280 characters)
 

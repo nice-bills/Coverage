@@ -44,7 +44,34 @@ def values():
              "| Payback interval held in the past | sha256 |\n|---|---|---|---|---|---|---|---|\n" + "\n".join(lines)
              if lines else "(no rounds frozen yet)")
 
+    w, pl = r.get("wallet") or {}, r.get("private_logs") or {}
+    extra = {}
+    if w:
+        c, top = w["custody"], w["top_senders"]
+        extra.update(
+            W_RECEIPTS=num(w["receipts"]), W_BUSY=str(w["epochs_with_receipts"]), W_CALLS=str(w["call_epochs"]),
+            W_RESID=f"{abs(w['call_residual_near']):.2f}", W_IN=num(w["inflow_near"]), W_SENDERS=str(w["senders"]),
+            W_TOP1=top[0]["account"], W_TOP1_SHARE=pct(top[0]["share"]), W_TOP1_N=num(top[0]["transfers"]),
+            W_TOP2=top[1]["account"], W_TOP2_SHARE=pct(top[1]["share"]), W_TOP2_N=str(top[1]["transfers"]), W_TOP2_NEAR=num(top[1]["near"]),
+            W_OTHER_SHARE=pct(1 - top[0]["share"] - top[1]["share"], 2),
+            W_PAID_NEAR=num(sum(x["near"] for x in w["paid"])), W_PAID_SHARE=pct(sum(x["near"] for x in w["paid"]) / w["inflow_near"], 2),
+            W_PAID_TABLE="| Recipient | Transfers | NEAR | Epoch ending |\n|---|---|---|---|\n"
+            + "\n".join(f"| `{x['account']}` | {x['transfers']} | {x['near']:,.0f} | {x['date']} |" for x in w["paid"]),
+            C_CONF=str(c["confirmations_required"]), C_KEYS=str(c["function_call_keys"]), C_FULL=str(c["full_access_keys"]),
+            C_REQ=str(c["requests_ever"]), C_PEND=str(c["requests_pending"]), C_HEIGHT=str(c["block_height"]), C_CODE=c["code_hash"])
+    if pl:
+        for k, x in (("LB", pl["before"]), ("LS", pl["since"])):
+            extra.update({f"{k}_BLOCKS": str(x["blocks"]), f"{k}_EVENTS": num(x["events"]), f"{k}_SHARE": pct(x["share"], 0),
+                          f"{k}_LO": pct(x["share_p05"], 0), f"{k}_HI": pct(x["share_p95"], 0), f"{k}_RATE": f"{x['events_per_block']:.2f}"})
+
+        b, a = pl["before"], pl["since"]
+        extra["L_VERDICT"] = ("The share rose, and the two intervals do not overlap, so the shift is visible in mainnet logs alone."
+                              if a["share_p05"] > b["share_p95"] else
+                              "The intervals overlap, so this sample does not confirm a shift on its own."
+                              if a["share_p05"] <= b["share_p95"] and a["share_p95"] >= b["share_p05"] else
+                              "The share fell, which does not match a shift to private settlement.")
     return dict(
+        **extra,
         RESULT_HASH=hashlib.sha256(blob.encode()).hexdigest(), EPOCHS=str(s["epochs"]), LAST=s["last"],
         LAST_HEIGHT=str(s["last_height"]), WINDOW_DAYS=f"{s['window_days']:.0f}",
         MINT=num(s["mint_per_day"]), BURN=num(s["burn_per_day"]), BUY=num(s["buyback_per_day"]),

@@ -4,7 +4,11 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 
 [![pages](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml/badge.svg)](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml)
 
-Live dashboard, rebuilt from the chain every 6 hours: https://nice-bills.github.io/Coverage/
+Live dashboard: https://nice-bills.github.io/Coverage/
+
+It runs itself. Every 6 hours a scheduled job fetches the epochs that closed, scores the frozen
+forecast rounds and redeploys. About once a day it freezes a new round, timestamps it in Bitcoin
+and commits it. Nobody edits the numbers by hand.
 
 ![The dashboard](docs/dashboard.jpg)
 
@@ -21,6 +25,8 @@ analytics, dashboards and reproducible models").
 | A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source. It draws every epoch as one column, reads the current block and buyback balance from mainnet in your browser, and its "Check a random epoch" button refetches three block headers and compares mint, burn and the buyback gain with the cache to the yoctoNEAR | One static file, no build step, no external assets. The live parts call a free keyless RPC from the browser and say so when it rate-limits |
 | Reproducible models | Four, listed on the dashboard under Models with the `run.py` functions behind each | The burn forecasters' bands are too narrow (about two-thirds held against a nominal 80%); stated, not hidden |
 | Claim, evidence for, evidence against, what would change our mind | [THESIS.md](THESIS.md), generated from the results | The case against has equal weight; the headline counts held buybacks, which are not burns |
+| An audit of the account the thesis rests on | `run.py` reconciles all __W_RECEIPTS__ receipts of the buyback account against balances read from the chain: __W_BUSY__ of __W_BUSY__ transfer-only epochs match to the yoctoNEAR. It also lists who pays in, what left and who can move it ([THESIS.md](THESIS.md), "audited the way a short seller would") | Receipts come from a third-party index (FastNear); balances come from the chain. __W_CALLS__ epochs with multisig calls differ by __W_RESID__ NEAR of gas |
+| A check of the private-settlement shift from raw blocks | `fetch.py private`: `intents.near` event logs in seeded random blocks; the share naming the Confidential Intents treasury was __LB_SHARE__ before 2026-10-27 and __LS_SHARE__ since | Counts events, not dollars; the treasury account id comes from the Tideline entry |
 | Evidence someone else can check | Result hash, tamper tests (`test_run.py`), seeded mainnet check (`verify.py`), forecast rounds timestamped in Bitcoin and scored by the chain | The rounds test that the flow persists over days. They do not test the multi-year case |
 
 Coverage measures three flows on NEAR mainnet: NEAR minted to validators, NEAR burnt in gas fees,
@@ -30,7 +36,9 @@ and no dependencies beyond Python 3.9+.
 
 Since 2026-10-27 a growing share of Intents swaps settles privately (reported by another entry,
 Tideline), which hides fees from public swap data. The buyback account is a mainnet balance and
-still shows them: __PS_BUY__ NEAR a day since, against __PB_BUY__ in the 30 days before.
+still shows them: __PS_BUY__ NEAR a day since, against __PB_BUY__ in the 30 days before. In
+our own sample of mainnet blocks the share of `intents.near` event logs that name the private
+treasury went from __LB_SHARE__ to __LS_SHARE__.
 
 Result for the 100 epochs ending __LAST__: burn plus buybacks equal __PAYBACK__ of issuance
 (burn alone: __BURN_COV__). The thesis, the evidence against it and what would change our mind
@@ -127,6 +135,9 @@ python3 fetch.py wallets 214890733 214933933
 python3 fetch.py inflows
 python3 fetch.py protocol
 python3 fetch.py offchain
+python3 fetch.py history
+python3 fetch.py multisig
+python3 fetch.py private
 ```
 
 `fetch.py` skips whatever is already cached, so to rebuild from nothing move `data/` aside
@@ -176,6 +187,9 @@ that is wrong in a self-consistent way; `verify.py` compares rows with the chain
 | `data/wallets.csv` | NEAR and wNEAR in all three revenue wallets at selected heights | `view_account`, `ft_balance_of` on `wrap.near` | none |
 | `data/protocol.json` | protocol parameters cited in the thesis | `EXPERIMENTAL_protocol_config` | none |
 | `data/inflows.csv` | recent transfers into the buyback account, with sender and transaction hash | NearBlocks API (third party) | none |
+| `data/wallet_history.csv` | every receipt to or from the buyback account, exact yoctoNEAR | FastNear transaction index (third party); `run.py` reconciles it against `buybacks.csv` | none |
+| `data/multisig.json` | who can move the buyback account: confirmations required, keys, requests, at one pinned height | `call_function`, `view_access_key_list`, `view_account` on the same RPC | none |
+| `data/private_sample.csv` | `intents.near` event logs in 500 seeded random blocks, 250 before and 250 since 2026-10-27 | `/v0/block/{h}` on `mainnet.neardata.xyz` | none |
 | `data/llama.csv` | daily USD: NEAR fees, NEAR Intents volume, fees, captured revenue | DefiLlama API (third party) | none |
 | `data/price.csv` | daily NEAR price in USD | CoinGecko API (third party) | none |
 
@@ -187,7 +201,9 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 ## Forecasts and the outside judge
 
 Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
-newest cached epoch and never overwritten. A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
+newest cached epoch and never overwritten. The scheduled job (`.github/workflows/pages.yml`) runs
+`python3 run.py freeze-if-due 5`, which freezes a 5-epoch round once three epochs have closed
+since the newest one, so a round closes almost every day. A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
@@ -231,8 +247,11 @@ the code derives from the data up to that round's height.
 - `data/wallets.csv` shows zero wNEAR for all three wallets at every height queried. That is
   what `ft_balance_of` on `wrap.near` returned; a failed call stops `fetch.py` and is never
   written as zero.
-- The hosted dashboard refetches epochs and buyback balances every 6 hours. Its DefiLlama,
-  price and sender sections stay at the committed snapshot.
+- The scheduled job refetches epochs, buyback balances and the account's receipts. DefiLlama
+  and price stay at the committed snapshot, so the price model in rounds frozen later uses the
+  last cached price. A round's verdict depends on the payback band, which does not use price.
+- Once a new round is frozen, the headline window moves to that round's height, so the result
+  hash changes about daily. The job regenerates this file in the same commit.
 - Utilization and the ceiling come from 3 blocks per epoch and are only meaningful as 100-epoch
   figures. The ceiling assumes today's effective gas price and is not a capacity guarantee.
 - Floats in `out/results.json` are rounded to 6 significant figures so the hash does not depend
