@@ -1,0 +1,79 @@
+epochs                         901
+first                          2026-02-13
+last                           2026-11-12
+first_height                   185341924
+last_height                    224265136
+last_end_utc                   2026-11-12 20:50
+mint_per_day                   89782.7
+burn_per_day                   828.557
+buyback_per_day                9921.88
+burn_coverage                  0.00922847
+buyback_coverage               0.11051
+payback                        0.119738
+multiple                       8.35154
+burn_only_multiple             108.36
+realized_inflation             0.0246826
+inflation_if_buybacks_were_burnt 0.0220099
+multiple_at_1_6_issuance       5.34499
+window_days                    29.2529
+growth_needed_3y               1.02888
+growth_needed_5y               0.528809
+growth_needed_10y              0.23645
+utilization                    0.00775433
+ceiling                        1.19011
+ceiling_p05                    1.04051
+ceiling_p95                    1.37274
+window_price_usd               4.40527
+llama_burn_near_per_day        684.412
+llama_fees_near_per_day        977.718
+llama_buyback_near_per_day     13588.8
+intents_weeks                  37
+intents_volume_captured_correlation 0.900143
+intents_take_bps_median        2.60592
+intents_take_bps_min           1.11335
+intents_take_bps_max           6.14641
+intents_volume_musd_low        51.1109
+intents_volume_musd_latest     130.312
+inflow_transfers               2996
+inflow_first_height            201009796
+inflow_share_from_intents      0.740383
+inflow_transfers_from_intents  2979
+payback_first                  0.0245829
+payback_first_date             2026-03-15
+payback_peak                   0.165232
+payback_peak_date              2026-09-19
+lump_matched_outflow_near      501917.0
+buyback_outflow_epochs         1
+buyback_outflow_near           10283.1
+buyback_epochs                 663
+lump_transfers                 1
+lump_epochs_in_window          0
+outflow_epochs_in_window       0
+payback_p05                    0.106621
+payback_p95                    0.134702
+lump_transfers_near            505041.0
+all_revenue_wallets_per_day    13984.2
+all_revenue_wallets_payback    0.164985
+capture_share                  0.228698
+intents_volume_usd_per_day     123296000.0
+intents_fees_usd_per_day       191119.0
+intents_volume_usd_ratio_1y    1.0192
+intents_fees_usd_ratio_1y      0.745274
+near_fees_usd_ratio_1y         0.624414
+payback_if_all_intents_fees_captured 0.492441
+backtest persistence  {'pinball': 0.0864741, 'interval_hit': 0.668627, 'n': 510, 'skill_vs_persistence': 0.0}
+backtest clock        {'pinball': 0.0784853, 'interval_hit': 0.652941, 'n': 510, 'skill_vs_persistence': 0.092384}
+backtest price        {'pinball': 0.0938406, 'interval_hit': 0.731373, 'n': 510, 'skill_vs_persistence': -0.0851872}
+LEDGER round-224265136-h05.json: 2/5 epochs closed -> PENDING
+LEDGER   burn_total: 1193.06 to 1879.68, actual None -> PENDING
+LEDGER   buyback_total: 7317.79 to 35576.2, actual None -> PENDING
+LEDGER   payback: 0.0690182 to 0.272094, actual None -> PENDING
+LEDGER round-224265136-h10.json: 2/10 epochs closed -> PENDING
+LEDGER   burn_total: 2173.99 to 3553.67, actual None -> PENDING
+LEDGER   buyback_total: 14073.0 to 86747.8, actual None -> PENDING
+LEDGER   payback: 0.0627287 to 0.307977, actual None -> PENDING
+LEDGER round-224265136-h20.json: 2/20 epochs closed -> PENDING
+LEDGER   burn_total: 2819.73 to 6523.96, actual None -> PENDING
+LEDGER   buyback_total: 34148.4 to 133348.0, actual None -> PENDING
+LEDGER   payback: 0.0687373 to 0.267913, actual None -> PENDING
+RESULT sha256=505432748cb53d707967526ca56680cf8124b1c07b364c36f2ba755d0e1309d1

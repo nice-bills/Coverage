@@ -36,18 +36,25 @@ https://github.com/nice-bills/Coverage
 Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and "The three rounds close
 14 to 18 Nov; all are inside their ranges so far".)
 
-## 60-second video
+## Demo video (72 seconds)
 
-| Time | Screen | Say |
+Rendered from code, every frame from real screens and real numbers: `film/` (brief, shot list,
+composition, renderer, score). Rebuild with `cd film && python3 build.py && node render.js video 30 && python3 sound.py`,
+then mux (see `film/voiceover.md`). It works on mute; the optional voiceover script is in `film/voiceover.md`.
+
+| Time | Beat | On screen |
 |---|---|---|
-| 0:00 | Dashboard headline | "Every NEAR dashboard says the token burns back under one percent of what it mints. That number is right, and it measures the wrong layer." |
-| 0:08 | Terminal: `git clone`, `python3 run.py` | "One command. No keys, no network. It rebuilds every number and prints a hash." |
-| 0:18 | Terminal last line next to README hash | "The hash matches the README. Change one yoctoNEAR in the cache and the command refuses to run." |
-| 0:25 | Terminal: `python3 verify.py 3 2026` | "Pick any seed. It pulls random epochs from mainnet and they must match the cache exactly." |
-| 0:30 | Dashboard: click "Check a random epoch" | "The page does the same check in your browser: block headers and the buyback balance from mainnet; mint, burn and buyback gain equal to the yoctoNEAR." |
-| 0:38 | Dashboard epoch tape and the chain-versus-indexer table | "Counting the NEAR Intents buyback flow, 12.0% of issuance is offset and break-even is 8.4 times away. A separate pipeline at DefiLlama gives nearly the same total." |
-| 0:45 | Lever calculator: drag capture share, then volume | "Two of the three levers are governance decisions." |
-| 0:52 | Ledger table and THESIS.md 'Evidence against' | "The bear case is in the repo: buybacks are held, not burnt, and payback has been falling. The forecasts are frozen, and mainnet scores them during judging. If we are wrong, the page says FALSIFIED." |
+| 0:00 | Hook | Fee-burn dashboards say NEAR burns back 0.92% |
+| 0:05 | Problem | Right number, wrong layer: the minted bar with a sliver of burn |
+| 0:10 | Reveal | Intents buybacks grow the bar to 12.0%; break-even 8.4x, not 108x |
+| 0:18 | Product | The live dashboard |
+| 0:24 | Proof | `python3 run.py`, the hash matches the README |
+| 0:32 | Proof | Every epoch since February, from block headers |
+| 0:39 | Proof | BigQuery: the chain got quieter, Intents grew |
+| 0:46 | Future | Break-even turns on two votes: fee capture and HSP-029 |
+| 0:53 | Live | Forecasts frozen in Bitcoin, inside their ranges so far, closing 14 to 18 Nov |
+| 1:01 | Verdict | Not yet a supply story. The bet is governance. |
+| 1:07 | Close | URL and `python3 run.py` |
 
 ## Checklist
 

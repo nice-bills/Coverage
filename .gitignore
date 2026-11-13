@@ -1,3 +1,5 @@
-__pycache__/
 *.log
+__pycache__/
 data/*.tmp
+film/out/
+film/reviews/
