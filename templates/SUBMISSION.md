@@ -42,7 +42,8 @@ the README.)
 | 0:08 | Terminal: `git clone`, `python3 run.py` | "One command. No keys, no network. It rebuilds every number and prints a hash." |
 | 0:18 | Terminal last line next to README hash | "The hash matches the README. Change one yoctoNEAR in the cache and the command refuses to run." |
 | 0:25 | Terminal: `python3 verify.py 3 2026` | "Pick any seed. It pulls random epochs from mainnet and they must match the cache exactly." |
-| 0:35 | Dashboard tiles and the chain-versus-indexer table | "Counting the NEAR Intents buyback flow, __PAYBACK__ of issuance is offset and break-even is __MULT__ times away. A separate pipeline at DefiLlama gives nearly the same total." |
+| 0:30 | Dashboard: click "Check a random epoch" | "The page does the same check in your browser: three block headers from mainnet, mint and burn equal to the yoctoNEAR." |
+| 0:38 | Dashboard epoch tape and the chain-versus-indexer table | "Counting the NEAR Intents buyback flow, __PAYBACK__ of issuance is offset and break-even is __MULT__ times away. A separate pipeline at DefiLlama gives nearly the same total." |
 | 0:45 | Lever calculator: drag capture share, then volume | "Two of the three levers are governance decisions." |
 | 0:52 | Ledger table and THESIS.md 'Evidence against' | "The bear case is in the repo: buybacks are held, not burnt, and payback has been falling. The forecasts are frozen, and mainnet scores them during judging. If we are wrong, the page says FALSIFIED." |
 

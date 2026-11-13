@@ -78,9 +78,28 @@ pre .out{color:var(--ink2)}
 pre button{position:absolute;top:6px;right:6px;font:0.75rem system-ui,sans-serif;padding:2px 8px;background:var(--bg);color:var(--ink);
 border:1px solid var(--rule);cursor:pointer}pre button:hover{border-color:var(--ink)}pre button:active{background:var(--panel);transform:scale(.97)}pre button{transition:transform .1s ease-out}
 footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--ink);color:var(--ink2);font-size:0.78125rem}
-@media (max-width:720px){h1{font-size:1.8125rem}.lede{font-size:1rem}.model,.rgrid,.cmd{grid-template-columns:minmax(0,1fr)}section{padding-top:44px}
+.hero{--h-ink:#eef3f2;--h-ink2:#a9b8b5;--h-rule:#2a3533;background:#0e1514;color:var(--h-ink)}
+.hin{max-width:1120px;margin:0 auto;padding:1px 20px 34px}.hero p{color:var(--h-ink2)}.hero code{color:var(--h-ink)}
+.hero h1{font-size:3.375rem;line-height:1.04;letter-spacing:-.035em;max-width:none;margin:0}
+.htop{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:20px 48px;align-items:end}.htop .lede{margin:0 0 6px;font-size:1rem}
+@media (max-width:900px){.htop{grid-template-columns:minmax(0,1fr)}}
+.live{margin:22px 0 0;padding:9px 0;border-top:1px solid var(--h-rule);border-bottom:1px solid var(--h-rule);max-width:none;font-size:.8125rem}
+.live b{color:var(--h-ink);font-weight:600}.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#43d1b7;margin-right:9px;animation:beat 2.4s ease-out infinite}
+@keyframes beat{0%{box-shadow:0 0 0 0 rgba(67,209,183,.6)}70%,100%{box-shadow:0 0 0 7px rgba(67,209,183,0)}}
+.tape{margin-top:30px}.tape h2{font-size:1rem;margin:0 0 4px;letter-spacing:-.01em}.tape>p{font-size:.8125rem;max-width:92ch;margin-bottom:12px}
+.tape .k{display:inline-block;width:9px;height:9px;margin:0 5px 0 2px}
+#tape{display:block;width:100%;height:320px;cursor:crosshair;touch-action:pan-y}
+.read{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:10px;min-height:2.6em;color:var(--h-ink2);font-size:.8125rem}.read b{color:var(--h-ink);font-weight:600}
+.vrow{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.vrow button{font:inherit;font-size:.8125rem;color:var(--h-ink);background:transparent;border:1px solid #4a5a57;padding:7px 14px;cursor:pointer;transition:transform .1s ease-out,border-color .15s}
+.vrow button:hover{border-color:var(--h-ink)}.vrow button:active{transform:scale(.97)}.vrow button:disabled{opacity:.45;cursor:progress}
+.vrow button:focus-visible,#tape:focus-visible{outline:2px solid #43d1b7;outline-offset:2px}
+#vlog{flex:1 1 100%;margin:4px 0 0;padding:0 0 0 22px;color:var(--h-ink2);font-size:.78rem}#vlog:empty{display:none}#vlog li{padding:2px 0}
+#vlog .ok{color:#43d1b7;font-weight:600}#vlog .no{color:#ff7b72;font-weight:600}
+.rlive{flex-basis:100%;color:var(--back);font-size:.8125rem}.rlive:empty{display:none}
+@media (max-width:720px){.hero h1{font-size:2.125rem}#tape{height:190px}h1{font-size:1.8125rem}.lede{font-size:1rem}.model,.rgrid,.cmd{grid-template-columns:minmax(0,1fr)}section{padding-top:44px}
 .facts div{padding-right:12px}pre button{display:none}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}.vrow button{transition:none}html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
 @media (prefers-reduced-transparency:reduce){nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:var(--rule)}}
 @media (prefers-contrast:more){:root{--ink2:var(--ink);--rule:var(--ink)}nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}}
 """
@@ -130,6 +149,79 @@ document.querySelectorAll('[data-chart]').forEach(card=>{
  svg.addEventListener('pointermove',show);svg.addEventListener('pointerdown',show);
  svg.addEventListener('pointerleave',()=>{tip.style.display='none';ch.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden')});
 });
+const TD=document.getElementById('tape-data');if(TD){const T=JSON.parse(TD.textContent),cv=document.getElementById('tape'),cx=cv.getContext('2d'),
+ N=x=>Number(x)/1e24,E=T.E.map(r=>({s:r[0],e:r[1],p:r[2],t:r[3],mint:N(r[4]),burn:N(r[5]),buy:r[6]==null?null:N(r[6]),lump:r[7],raw:r}));
+ E.forEach(d=>{d.share=(d.burn+(d.lump?0:Math.max(d.buy||0,0)))/d.mint});
+ const hist=E.filter(d=>d.e<=T.snap),fut=E.filter(d=>d.e>T.snap),slots=Math.max(0,...T.rounds.map(r=>r.n)),W=100,
+ sorted=hist.filter(d=>!d.lump).map(d=>d.share).sort((a,b)=>a-b),ymax=sorted[Math.floor(sorted.length*.985)]*1.15,
+ roll=hist.map((d,i)=>{if(i<W-1)return null;let a=0,m=0;for(let j=i-W+1;j<=i;j++){if(hist[j].buy==null)return null;a+=hist[j].burn+(hist[j].lump?0:hist[j].buy);m+=hist[j].mint}return a/m}),
+ C={ink:'#eef3f2',ink2:'#a9b8b5',rule:'#2a3533',back:'#43d1b7',burn:'#f2915a',bad:'#ff7b72'},
+ idx=t=>{let k=hist.findIndex(d=>d.t>=t);return k<0?hist.length-1:k},
+ marks=[[hist.findIndex(d=>d.buy>0),'buybacks begin'],[hist.findIndex(d=>d.lump),'wallet transfer, excluded'],
+  [idx(Date.UTC(2026,9,27)/1000),'swaps go private'],[hist.length-1,'forecasts frozen']].filter(m=>m[0]>=0);
+ let sel=hist.length-1,pin=false,w=0,h=0,geo;
+ const fmt=(x,d=0)=>x.toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d}),
+ when=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC',all=()=>hist.concat(fut);
+ function layout(){const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;w=r.width;h=r.height;cv.width=w*dpr;cv.height=h*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+  const top=w<560?10:60,bot=h-18,futW=slots?Math.max(90,w*.15):0,gap=slots?14:0,hw=w-futW-gap;
+  geo={top,bot,hw,fx:hw+gap,sw:slots?futW/slots:0,cw:hw/hist.length,y:v=>bot-Math.min(v,ymax)/ymax*(bot-top)}}
+ function xOf(i){return i<hist.length?i*geo.cw:geo.fx+(i-hist.length)*geo.sw}
+ function draw(){const g=geo;cx.clearRect(0,0,w,h);cx.font='11px system-ui,sans-serif';cx.textBaseline='middle';
+  for(let v=.1;v<ymax;v+=.1){cx.fillStyle=C.rule;cx.fillRect(0,g.y(v),w,1);cx.fillStyle=C.ink2;cx.textAlign='left';cx.fillText(Math.round(v*100)+'%',2,g.y(v)-7)}
+  T.rounds.slice().sort((a,b)=>b.n-a.n).forEach(r=>{const x=g.fx,ww=r.n*g.sw,y1=g.y(r.hi),y0=g.y(r.lo);
+   cx.fillStyle='rgba(67,209,183,.13)';cx.fillRect(x,y1,ww,y0-y1);cx.strokeStyle='rgba(67,209,183,.6)';cx.lineWidth=1;cx.strokeRect(x+.5,y1+.5,ww-1,y0-y1-1)});
+  all().forEach((d,i)=>{const x=xOf(i),cw=Math.max(1,(i<hist.length?g.cw:g.sw)-(i<hist.length?(g.cw>3?1:0):2));
+   if(d.lump){cx.fillStyle='rgba(169,184,181,.35)';cx.fillRect(x,g.top,Math.max(1,cw),g.bot-g.top);return}
+   const yb=g.y(d.burn/d.mint),yt=g.y(d.share);cx.fillStyle=C.burn;cx.fillRect(x,yb,cw,g.bot-yb);cx.fillStyle=C.back;cx.fillRect(x,yt,cw,yb-yt);
+   if(d.share>ymax){cx.fillStyle=C.ink;cx.fillRect(x,g.top,cw,2)}
+   if(d.buy<0){cx.fillStyle=C.bad;cx.fillRect(x-1,g.bot+3,Math.max(3,cw),3)}});
+  for(let j=fut.length;j<slots;j++){cx.fillStyle=C.rule;cx.fillRect(g.fx+j*g.sw+1,g.bot-1,g.sw-2,1)}
+  cx.beginPath();let on=false;roll.forEach((v,i)=>{if(v==null)return;const x=xOf(i)+g.cw/2,y=g.y(v);on?cx.lineTo(x,y):cx.moveTo(x,y);on=true});cx.strokeStyle=C.ink;cx.lineWidth=1.5;cx.stroke();
+  cx.fillStyle=C.ink;cx.fillRect(0,g.bot,w,1);
+  if(slots){cx.fillStyle=C.ink2;cx.fillRect(g.fx-7,g.top,1,g.bot-g.top)}
+  marks.forEach((m,k)=>{const x=Math.round(xOf(m[0]));cx.fillStyle='rgba(238,243,242,.35)';cx.fillRect(x,w<560?g.top-6:2+k*13,1,g.bot-(w<560?g.top-6:2+k*13));
+   if(w>=560){cx.fillStyle=C.ink2;cx.textAlign=x>w*.7?'right':'left';cx.fillText(m[1],x+(x>w*.7?-5:5),8+k*13)}});
+  if(slots&&w>=560){cx.fillStyle=C.back;cx.textAlign='left';cx.fillText('committed band',g.fx+2,g.y(T.rounds[0].hi)-8)}
+  const d=all()[sel],x=xOf(sel),cw=sel<hist.length?g.cw:g.sw;cx.fillStyle='rgba(238,243,242,.9)';cx.fillRect(x+cw/2-.5,g.top-6,1,g.bot-g.top+10);
+  cx.textAlign='left';cx.fillStyle=C.ink2;cx.fillText(when(hist[0].t).slice(0,10),0,h-6);cx.textAlign='right';cx.fillText(when(hist[hist.length-1].t).slice(0,10),g.hw,h-6);
+  document.getElementById('read').innerHTML=`<b>Epoch ending ${when(d.t)}</b><span>heights ${d.s} to ${d.e}</span><span>minted <b>${fmt(d.mint)}</b> NEAR</span><span>burnt <b>${fmt(d.burn,1)}</b></span>`+
+   (d.buy==null?'<span>no buyback balance cached</span>':d.lump?`<span>${fmt(d.buy)} NEAR moved in from other revenue wallets, excluded</span>`:`<span>buyback gain <b>${fmt(d.buy)}</b></span><span><b>${(d.share*100).toFixed(1)}%</b> of mint</span>`)+
+   (sel>=hist.length?'<span>closed after the forecasts were frozen</span>':'')}
+ function pick(e){const r=cv.getBoundingClientRect(),px=e.clientX-r.left,n=all().length;
+  let i=px<geo.fx-7?Math.floor(px/geo.cw):hist.length+Math.floor((px-geo.fx)/geo.sw);return Math.max(0,Math.min(n-1,Math.min(i,px<geo.fx-7?hist.length-1:n-1)))}
+ cv.addEventListener('pointermove',e=>{if(!pin){sel=pick(e);draw()}});cv.addEventListener('pointerdown',e=>{sel=pick(e);pin=true;draw()});
+ cv.addEventListener('pointerleave',()=>{if(!pin){sel=hist.length-1;draw()}});
+ cv.addEventListener('keydown',e=>{const k={ArrowLeft:-1,ArrowRight:1}[e.key];if(k){pin=true;sel=Math.max(0,Math.min(all().length-1,sel+k*(e.shiftKey?10:1)));draw();e.preventDefault()}});
+ new ResizeObserver(()=>{layout();draw()}).observe(cv);layout();draw();
+ // --- check one epoch against mainnet, in this browser ---
+ const ARCH='https://archival-rpc.mainnet.fastnear.com',LIVE='https://rpc.mainnet.fastnear.com',log=document.getElementById('vlog'),
+ rpc=async(u,method,params)=>{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+  if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(j.error)throw new Error(j.error.cause&&j.error.cause.name||j.error.message);return j.result},
+ near=x=>fmt(Number(x/10n**18n)/1e6,3),say=(t,c)=>{const li=document.createElement('li');li.textContent=t;if(c)li.className=c;log.appendChild(li)};
+ async function verify(i){const d=all()[i],bs=[...document.querySelectorAll('.vrow button')];bs.forEach(b=>b.disabled=true);log.textContent='';sel=i;pin=true;draw();
+  try{say(`Epoch ending ${when(d.t)}. Asking ${ARCH.slice(8)} for three block headers.`);
+   const B={};for(const [k,hh] of [['prev',d.p],['first',d.s],['last',d.e]]){const b=await rpc(ARCH,'block',{block_id:hh});
+    B[k]={sup:BigInt(b.header.total_supply),burnt:b.chunks.filter(c=>c.height_included===hh).reduce((a,c)=>a+BigInt(c.balance_burnt),0n)};
+    say(`block ${hh} (${k==='prev'?'last of previous epoch':k+' of epoch'}): total_supply ${near(B[k].sup)} NEAR`+(k==='first'?`, burnt in block ${near(B[k].burnt)}`:''))}
+   const mint=B.first.sup-B.prev.sup+B.first.burnt,burn=B.first.burnt+B.first.sup-B.last.sup,cm=BigInt(d.raw[4]),cb=BigInt(d.raw[5]);
+   say(`mint = supply(first) - supply(prev) + burnt(first) = ${near(mint)} NEAR. Cache: ${near(cm)}. ${mint===cm?'Equal to the yoctoNEAR.':'DIFFERENT.'}`);
+   say(`burn = burnt(first) + supply(first) - supply(last) = ${near(burn)} NEAR. Cache: ${near(cb)}. ${burn===cb?'Equal to the yoctoNEAR.':'DIFFERENT.'}`);
+   mint===cm&&burn===cb?say('PASS: mainnet and the committed cache agree for this epoch.','ok'):say('FAIL: the cache does not match mainnet for this epoch.','no')}
+  catch(err){say(`Could not finish: ${err.message}. The free endpoint rate-limits; try again in a minute.`,'no')}
+  bs.forEach(b=>b.disabled=false)}
+ document.getElementById('vsel').addEventListener('click',()=>verify(sel));
+ document.getElementById('vrnd').addEventListener('click',()=>verify(Math.floor(Math.random()*all().length)));
+ // --- what mainnet says right now ---
+ const live=document.getElementById('live');
+ async function now(){try{const b=await rpc(LIVE,'block',{finality:'final'}),a=await rpc(LIVE,'query',{request_type:'view_account',finality:'final',account_id:'buybacks.multisignature.near'});
+   const hgt=b.header.height,bal=BigInt(a.amount),gain=T.bal?bal-BigInt(T.bal):null,ep=(hgt-T.snap)/43200;
+   live.innerHTML=`<i></i>Mainnet now: block <b>${fmt(hgt)}</b> · supply <b>${fmt(Number(BigInt(b.header.total_supply)/10n**24n))}</b> NEAR · buyback account holds <b>${fmt(Number(bal/10n**24n))}</b> NEAR`+
+    (gain!=null&&T.rounds.length?`, <b>${gain<0n?'':'+'}${fmt(Number(gain/10n**21n)/1e3)}</b> since the forecasts were frozen ${ep.toFixed(1)} epochs ago`:'');
+   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n;s.textContent=ep>=n?'Live: the window has closed on mainnet; the next rebuild scores it.':
+    `Live: about ${ep.toFixed(1)} of ${n} epochs elapsed`+(gain!=null?`, buyback gain so far ${fmt(Number(gain/10n**21n)/1e3)} NEAR`:'')+'.'})}
+  catch(err){if(!live.dataset.ok)live.textContent='Live read unavailable (free endpoint rate limit). Everything below comes from the committed cache.';return}
+  live.dataset.ok=1}
+ now();setInterval(()=>{if(!document.hidden)now()},60000)}
 """
 
 P = lambda x, n=1: f"{100 * x:.{n}f}%"
@@ -210,7 +302,7 @@ def fan(rows):
     return out + "</svg>"
 
 
-def render(results, sha, ledgers=None):
+def render(results, sha, ledgers=None, tape=None):
     s, e = results["summary"], html.escape
     pct = lambda x, n=2: f"{100 * x:.{n}f}%"
     num = lambda x: f"{x:,.0f}"
@@ -371,7 +463,8 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
         inside = f"{L['hits']} of {L['resolved']} inside" if L["resolved"] else "no epoch has closed yet"
         led += (f"<div class='round'><header><h3>Next {L['total']} epochs after height {L['after_end_height']}</h3>"
                 f"<span class='pill {cls.get(L['verdict'], 'pending')}'>{e(L['verdict'])}</span>"
-                f"<span class='mono'>{L['resolved']} of {L['total']} epochs closed, {when}</span></header>"
+                f"<span class='mono'>{L['resolved']} of {L['total']} epochs closed, {when}</span>"
+                f"<span class='rlive mono' data-n='{L['total']}' aria-live='polite'></span></header>"
                 f"<div class='rgrid'><div>{claims}</div><div><p class='sub' style='margin-top:9px'>NEAR burnt in each epoch against the committed "
                 f"10% to 90% band ({e(L['table_model'])} model): {inside}</p>{fan(L['rows'])}</div></div>"
                 f"<p class='src'><code>predictions/{e(L['file'])}</code> sha256 <code>{e(L['commit'])}</code>, "
@@ -415,15 +508,28 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
              + cmd("python3 fetch.py --epochs 45 && python3 run.py", "Fetch the epochs that closed since and score the forecast rounds.",
                    "LEDGER round-<height>-h05.json: 5/5 epochs closed -> PASS or FALSIFIED"))
 
+    tape_html = "" if not tape else (
+        "<p class='live mono' id='live' aria-live='polite'>Reading NEAR mainnet from your browser</p>"
+        f"<div class='tape'><h2>Every epoch since {e(s['first'])}, one column each</h2>"
+        "<p>Column height is the share of that epoch's minted NEAR matched by <span class='k' style='background:#f2915a'></span>gas burn and "
+        "<span class='k' style='background:#43d1b7'></span>buyback gain. The white line is the 100-epoch payback. Right of the divider are the "
+        "epochs after the forecasts were frozen, against the committed payback band. Hover or use the arrow keys; click to hold an epoch.</p>"
+        "<canvas id='tape' tabindex='0' role='img' aria-label='Burn and buyback gain as a share of mint, for every epoch'></canvas>"
+        "<div class='read mono' id='read' aria-live='polite'></div>"
+        "<div class='vrow'><button type='button' id='vsel'>Check this epoch against mainnet</button>"
+        "<button type='button' id='vrnd'>Check a random epoch</button><ol id='vlog' class='mono' aria-live='polite'></ol></div></div>"
+        f"<script type='application/json' id='tape-data'>{json.dumps(tape, separators=(',', ':'))}</script>")
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: what NEAR pays back</title>
 <meta name="description" content="{e(head)}">
 <style>{CSS}</style></head><body>
 <nav><div><b>Coverage</b><a href="#chain">Onchain dashboard</a>{'<a href="#app">NEAR Intents</a>' if intents else ''}<a href="#models">Models</a>{'<a href="#rounds">Forecast rounds</a>' if led else ''}{'<a href="#case">For and against</a>' if case else ''}<a href="#reproduce">Reproduce</a><a href="{REPO}">GitHub</a></div></nav>
-<main>
+<header class="hero"><div class="hin">
 <p class="stamp mono">NEAR mainnet, {e(s['first'])} to {e(s['last'])}: {s['epochs']} epochs, heights {s['first_height']} to {s['last_height']}. Headline window: last 100 epochs, {days} days.</p>
-<h1>{e(head)}</h1>
-<p class="lede">{e(lede)}</p>
+<div class="htop"><h1>{e(head)}</h1>
+<p class="lede">{e(lede)}</p></div>
+{tape_html}</div></header>
+<main>
 {strip}
 <dl class="facts">{facts_html}</dl>
 <section id="chain"><h2>Onchain dashboard</h2>

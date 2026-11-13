@@ -444,7 +444,12 @@ def main():
     sha = hashlib.sha256(blob.encode()).hexdigest()
     import dashboard
     os.makedirs(os.path.join(ROOT, "dist"), exist_ok=True)
-    open(os.path.join(ROOT, "dist", "index.html"), "w").write(dashboard.render(results, sha, leds))
+    open(os.path.join(ROOT, "dist", "index.html"), "w").write(dashboard.render(results, sha, leds, dict(
+        E=[[r["start_height"], r["end_height"], r["prev_end_height"], r["t1_ns"] // 10**9, str(r["mint"]), str(r["burn"]),
+            None if r["raw_buy"] is None else str(r["raw_buy"]), int(r["lump"])] for r in every],
+        snap=snap, rounds=[dict(n=l["total"], lo=l["claims"]["payback"]["lo"], hi=l["claims"]["payback"]["hi"]) for l in leds],
+        bal=next((r["balance"] for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))
+                  if int(r["end_height"]) == snap), None))))
     for led in leds:
         print(f"LEDGER {led['file']}: {led['resolved']}/{led['total']} epochs closed -> {led['verdict']}")
         for name, c in led["claims"].items():
