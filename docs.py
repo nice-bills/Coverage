@@ -96,6 +96,10 @@ def values():
             SC_BULL_YEAR=str(cs["bull"]["year"] or "beyond 100 years"), SC_BULL_YEAR_HSP=str(cs["bull"]["year_hsp029"] or "beyond 100 years"),
             SC_BEAR_SENT=(f"break-even comes in {cs['bear']['year']}" if cs["bear"]["year"] else "break-even never comes, because the flow shrinks"
                           if cs["bear"]["growth"] < 0 else "break-even does not come within 100 years"), SC_BE_ISS=f"{sc['levers']['breakeven_issuance_pct']:.2f}%")
+    # BigQuery queries (queries/*.sql) and the status of their exports in data/bq/; not part of results.json
+    import bq
+    extra.update(bq.doc_values())
+
     return dict(
         **extra,
         RESULT_HASH=hashlib.sha256(blob.encode()).hexdigest(), EPOCHS=str(s["epochs"]), LAST=s["last"],

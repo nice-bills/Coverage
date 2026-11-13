@@ -1349,16 +1349,21 @@ def render(results, sha, ledgers=None, tape=None):
                   + "".join(f"<li id='n{i + 1}'>{n}</li>" for i, n in enumerate(notes)) + "</ol>"
                   + (f"<h4>Data, each file hashed in data/sources.json and checked by test_run.py</h4><ul>{data_list}</ul>" if data_list else "") + "</div></footer>")
 
+    # ---- chapter 06: network activity (BigQuery); bq.py reads data/bq/*.csv, which run.py and the result hash never use ----
+    import bq
+    ch6, bq_data = bq.chapter(later(6), "c6")
+
     chapters = [(c, t) for c, t, body in (("c1", "The claim", ch1), ("c2", "The flow", ch2), ("c3", "The models", ch3),
-                                          ("c-path", "The path to break-even", ch_path), ("c4", "The case, both ways", ch4), ("c5", "Check it yourself", ch5)) if body]
+                                          ("c-path", "The path to break-even", ch_path), ("c4", "The case, both ways", ch4), ("c5", "Check it yourself", ch5),
+                                          ("c6", "Network activity", ch6)) if body]
     idx = "".join(f"<li><a href='#{c}'><span class='n'>{i + 1:02d}</span><span class='t'>{t}</span><span class='bar'><i></i></span></a></li>" for i, (c, t) in enumerate(chapters))
     midx = "".join(f"<li><a href='#{c}'><span>{i + 1:02d}</span>{t}</a></li>" for i, (c, t) in enumerate(chapters))
-    navs = {"c1": "The claim", "c2": "The flow", "c3": "The models", "c-path": "Break-even", "c4": "Both ways", "c5": "Check it"}
+    navs = {"c1": "The claim", "c2": "The flow", "c3": "The models", "c-path": "Break-even", "c4": "Both ways", "c5": "Check it", "c6": "Network"}
     nav = "".join(f"<a href='#{c}'>{navs[c]}</a>" for c, _ in chapters) + f"<a href='{REPO}'>GitHub</a>"
     foot = (f"<div class='foot'><b>{s['multiple']:.1f}×</b>flows must grow to match issuance at {iss_s} a year; {s['multiple_at_1_6_issuance']:.1f}× at 1.6%.</div>" if has else "")
 
     data = dict(s=s, series=results["series"], weekly=results.get("weekly", []), ruler=rd,
-                tape=dict(tape, len=epoch_len) if tape else None)
+                tape=dict(tape, len=epoch_len) if tape else None, **bq_data)
     meta = f"NEAR mainnet · {span} · {s['epochs']:,} epochs"
     blob = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -1374,7 +1379,7 @@ def render(results, sha, ledgers=None, tape=None):
 {ruler}{live}{scale}
 <div class="body"><aside class="index" aria-label="Contents"><div class="eyebrow">Contents</div><ol id="idx">{idx}</ol>{foot}</aside>
 <main><div class="mobile-index"><details><summary><span class="row"><b id="mi-t">01 {chapters[0][1] if chapters else ''}</b><span id="mi-n" class="eyebrow">1 / {len(chapters)}</span></span><span class="p" style="display:block"><i id="mi-p"></i></span></summary><ol>{midx}</ol></details></div>
-{ch1}{ch2}{ch3}{ch_path}{ch4}{ch5}</main></div>
+{ch1}{ch2}{ch3}{ch_path}{ch4}{ch5}{ch6}</main></div>
 {notes_html}
 <div class="colophon"><span>Coverage · MIT licence · <a href="{REPO}">{REPO.split('//')[1]}</a> · result <code>{sha[:12]}</code></span><span>Set in Instrument Serif &amp; Inter. Teal comes back to the token; terracotta is burnt.</span></div>
 </div><script type="application/json" id="data">{blob}</script>

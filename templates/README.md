@@ -35,7 +35,8 @@ evidence someone else can reproduce."
 | Requirement | Where | Honest note |
 |---|---|---|
 | Onchain analytics from public data | `fetch.py`: mint and burn from `total_supply` in block headers for every one of __EPOCHS__ epochs; buyback balance by `view_account` | Free keyless endpoints; a full rebuild takes hours because they rate-limit |
-| An Intents data pull | `data/inflows.csv` (transfers into the buyback account, with senders) and `data/llama.csv` | Third-party (NearBlocks, DefiLlama). They never feed mint, burn, payback or the multiple |
+| An Intents data pull | `data/inflows.csv` (transfers into the buyback account, with senders) and `data/llama.csv` (DefiLlama's public NEAR Intents volume and fee series) | Third-party (NearBlocks, DefiLlama). They never feed mint, burn, payback or the multiple. No Intents Explorer API pull, on purpose: its terms forbid keeping the data beyond 24 hours (see [BigQuery queries](#network-activity-from-bigquery-needs-a-google-account)) |
+| SQL against the NEAR BigQuery public dataset: daily active accounts, transaction counts, contract usage | Four files in `queries/`, each filtered on `block_date` over 2026-02-13 to 2026-11-12, with the bytes it scans and how to run it in its header. Chapter 06 of the dashboard draws each result with its SQL and one sentence written from the data | __BQ_STATUS__. The results stay out of `out/results.json`, so the hash never depends on them |
 | One command rebuilds every figure | `python3 run.py`, offline, under 2 seconds, prints a hash that must match this file | Rebuilds from the committed cache; `verify.py` compares the cache with mainnet |
 | A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source. It draws every epoch as one column, reads the current block and buyback balance from mainnet in your browser, and its "Check a random epoch" button refetches three block headers and compares mint, burn and the buyback gain with the cache to the yoctoNEAR. Its "Check it yourself" chapter shows the recorded output of `run.py` and `test_run.py` from the build that produced the page, with a link to that run's GitHub Actions log | One static file, no build step; only the fonts load from Google Fonts, with system fallbacks. The live parts call a free keyless RPC from the browser and say so when it rate-limits |
 | Reproducible models | Four, listed on the dashboard under Models with the `run.py` functions behind each | The burn forecasters' bands are too narrow (about two-thirds held against a nominal 80%); stated, not hidden |
@@ -102,6 +103,43 @@ Expected output: `DOCS IN SYNC from result <first 12 characters of the hash abov
 figure in them is filled in from `out/results.json`, so those figures cannot drift from the
 data. Dates and governance facts (the buyback start date, HSP-029) are not computed here; each
 is cited to its source in `THESIS.md` and is true as of 2026-11-13.
+
+## Network activity from BigQuery (needs a Google account)
+
+The track asks for SQL against `bigquery-public-data.crypto_near_mainnet_us`. The four queries are
+in `queries/`. Each reads only the columns it needs and filters on `block_date`, the column the
+tables are partitioned on, so BigQuery reads only the days in the window.
+
+__BQ_TABLE__
+
+Status: __BQ_STATUS__.
+
+To run them (free, no card):
+
+1. Open https://console.cloud.google.com/bigquery and accept the BigQuery sandbox.
+2. Paste one file from `queries/`. The editor shows how many bytes it will process; the
+   sandbox allows 1 TB a month and the four together fit.
+3. Run, then **Save results → CSV (local file)**, and save it as `data/bq/<query name>.csv`.
+4. `python3 run.py && python3 docs.py`. The dashboard's chapter 06 and this section fill in.
+
+With the Cloud SDK instead:
+
+```
+mkdir -p data/bq
+for q in daily_active_accounts daily_transactions intents_share top_contracts; do
+  bq query --use_legacy_sql=false --format=csv --max_rows=1000 < queries/$q.sql > data/bq/$q.csv
+done
+```
+
+`bq.py` reads the CSVs with the standard library. A missing file leaves its chart "pending" and
+breaks nothing; a malformed one makes `test_run.py` fail. `run.py` does not read them, so the
+result hash above does not change when they are added.
+
+Why there is no Intents Explorer API pull: the brief suggests one, but the 1Click Swap API Terms
+of Use, section 4.1(e) (https://partners.near-intents.org/legal/terms-of-service), forbid keeping
+its data beyond 24 hours. A copy committed here so that anyone can recheck the figures would break
+those terms, and a pull that cannot be kept cannot be reproduced. NEAR Intents volume and fees
+come from DefiLlama's public series (`data/llama.csv`) instead.
 
 ## Check the cache against the chain (network, no keys, about a minute)
 
@@ -207,6 +245,7 @@ that is wrong in a self-consistent way; `verify.py` compares rows with the chain
 | `data/private_sample.csv` | `intents.near` event logs in 500 seeded random blocks, 250 before and 250 since 2026-10-27 | `/v0/block/{h}` on `mainnet.neardata.xyz` | none |
 | `data/llama.csv` | daily USD: NEAR fees, NEAR Intents volume, fees, captured revenue | DefiLlama API (third party) | none |
 | `data/price.csv` | daily NEAR price in USD | CoinGecko API (third party) | none |
+| `data/bq/*.csv` (optional) | results of `queries/*.sql`: daily active accounts, transactions, Intents share of receipts, top contracts | BigQuery public dataset `bigquery-public-data.crypto_near_mainnet_us` | a Google account (sandbox is free) |
 
 `data/sources.json` records, for every file in `data/`, when it was written, from which
 URLs, and its sha256; `test_run.py` fails if a file does not match its recorded hash. The two header sources return identical fields and `fetch.py` alternates between them. The
@@ -240,6 +279,7 @@ the code derives from the data up to that round's height.
 |---|---|
 | `fetch.py` | chain and indexers to `data/`; resumable; needs network |
 | `run.py` | `data/` to results, predictions, ledger and dashboard; offline, deterministic |
+| `queries/`, `bq.py` | SQL for the NEAR BigQuery public dataset, and the stdlib loader for its CSV results (dashboard chapter 06) |
 | `dashboard.py` | renders `dist/index.html` and writes into it the output `run.py` printed; fonts from Google Fonts, nothing else external |
 | `record.py` | runs a command and saves its output (`out/selftest.json`) for the dashboard |
 | `verify.py` | spot-checks cached epochs against the chain |
