@@ -598,6 +598,10 @@ def main():
                            if l["after_end_height"] == snap],
         bal=next((r["balance"] for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))
                   if int(r["end_height"]) == snap), None))))
+    import quick
+    page = quick.render(results, sha)
+    if page:
+        open(os.path.join(ROOT, "dist", "quick.html"), "w").write(page)
     for led in leds:
         print(f"LEDGER {led['file']}: {led['resolved']}/{led['total']} epochs closed -> {led['verdict']}")
         for name, c in led["claims"].items():

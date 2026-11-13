@@ -43,7 +43,7 @@ assert run.ledger(later, commit)["verdict"] == "PENDING"
 import json, os, shutil, subprocess, sys, tempfile
 src = os.path.dirname(os.path.abspath(__file__))
 with tempfile.TemporaryDirectory() as tmp:
-    for f in ("run.py", "dashboard.py", "bq.py", "queries", "data"):
+    for f in ("run.py", "dashboard.py", "bq.py", "quick.py", "queries", "data"):
         (shutil.copytree if f in ("data", "queries") else shutil.copy)(os.path.join(src, f), os.path.join(tmp, f))
     go = lambda: subprocess.run([sys.executable, "run.py"], cwd=tmp, capture_output=True, text=True)
     first = go()

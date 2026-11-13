@@ -6,6 +6,8 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 
 Live dashboard: https://nice-bills.github.io/Coverage/
 
+**Short on time? [Coverage in 60 seconds](https://nice-bills.github.io/Coverage/quick.html)**: six steps, one idea each, plain words.
+
 It runs itself. Every 6 hours a scheduled job fetches the epochs that closed, scores the frozen
 forecast rounds and redeploys. About once a day it freezes a new round, timestamps it in Bitcoin
 and commits it. Nobody edits the numbers by hand.

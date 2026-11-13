@@ -47,6 +47,7 @@ code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
 .mast nav{display:flex;gap:22px;font-size:13.5px;color:var(--ink-2)}.mast nav a{text-decoration:none}.mast nav a:hover{color:var(--ink)}
 .toggle{flex:none;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;font:500 12.5px var(--sans);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .toggle:hover{border-color:var(--muted)}
+.toggle.quick{text-decoration:none;color:var(--ink);margin-left:auto}
 .toggle i{width:10px;height:10px;border-radius:50%;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%);border:1px solid var(--ink);display:inline-block}
 .hero{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding:clamp(40px,7vw,96px) 0 40px}
 .hero{position:relative;isolation:isolate;overflow-x:clip}
@@ -1373,7 +1374,7 @@ def render(results, sha, ledgers=None, tape=None):
 <link rel="stylesheet" href="{FONTS}">
 <style>{CSS}{PATH_CSS}</style></head><body><div class="wrap">
 <header class="mast"><div class="brand"><b>Coverage</b><span>A research report on what NEAR pays back</span></div>
-<nav aria-label="Chapters">{nav}</nav><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
+<nav aria-label="Chapters">{nav}</nav><a class="toggle quick" href="quick.html">60-second version</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
 <section class="hero" id="top" aria-label="{e(meta)}"><div class="meta"><span class="eyebrow">NEAR mainnet</span><span class="eyebrow">{span}</span><span class="eyebrow">{s['epochs']:,} epochs</span></div>
 <h1>{h1}</h1><p class="dek">{dek}</p><p class="byline">{byline}</p></section>
 {ruler}{live}{scale}
