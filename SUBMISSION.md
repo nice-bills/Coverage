@@ -6,29 +6,33 @@ Everything needed to submit. Numbers below are filled from `out/results.json`.
 
 Coverage: what offsets NEAR's issuance, measured from the chain with no keys.
 
-NEAR mints about 2.5% of supply a year. Fee-burn dashboards say under 1% of that comes back, so break-even looks 108x away. That measures one layer. Since February 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, 12.0% of issuance is offset and break-even is 8.4x away.
+NEAR mints about 2.5% of supply a year. Fee-burn dashboards say under 1% of that comes back, so break-even looks 108x away. Since February 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, 12.0% of issuance is offset and break-even is 8.4x away.
+
+Since 27 October a growing share of Intents swaps settles privately (found by another entry, Tideline), so public swap data no longer shows their fees. The buyback account is a mainnet balance and still does: 10,452 NEAR a day since, against 9,298 before.
 
 What makes it checkable:
 - One command, `python3 run.py`: no keys, no network, no dependencies. It prints a result hash that must equal the one in the README.
-- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet, requires an exact match with the cache, and checks block by block that supply fell by the fees burnt.
+- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
 - `python3 test_run.py` shows the command refuses a cache with one yoctoNEAR changed and refuses edited predictions.
 - Attribution: 2979 of the last 2996 transfers into the buyback account come from intents.near. A separate pipeline (DefiLlama, via Dune) gives 13,589 NEAR a day for all revenue wallets; ours gives 13,984.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from 16.5% to 12.0%; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses a round that is not exactly what the code derives from the data up to its height, so we cannot edit the outcome. Round hashes: round-224265136-h05.json e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba; round-224265136-h10.json 2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f; round-224265136-h20.json 926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5
+The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. Hashes are in the README.
 
-## X post (attach the video)
+## X post (attach the video; fits 280 characters)
 
-NEAR's burn offsets 0.92% of its issuance. Burn plus NEAR Intents buybacks: 12.0%.
+Built at NEAR HACKATHON: NEAR's burn covers 0.92% of issuance. With Intents buybacks: 12.0%. Break-even is 8.4x away, not 108x.
 
-Measured from the chain, break-even is 8.4x away, not 108x.
+Swaps went private; the buyback balance still shows revenue.
 
 No keys: python3 run.py
-Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
+@NEARProtocol #NEARHackathon
 https://github.com/nice-bills/Coverage
 
-(Reply to it with the demo link and the round hashes: round-224265136-h05.json e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba; round-224265136-h10.json 2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f; round-224265136-h20.json 926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5)
+(Reply to it with: the dashboard https://nice-bills.github.io/Coverage/ ; "Forecasts frozen and
+Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and the round hashes from
+the README.)
 
 ## 60-second video
 

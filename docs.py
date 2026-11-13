@@ -16,7 +16,7 @@ FILES = ("README.md", "THESIS.md", "SUBMISSION.md")
 def values():
     blob = open(os.path.join(ROOT, "out", "results.json")).read()
     r = json.loads(blob)
-    s, bt, cb = r["summary"], r["backtest"], r["claims_backtest"]
+    s, bt, cb, pv = r["summary"], r["backtest"], r["claims_backtest"], r["private_settlement"]
     pct = lambda x, n=1: f"{100 * x:.{n}f}%"
     usd = lambda x: f"${x:,.0f}"
     num = lambda x: f"{x:,.0f}"
@@ -70,6 +70,11 @@ def values():
         LUMP=num(s["lump_transfers_near"]), LUMP_OUT=num(s["lump_matched_outflow_near"]),
         OUT_N=str(s["buyback_outflow_epochs"]), OUT_NEAR=num(s["buyback_outflow_near"]),
         BUY_EPOCHS=str(s["buyback_epochs"]),
+        PB_BUY=num(pv["before"]["buyback_per_day"]), PS_BUY=num(pv["since"]["buyback_per_day"]),
+        PB_PAY=pct(pv["before"]["payback"]), PS_PAY=pct(pv["since"]["payback"]),
+        PB_N=str(pv["before"]["epochs"]), PB_IN=str(pv["before"]["epochs_with_inflow"]),
+        PS_N=str(pv["since"]["epochs"]), PS_IN=str(pv["since"]["epochs_with_inflow"]),
+        PS_DAYS=f"{pv['since']['days']:.0f}", PB_DAYS=f"{pv['before']['days']:.0f}",
         ALL_PAY=pct(s["all_revenue_wallets_payback"]), ALL_MULT=f"{1 / s['all_revenue_wallets_payback']:.1f}",
         BUY_SHARE=pct(s["buyback_per_day"] / s["llama_buyback_near_per_day"], 0),
         LUMP_IN=str(s["lump_epochs_in_window"]), OUT_IN=str(s["outflow_epochs_in_window"]),

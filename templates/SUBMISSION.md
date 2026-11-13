@@ -6,29 +6,33 @@ Everything needed to submit. Numbers below are filled from `out/results.json`.
 
 Coverage: what offsets NEAR's issuance, measured from the chain with no keys.
 
-NEAR mints about 2.5% of supply a year. Fee-burn dashboards say under 1% of that comes back, so break-even looks __BURN_MULT__x away. That measures one layer. Since February 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, __PAYBACK__ of issuance is offset and break-even is __MULT__x away.
+NEAR mints about 2.5% of supply a year. Fee-burn dashboards say under 1% of that comes back, so break-even looks __BURN_MULT__x away. Since February 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, __PAYBACK__ of issuance is offset and break-even is __MULT__x away.
+
+Since 27 October a growing share of Intents swaps settles privately (found by another entry, Tideline), so public swap data no longer shows their fees. The buyback account is a mainnet balance and still does: __PS_BUY__ NEAR a day since, against __PB_BUY__ before.
 
 What makes it checkable:
 - One command, `python3 run.py`: no keys, no network, no dependencies. It prints a result hash that must equal the one in the README.
-- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet, requires an exact match with the cache, and checks block by block that supply fell by the fees burnt.
+- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
 - `python3 test_run.py` shows the command refuses a cache with one yoctoNEAR changed and refuses edited predictions.
 - Attribution: __INFLOW_INTENTS__ of the last __INFLOW_N__ transfers into the buyback account come from intents.near. A separate pipeline (DefiLlama, via Dune) gives __LLAMA_BUY_NEAR__ NEAR a day for all revenue wallets; ours gives __ALL_NEAR__.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses a round that is not exactly what the code derives from the data up to its height, so we cannot edit the outcome. Round hashes: __ROUND_HASHES__
+The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round the code cannot re-derive exactly, so we cannot edit the outcome. Hashes are in the README.
 
-## X post (attach the video)
+## X post (attach the video; fits 280 characters)
 
-NEAR's burn offsets __BURN_COV__ of its issuance. Burn plus NEAR Intents buybacks: __PAYBACK__.
+Built at NEAR HACKATHON: NEAR's burn covers __BURN_COV__ of issuance. With Intents buybacks: __PAYBACK__. Break-even is __MULT__x away, not __BURN_MULT__x.
 
-Measured from the chain, break-even is __MULT__x away, not __BURN_MULT__x.
+Swaps went private; the buyback balance still shows revenue.
 
 No keys: python3 run.py
-Forecasts frozen and Bitcoin-timestamped; mainnet scores them this week.
 
+@NEARProtocol #NEARHackathon
 https://github.com/nice-bills/Coverage
 
-(Reply to it with the demo link and the round hashes: __ROUND_HASHES__)
+(Reply to it with: the dashboard https://nice-bills.github.io/Coverage/ ; "Forecasts frozen and
+Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and the round hashes from
+the README.)
 
 ## 60-second video
 

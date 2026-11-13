@@ -276,6 +276,18 @@ def render(results, sha, ledgers=None):
              f"<tr><td>Buyback account gain</td><td>{nr(s['buyback_per_day'])}</td><td rowspan='2'>{nr(s['llama_buyback_near_per_day'])} "
              f"<small>(captured revenue, all wallets)</small></td></tr>"
              f"<tr><td>All three revenue wallets, gain</td><td>{nr(s['all_revenue_wallets_per_day'])}</td></tr>")
+    private, pv = "", results.get("private_settlement") or {}
+    if pv.get("before") and pv.get("since"):
+        b, a = pv["before"], pv["since"]
+        private = (f"<h3 style='margin-top:28px'>The flow did not fall when swaps went private</h3>"
+                   f"<p class='sub'>Since 2026-10-27 a growing share of Intents swaps settles on a private chain (reported by the "
+                   f"<a href='https://github.com/ervhint/tideline-thesis'>Tideline</a> entry; share not verified here), which hides "
+                   f"their fees from public swap data. The buyback account is a mainnet balance and still records what arrives.</p>"
+                   f"<div class='wrap'><table><tr><th>Period</th><th>Buyback gain, NEAR a day</th><th>Payback</th><th>Epochs with an inflow</th></tr>"
+                   f"<tr><td>{b['days']:.0f} days before 2026-10-27</td><td>{num(b['buyback_per_day'])}</td><td>{pct(b['payback'], 1)}</td>"
+                   f"<td>{b['epochs_with_inflow']} of {b['epochs']}</td></tr>"
+                   f"<tr><td>{a['days']:.0f} days since</td><td>{num(a['buyback_per_day'])}</td><td>{pct(a['payback'], 1)}</td>"
+                   f"<td>{a['epochs_with_inflow']} of {a['epochs']}</td></tr></table></div>")
     intents = ""
     if results.get("weekly"):
         intents = (f"<section id='app'><h2>The application behind the flow</h2><p>NEAR Intents by week since buybacks began "
@@ -418,6 +430,7 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <p>Mint and burn are read from <code>total_supply</code> in block headers and are exact to the yoctoNEAR. The buyback gain is the
 change in the account's balance between epoch ends. Every point is a 100-epoch rolling window; hover a chart for values.</p>
 <div class="figs">{figs('series', CHARTS, 'payback')}</div>
+{private}
 <h3 style="margin-top:28px">Chain versus the indexer</h3>
 <p class="sub">The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
 <div class="wrap"><table><tr><th>Flow, NEAR a day</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>

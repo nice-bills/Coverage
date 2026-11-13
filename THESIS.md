@@ -74,6 +74,22 @@ for buybacks and reads it as a balance change. Counting all three revenue wallet
 16.5% and 6.1x. The periods differ, so agreement is approximate; the point is that
 separate code on separate data sources lands in the same range.
 
+**The flow did not fall when swaps went private.** Another entry
+([Tideline](https://github.com/ervhint/tideline-thesis)) reports that since 2026-10-27 a growing
+share of Intents swaps settles on a private chain, and that fees on those swaps cannot be seen
+in public data. We take the date from them and have not verified the share. The buyback
+account does not depend on seeing swaps: it is a balance on NEAR mainnet.
+
+| Period | Buyback gain, NEAR a day | Payback | Epochs with an inflow |
+|---|---|---|---|
+| 30 days before 2026-10-27 | 9,298 | 11.7% | 101 of 101 |
+| 17 days since | 10,452 | 12.5% | 58 of 58 |
+
+So the one public measure of Intents revenue that still works shows it arriving at least as
+fast as before. In dollars it is lower, because the NEAR price fell over the same weeks. The
+forecast rounds below were frozen on 2026-11-12, after the change, so they test whether the
+flow persists under private settlement.
+
 **Realized inflation matches stated policy.** Measured mint annualizes to 2.47% of supply
 over the whole cache; the protocol config has `max_inflation_rate` at 1/40
 (`data/protocol.json`). If the buyback NEAR were burnt rather than held, net inflation would be
@@ -113,12 +129,6 @@ $51M a day and has recovered to $130M, so the year-on-year figure hides a round 
 not steady growth. The buyback flow exists because capture was switched on in February 2026. At today's capture share, break-even needs
 8.4x the volume.
 
-**Public volume may be undercounted from now on.** Another entry
-([Tideline](https://github.com/ervhint/tideline-thesis)) reports that since 2026-10-27 a growing
-share of Intents swaps settles privately, out of public view. We have not verified that. If it
-is right, the DefiLlama volume and fee series used here for context will understate activity.
-Payback is unaffected: it is a balance change in the buyback account, not a count of swaps.
-
 **The payback is concentrated.** One application supplies over 90% of it. A fee cut, exploit
 or loss of flow at NEAR Intents removes most of the thesis.
 
@@ -141,6 +151,10 @@ sender check above does not reach back that far.
 **Buyback size depends on the NEAR price.** Fee revenue is earned mostly in dollar terms and
 arrives as NEAR, so the same revenue is fewer NEAR at a higher price. This is arithmetic, not
 something the repo tests.
+
+**Public volume and fee series may now undercount.** If Tideline's finding is right, the
+DefiLlama volume, fee and take-rate figures used here for context understate activity from
+2026-10-27. The correlation and the capture share are computed on those series.
 
 **Third-party inputs.** Attribution of inflows uses NearBlocks, and the USD context uses
 DefiLlama and CoinGecko. None of these feed mint, burn, the buyback gain or payback. DefiLlama's

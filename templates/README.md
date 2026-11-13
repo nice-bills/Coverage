@@ -28,6 +28,10 @@ and NEAR gained by `buybacks.multisignature.near`, the account that receives NEA
 Intents contract. Mint and burn come from block headers. It needs no API key, no cloud account
 and no dependencies beyond Python 3.9+.
 
+Since 2026-10-27 a growing share of Intents swaps settles privately (reported by another entry,
+Tideline), which hides fees from public swap data. The buyback account is a mainnet balance and
+still shows them: __PS_BUY__ NEAR a day since, against __PB_BUY__ in the 30 days before.
+
 Result for the 100 epochs ending __LAST__: burn plus buybacks equal __PAYBACK__ of issuance
 (burn alone: __BURN_COV__). The thesis, the evidence against it and what would change our mind
 are in [THESIS.md](THESIS.md).

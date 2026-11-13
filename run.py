@@ -306,6 +306,18 @@ def main():
         for _ in range(500):
             s = [w[rnd.randrange(W)] for _ in range(W)]
             pboot.append(sum(r["burn"] + r["buy"] for r in s) / sum(r["mint"] for r in s))
+    # Flow before and since private settlement began (date as reported by the Tideline entry, not verified here)
+    cut = datetime.datetime(2026, 10, 27, tzinfo=datetime.timezone.utc).timestamp() * 1e9
+    def span(rs):
+        rs = [r for r in rs if r["buy"] is not None]
+        if not rs:
+            return None
+        d = (rs[-1]["t1_ns"] - rs[0]["t0_ns"]) / 86400e9
+        return dict(epochs=len(rs), days=d, buyback_per_day=sum(r["buy"] for r in rs) / Y / d,
+                    payback=sum(r["burn"] + r["buy"] for r in rs) / sum(r["mint"] for r in rs),
+                    epochs_with_inflow=sum(r["raw_buy"] > 0 for r in rs))
+    private = dict(since=span([r for r in rows if r["t1_ns"] >= cut]),
+                   before=span([r for r in rows if cut - 30 * 86400e9 <= r["t1_ns"] < cut]))
     # third-party cross-check over the same days as the last window
     d0, d1 = day(w[0]["t0_ns"]).strftime("%Y-%m-%d"), day(w[-1]["t1_ns"]).strftime("%Y-%m-%d")
     days = [r for r in llama if d0 < r["date"] < d1]
@@ -410,7 +422,7 @@ def main():
         payback_if_all_intents_fees_captured=(avg("intents_fees_usd") / usd + now["burn_per_day"]) / now["mint_per_day"]
         if days and usd else None)
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
-    results = sig(dict(summary=summary, backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
+    results = sig(dict(summary=summary, private_settlement=private, backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
                        series=roll[::3], weekly=weekly))
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))
