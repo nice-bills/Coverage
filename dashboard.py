@@ -250,7 +250,7 @@ details>summary:hover{color:var(--teal)}details>summary small{display:block;font
 .step>*{min-width:0}.step .sn{font:italic 400 34px/1 var(--serif);color:var(--muted)}
 .step h4{margin:0 0 6px;font:500 16px var(--sans)}.step p{margin:0;font-size:14px;color:var(--ink-2)}
 .step p+p{margin-top:8px}
-pre.term{margin:0;background:var(--term);color:var(--term-ink);border-radius:12px;padding:16px 18px;font:400 12.5px/1.65 var(--mono);font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;overflow-x:auto;white-space:pre;position:relative;tab-size:4}
+pre.term{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;background:var(--term);color:var(--term-ink);border-radius:12px;padding:16px 18px;font:400 12.5px/1.65 var(--mono);font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;overflow-x:auto;white-space:pre;position:relative;tab-size:4}
 pre.term .c{opacity:.55}pre.term .ok{color:var(--term-ok)}pre.term .no{color:var(--term-bad)}pre.term .p{opacity:.55;user-select:none}pre.term[data-copy]{padding-right:76px}
 pre.term button{position:absolute;top:8px;right:8px;font:500 11.5px var(--sans);padding:3px 9px;background:transparent;color:var(--term-ink);border:1px solid rgba(255,255,255,.25);border-radius:999px;cursor:pointer;opacity:.75}
 pre.term button:hover{opacity:1}
@@ -1310,7 +1310,7 @@ def render(results, sha, ledgers=None, tape=None):
              ("Score the rounds", "Fetch the epochs that closed since; run.py prints PASS or FALSIFIED per round (the LEDGER lines above).",
               term("python3 fetch.py --epochs 45 && python3 run.py"))]
     steps_html = "".join(f"<div class='step'><span class='sn'>{i + 1}</span><div><h4>{a}</h4><p>{b}</p></div><div>{c}</div></div>" for i, (a, b, c) in enumerate(steps))
-    ch5 = f"""<section class="chapter" id="c5" data-t="Check it yourself"><div class="ch-head"><div class="ch-num"><span class="n">{later(5)}</span><span class="eyebrow">Check it yourself</span><span class="line"></span></div>
+    ch5 = f"""<section class="chapter" id="c5" data-t="Check it yourself"><div class="ch-head"><div class="ch-num"><span class="n">{later(6)}</span><span class="eyebrow">Check it yourself</span><span class="line"></span></div>
 <h2>Forecasts frozen in Bitcoin, scored by the chain while you judge.</h2><p>Each round was frozen before the epochs it describes existed, and its hash is anchored with OpenTimestamps. <code>run.py</code> refuses a round that is not exactly what the code derives from the data up to its height.{fn(7)}</p></div>
 {rounds}<div style="margin-top:72px" id="reproduce"><div class="eyebrow" style="margin-bottom:14px">Reproduce every number · recorded output, so you can check without running anything</div>
 <div class="steps">{steps_html}</div>
@@ -1351,11 +1351,11 @@ def render(results, sha, ledgers=None, tape=None):
 
     # ---- chapter 06: network activity (BigQuery); bq.py reads data/bq/*.csv, which run.py and the result hash never use ----
     import bq
-    ch6, bq_data = bq.chapter(later(6), "c6")
+    ch6, bq_data = bq.chapter(later(5), "c6")
 
     chapters = [(c, t) for c, t, body in (("c1", "The claim", ch1), ("c2", "The flow", ch2), ("c3", "The models", ch3),
-                                          ("c-path", "The path to break-even", ch_path), ("c4", "The case, both ways", ch4), ("c5", "Check it yourself", ch5),
-                                          ("c6", "Network activity", ch6)) if body]
+                                          ("c-path", "The path to break-even", ch_path), ("c4", "The case, both ways", ch4), ("c6", "Network activity", ch6),
+                                          ("c5", "Check it yourself", ch5)) if body]
     idx = "".join(f"<li><a href='#{c}'><span class='n'>{i + 1:02d}</span><span class='t'>{t}</span><span class='bar'><i></i></span></a></li>" for i, (c, t) in enumerate(chapters))
     midx = "".join(f"<li><a href='#{c}'><span>{i + 1:02d}</span>{t}</a></li>" for i, (c, t) in enumerate(chapters))
     navs = {"c1": "The claim", "c2": "The flow", "c3": "The models", "c-path": "Break-even", "c4": "Both ways", "c5": "Check it", "c6": "Network"}
@@ -1379,7 +1379,7 @@ def render(results, sha, ledgers=None, tape=None):
 {ruler}{live}{scale}
 <div class="body"><aside class="index" aria-label="Contents"><div class="eyebrow">Contents</div><ol id="idx">{idx}</ol>{foot}</aside>
 <main><div class="mobile-index"><details><summary><span class="row"><b id="mi-t">01 {chapters[0][1] if chapters else ''}</b><span id="mi-n" class="eyebrow">1 / {len(chapters)}</span></span><span class="p" style="display:block"><i id="mi-p"></i></span></summary><ol>{midx}</ol></details></div>
-{ch1}{ch2}{ch3}{ch_path}{ch4}{ch5}{ch6}</main></div>
+{ch1}{ch2}{ch3}{ch_path}{ch4}{ch6}{ch5}</main></div>
 {notes_html}
 <div class="colophon"><span>Coverage · MIT licence · <a href="{REPO}">{REPO.split('//')[1]}</a> · result <code>{sha[:12]}</code></span><span>Set in Instrument Serif &amp; Inter. Teal comes back to the token; terracotta is burnt.</span></div>
 </div><script type="application/json" id="data">{blob}</script>

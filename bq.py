@@ -142,8 +142,8 @@ def status_line(data):
     ok = [n for n, q in data.items() if q["status"] == "ok"]
     bad = [n for n, q in data.items() if q["status"] == "invalid"]
     if not ok and not bad:
-        return ("Pending: no query results are in `data/bq/` yet, so the dashboard shows each query with a "
-                "\"pending\" note instead of a chart. Running them needs a Google account (the BigQuery sandbox is free)")
+        return ("the queries are written; their results are not committed yet, so the dashboard shows each query "
+                "with its SQL and no chart. They never feed the headline numbers or the result hash")
     dates = sorted(r["block_date"] for n in ok for r in data[n]["rows"] if "block_date" in r)
     rng = f", block dates {dates[0]} to {dates[-1]}" if dates else ""
     return (f"{len(ok)} of {len(data)} query results loaded from `data/bq/`{rng}"
@@ -273,7 +273,7 @@ def chapter(num="06", cid="c6", d=None):
                 "held about steady": "Intents' footprint on chain has held about steady. Payback depends on Intents fees, not on receipts, "
                                      "so this is context for the thesis rather than a test of it."}[x["trend"]]
     else:
-        h2 = "Does NEAR Intents grow as a share of the network? Four queries will answer it."
+        h2 = "Network activity: the queries are ready; their results are not committed yet."
         link = ("The queries are written and filtered on <code>block_date</code>; their results are not in this build yet. "
                 "Each panel below shows its SQL and says what file it is waiting for.")
     intro = (f"Daily active accounts, transactions and contract usage, from Google's public NEAR dataset "

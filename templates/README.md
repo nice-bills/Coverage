@@ -19,7 +19,7 @@ and commits it. Nobody edits the numbers by hand.
 - Since April 2026 the NEAR Intents contract has also sent NEAR to a buyback account. Burn plus
   that flow equals __PAYBACK__ of issuance: flows would have to grow __MULT__x, not __BURN_MULT__x.
 - The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
-  and payback has fallen from __PAY_PEAK__ to __PAYBACK__.
+  and the 100-epoch payback has fallen from its __PAY_PEAK__ peak to __PAYBACK__.
 - Path to break-even (THESIS.md): at the median year-long Intents growth in the data (__SC_BASE_G__
   a year), burn plus buybacks reach issuance in __SC_BASE_YEAR__ (__SC_BASE_YEAR_HSP__ with HSP-029);
   at the year's best trend (__SC_BULL_G__) in __SC_BULL_YEAR__; at the worst (__SC_BEAR_G__), __SC_BEAR_SENT__.

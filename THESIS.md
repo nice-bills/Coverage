@@ -50,8 +50,9 @@ edits, but it is the chain comparison, not the internal check, that establishes 
 **The inflows come from the NEAR Intents contract.** Of the 2996 transfers into the
 buyback account since height 201009796, 2979 were sent by `intents.near`,
 carrying 74.0% of the NEAR (`data/inflows.csv`, from the NearBlocks indexer, with
-transaction hashes). Earlier transfers are not covered by this check; the audit below, over
-every receipt since the account opened, gives a share for the whole history.
+transaction hashes). Earlier transfers are not covered by this check. Over every receipt since the account opened
+(the audit below, from FastNear), `intents.near` sent 77.2%; the two figures cover
+different periods and sources and are both reported.
 
 **Captured revenue follows volume.** Across 37 complete weeks since buybacks began, weekly
 captured revenue and weekly NEAR Intents volume have a correlation of 0.90 (DefiLlama). NEAR
@@ -182,7 +183,7 @@ a distribution fee set by each partner, shared between NEAR and the partner
 arrives, not the split, which is not published per swap.
 
 **Payback has been falling.** The first 100-epoch window with buyback data (ending
-2026-03-15) shows 2.5%; the peak is 16.5% (2026-09-19); the
+2026-03-15) shows 2.5%; the peak 100-epoch payback, buyback account only, is 16.5% (2026-09-19; close to, but not, the three-wallet figure above); the
 latest is 12.0%. The history is too short to fit a trend.
 
 **NEAR Intents is not growing.** Comparing the first and last 30 days of the year to 2026-11-12
@@ -385,7 +386,7 @@ public NEAR dataset (`bigquery-public-data.crypto_near_mainnet_us`) measure it, 
 | [`queries/intents_share.sql`](queries/intents_share.sql) | Contract usage: receipts and function calls per day, and how many went to intents.near | `receipt_actions` | pending |
 | [`queries/top_contracts.sql`](queries/top_contracts.sql) | Contract usage: the 25 contracts with the most function calls, first and last 30 days of the window | `receipt_actions` | pending |
 
-Status: Pending: no query results are in `data/bq/` yet, so the dashboard shows each query with a "pending" note instead of a chart. Running them needs a Google account (the BigQuery sandbox is free).
+Status: the queries are written; their results are not committed yet, so the dashboard shows each query with its SQL and no chart. They never feed the headline numbers or the result hash.
 
 Finding: Pending until `data/bq/intents_share.csv` is added.
 

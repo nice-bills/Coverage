@@ -50,8 +50,9 @@ edits, but it is the chain comparison, not the internal check, that establishes 
 **The inflows come from the NEAR Intents contract.** Of the __INFLOW_N__ transfers into the
 buyback account since height __INFLOW_H__, __INFLOW_INTENTS__ were sent by `intents.near`,
 carrying __INFLOW_SHARE__ of the NEAR (`data/inflows.csv`, from the NearBlocks indexer, with
-transaction hashes). Earlier transfers are not covered by this check; the audit below, over
-every receipt since the account opened, gives a share for the whole history.
+transaction hashes). Earlier transfers are not covered by this check. Over every receipt since the account opened
+(the audit below, from FastNear), `intents.near` sent __W_TOP1_SHARE__; the two figures cover
+different periods and sources and are both reported.
 
 **Captured revenue follows volume.** Across __WEEKS__ complete weeks since buybacks began, weekly
 captured revenue and weekly NEAR Intents volume have a correlation of __CORR__ (DefiLlama). NEAR
@@ -179,7 +180,7 @@ a distribution fee set by each partner, shared between NEAR and the partner
 arrives, not the split, which is not published per swap.
 
 **Payback has been falling.** The first 100-epoch window with buyback data (ending
-__PAY_FIRST_DATE__) shows __PAY_FIRST__; the peak is __PAY_PEAK__ (__PAY_PEAK_DATE__); the
+__PAY_FIRST_DATE__) shows __PAY_FIRST__; the peak 100-epoch payback, buyback account only, is __PAY_PEAK__ (__PAY_PEAK_DATE__; close to, but not, the three-wallet figure above); the
 latest is __PAYBACK__. The history is too short to fit a trend.
 
 **NEAR Intents is not growing.** Comparing the first and last 30 days of the year to __LAST__

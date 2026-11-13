@@ -105,7 +105,7 @@ if _sc:
 import bq
 with tempfile.TemporaryDirectory() as tmp:
     assert all(q["status"] == "pending" for q in bq.load(tmp).values())
-    assert "Pending" in bq.doc_values(tmp)["BQ_STATUS"] and "Not run yet" in bq.chapter(d=tmp)[0]
+    assert "not committed yet" in bq.doc_values(tmp)["BQ_STATUS"] and "Not run yet" in bq.chapter(d=tmp)[0]
     w = lambda n, s: open(os.path.join(tmp, n + ".csv"), "w").write(s)
     w("intents_share", "block_date,receipts,intents_receipts,function_calls,intents_function_calls,intents_receipt_share\n"
       "2026-02-14,1000,100,800,90,0.1\n2026-02-13,1000,100,800,90,0.1\n2026-11-12,1000,200,800,180,0.2\n")
