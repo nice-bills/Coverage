@@ -12,10 +12,22 @@ and commits it. Nobody edits the numbers by hand.
 
 ![The dashboard](docs/dashboard.jpg)
 
+## The result in four lines
+
+- NEAR mints about 2.5% of its supply a year. The gas-fee burn gives back __BURN_COV__ of that, so
+  on burn alone flows would have to grow __BURN_MULT__x to equal issuance.
+- Since February 2026 the NEAR Intents contract also sends NEAR to a buyback account. Burn plus
+  that flow equals __PAYBACK__ of issuance: flows would have to grow __MULT__x, not __BURN_MULT__x.
+- The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
+  and payback has fallen from __PAY_PEAK__ to __PAYBACK__.
+- Every number above is rebuilt offline by `python3 run.py` and checked against mainnet by
+  `python3 verify.py`; forecasts frozen before judging are scored by the chain during it.
+
 ## Where each track requirement is met
 
-Track: Investment Thesis ("a data-backed case for NEAR's long-term potential using onchain
-analytics, dashboards and reproducible models").
+Track: Investment Thesis (id `thesis`): "Build a long-term investment thesis for NEAR and back it
+with onchain analytics, live dashboards and models anyone can re-run. The score depends on
+evidence someone else can reproduce."
 
 | Requirement | Where | Honest note |
 |---|---|---|
@@ -86,7 +98,7 @@ Expected output: `DOCS IN SYNC from result <first 12 characters of the hash abov
 `THESIS.md` and `SUBMISSION.md` are generated from `templates/` by `docs.py`; every measured
 figure in them is filled in from `out/results.json`, so those figures cannot drift from the
 data. Dates and governance facts (the buyback start date, HSP-029) are not computed here; each
-is cited to its source in `THESIS.md` and is true as of 2026-11-12.
+is cited to its source in `THESIS.md` and is true as of 2026-11-13.
 
 ## Check the cache against the chain (network, no keys, about a minute)
 

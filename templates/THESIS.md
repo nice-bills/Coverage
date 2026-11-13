@@ -4,9 +4,14 @@ Every figure in this file is printed by `python3 run.py` (no keys, no network) a
 `out/results.json`. Figures are for the last 100 epochs, __WINDOW_DAYS__ days, ending __LAST__ at
 height __LAST_HEIGHT__, unless a different period is stated.
 
+Terms used below: an *epoch* is NEAR's accounting period, about 12 hours (43,200 blocks); a
+*yoctoNEAR* is 10^-24 NEAR, the chain's smallest unit; *payback* is burn plus buyback inflow
+divided by new issuance; *break-even* is how many times flows must grow to equal issuance.
+
 ## Claim
 
-NEAR mints about 2.5% of its supply a year to validators. The usual question is how much of that
+NEAR mints about 2.5% of its supply a year to validators (the current maximum; HSP-029, voted
+through on 2026-11-02, would lower it to 1.6% over 24 months). The usual question is how much of that
 the gas-fee burn gives back. The answer from the chain is __BURN_COV__, which puts break-even
 __BURN_MULT__ times away.
 
@@ -44,7 +49,8 @@ edits, but it is the chain comparison, not the internal check, that establishes 
 **The inflows come from the NEAR Intents contract.** Of the __INFLOW_N__ transfers into the
 buyback account since height __INFLOW_H__, __INFLOW_INTENTS__ were sent by `intents.near`,
 carrying __INFLOW_SHARE__ of the NEAR (`data/inflows.csv`, from the NearBlocks indexer, with
-transaction hashes). Earlier transfers are not covered by this check.
+transaction hashes). Earlier transfers are not covered by this check; the audit below, over
+every receipt since the account opened, gives a share for the whole history.
 
 **Captured revenue follows volume.** Across __WEEKS__ complete weeks since buybacks began, weekly
 captured revenue and weekly NEAR Intents volume have a correlation of __CORR__ (DefiLlama). NEAR
@@ -60,12 +66,12 @@ with 12 RPC calls, give __ALL_NEAR__ NEAR a day. The thesis uses only the buybac
 __BUY__ NEAR a day, which is the lower figure.
 
 **Other teams' published figures agree once the wallet scope is matched.** Several entries in
-this hackathon measured the same flow independently. As published in their READMEs on
+this hackathon measured the same flow independently. As published in their READMEs, read
 2026-11-13 (typed in from those pages, not computed here):
 
 | Source | Their figure | Scope | Ours on the same scope |
 |---|---|---|---|
-| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR internal transfer | three revenue wallets | __ALL_PAY__; __BUY_SHARE__; __LUMP__ NEAR excluded as a transfer |
+| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR gap in published buyback totals, which they trace to an internal transfer | three revenue wallets | __ALL_PAY__; __BUY_SHARE__; __LUMP__ NEAR excluded as a transfer |
 | [NEAR Agent Census](https://github.com/daodudestiny56-netizen/near-thesis-) | Intents revenue covers 15.1% of issuance; burn 0.58% | DefiLlama revenue, sampled burn, 2026-06 to 2026-11 | __ALL_PAY__; __BURN_COV__ (exact, last __WINDOW_DAYS__ days) |
 | [near-thesis](https://github.com/soldanoandrea/near-thesis) | 7.2x to offset issuance | all captured revenue | __ALL_MULT__x |
 
@@ -77,7 +83,8 @@ separate code on separate data sources lands in the same range.
 **The flow did not fall when swaps went private.** Another entry
 ([Tideline](https://github.com/ervhint/tideline-thesis)) reports that since 2026-10-27 a growing
 share of Intents swaps settles on a private chain, and that fees on those swaps cannot be seen
-in public data. We take the date from them. The buyback account does not depend on seeing
+in public data. We take the date from them. Confidential Intents itself launched in February
+2026; 27 October is when Tideline sees its share grow, not a launch date. The buyback account does not depend on seeing
 swaps: it is a balance on NEAR mainnet.
 
 | Period | Buyback gain, NEAR a day | Payback | Epochs with an inflow |
@@ -87,8 +94,9 @@ swaps: it is a balance on NEAR mainnet.
 
 We also checked the shift itself from raw mainnet blocks. `fetch.py private` draws seeded
 random blocks from each period and counts the event logs emitted by `intents.near`, and how
-many name the Confidential Intents treasury account that Tideline identifies
-(`data/private_sample.csv`).
+many name the Confidential Intents treasury account, whose id we take from Tideline's
+published data (`data/published/confidential.json` in their repo). Our counts are in
+`data/private_sample.csv`.
 
 | Period | Blocks sampled | `intents.near` event logs | Share naming the treasury | 90% interval |
 |---|---|---|---|---|
@@ -271,8 +279,8 @@ __YEARS_TABLE__
 | Lower issuance to 1.6% a year (HSP-029) | the multiple falls to __MULT_HSP__x at today's flows |
 
 HSP-029 is the issuance lever being pulled now. It lowers maximum issuance from 2.5% to 1.6% a
-year over 24 months. NEAR's House of Stake passed it on 2026-11-02; it still needs the Security
-Council veto window to close and validators to adopt it
+year over 24 months. NEAR's House of Stake passed it on 2026-11-02. As of 2026-11-13 it still needs the
+Security Council veto window (closing about 2026-11-16) to pass and validators to adopt it
 (https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644).
 This repo does not model the ramp; the row above only rescales today's multiple.
 
@@ -307,4 +315,4 @@ constant issuance, to equal issuance. It is not a price target and says nothing 
   `https://api.llama.fi/summary/fees/near?dataType=dailyRevenue`.
 - Protocol parameters: `EXPERIMENTAL_protocol_config` on the RPC, cached in `data/protocol.json`.
 - Inflow attribution: `https://api.nearblocks.io/v1/account/buybacks.multisignature.near/receipts`.
-- USD context: DefiLlama `https://api.llama.fi/summary/...` and CoinGecko.
+- USD context: DefiLlama `https://api.llama.fi/summary/fees/near-intents` and `https://api.llama.fi/summary/dexs/near-intents` (the URLs are listed in `fetch.py`), and CoinGecko.
