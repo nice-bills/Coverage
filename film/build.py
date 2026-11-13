@@ -22,6 +22,7 @@ d = dict(
     ledger=[l for l in run if l.startswith("LEDGER")][:6], result=res, readme_hash=readme, match=res.endswith(readme),
     intents_x=f"{x['per_day_last'] / x['per_day_first']:.1f}×",
     dau=bs["daily_active_accounts"]["change"],
+    epochs=f"{s['epochs']:,}",
     full_cap_years=round(sc["levers"]["capture"][-1]["years_base_hsp029"]),
 )
 assert d["match"], "run.py hash does not match README"

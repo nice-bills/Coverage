@@ -57,6 +57,8 @@ function shotFrame(id,img,url,t,a,b,{x=150,y=118,w=1620,h=640,z0=1,z1=1.08,px0=0
  if(!e)return;const k=ease(lin(t,a,b)),im=e.querySelector('img');
  im.style.transform=`translate(${-(px0+(px1-px0)*k)}px,${-(py0+(py1-py0)*k)}px) scale(${z0+(z1-z0)*k})`;}
 
+function badge(id,big,small,t,a,b,color){
+ return show(id,`<div style="background:var(--card);border:2px solid ${color};border-radius:24px;padding:22px 30px;box-shadow:0 30px 60px -30px rgba(29,27,23,.5)"><div class="serif" style="font-size:96px;line-height:1;color:${color}">${big}</div><div style="font:500 24px/1.3 var(--sans);color:var(--ink2);margin-top:6px;max-width:330px">${small}</div></div>`,'a',t,a,b,1420,150,{dy:50,kind:land,out:.3});}
 window.seek=function(t){
  for(const k in pool)pool[k].style.display='none';
  // persistent brand mark, top left, from 0.6 s
@@ -90,36 +92,41 @@ window.seek=function(t){
  show('r3',`<div style="display:flex;gap:80px;align-items:baseline"><div><div class="eyebrow" style="margin-bottom:12px">Won back</div><div class="serif" style="font-size:150px;line-height:1;color:var(--teal)">${D.payback}</div></div><div><div class="eyebrow" style="margin-bottom:12px">Break-even</div><div class="serif" style="font-size:150px;line-height:1">${D.mult} <span style="color:var(--muted);text-decoration:line-through;text-decoration-color:var(--terra);text-decoration-thickness:6px">${D.burn_mult}</span></div></div></div>`,'a',t,13.6,17.4,120,770,{dy:60});
 
  // 4 PRODUCT 18-24
- shotFrame('f_hero','hero.png','nice-bills.github.io/Coverage',t,18,23.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.07,px1:30,py1:40});
+ shotFrame('f_hero','hero.png','nice-bills.github.io/Coverage',t,17.55,23.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.07,px1:30,py1:40});
+ badge('b4',D.payback,'of issuance won back, from the chain',t,20.3,23.5,'var(--teal)');
  caption('c4','A live research report. <b>Every number comes from NEAR mainnet.</b>',t,18.6,23.6);
 
  // 5 PROOF 1: terminal 24-32
- if(t>=24&&t<=32.4){const typed='python3 run.py',nT=Math.floor(clamp((t-24.6)/1.1)*typed.length);
-  const lines=D.ledger.slice(0,Math.floor(clamp((t-26)/1.6)*D.ledger.length));
-  const res=t>=27.8?`<div class="ok">${D.result}</div>`:'';
-  const cmp=t>=29?`<div style="margin-top:22px;padding-top:18px;border-top:1px solid #4A453C"><span class="dim">README.md says</span> sha256=${D.readme_hash} <span class="ok">✓ match</span></div>`:'';
+ if(t>=24&&t<=32.4){const typed='python3 run.py',nT=Math.floor(clamp((t-24.15)/1.0)*typed.length);
+  const lines=D.ledger.slice(0,Math.floor(clamp((t-25.3)/1.6)*D.ledger.length));
+  const res=t>=27.1?`<div class="ok">${D.result}</div>`:'';
+  const cmp=t>=28.4?`<div style="margin-top:22px;padding-top:18px;border-top:1px solid #4A453C"><span class="dim">README.md says</span> sha256=${D.readme_hash} <span class="ok">✓ match</span></div>`:'';
   show('term',`<div class="term" style="width:1680px;height:600px"><div><span class="dim">$</span> ${typed.slice(0,nT)}<span style="opacity:${(Math.floor(t*2)%2)?1:0}">▍</span></div><div class="dim" style="font-size:25px;margin-top:12px">${lines.join('<br>')}</div>${res}${cmp}</div>`,'a',t,24,31.6,120,150,{dy:50,kind:settle,out:.4});}
  caption('c5','One command. No keys, no network. <b>Every number rebuilt in 2 seconds, with a hash.</b>',t,24.8,31.6);
 
  // 6 PROOF 2: epochs 32-39
  shotFrame('f_ep','epochs.png','every epoch since 13 Feb',t,32,38.6,{x:150,y:118,h:640,iw:1620,z0:1.02,z1:1.06,px1:60,py1:0});
+ badge('b6',D.epochs,'epochs, each checked to start where the last one ended',t,34.8,38.5,'var(--ink)');
  caption('c6','Every epoch since February, <b>read from block headers to the yoctoNEAR.</b>',t,32.6,38.6);
 
  // 7 PROOF 3: BigQuery 39-46
  shotFrame('f_bq','bq.png','Network activity · BigQuery',t,39,45.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.05,py1:260});
+ badge('b7',D.intents_x,'more Intents activity, while the chain fell',t,41.8,45.5,'var(--teal)');
  caption('c7',`The chain got quieter: accounts <span class="r">${D.dau}</span>. Intents didn't: <span class="t"><b>${D.intents_x} more activity.</b></span>`,t,39.6,45.6);
 
  // 8 FUTURE 46-53
  shotFrame('f_path','path.png','The path to break-even',t,46,52.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.06,px1:40,py1:20});
+ badge('b8','16 Nov','HSP-029 veto window closes, during judging',t,48.8,52.5,'var(--terra)');
  caption('c8','Break-even turns on <b>two votes</b>: fee capture, and HSP-029 <span style="color:var(--muted)">(veto window closes 16 Nov)</span>.',t,46.6,52.6);
 
  // 9 LIVE 53-61
  shotFrame('f_rounds','rounds.png','Check it yourself · live forecasts',t,53,60.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.04,py1:40});
+ badge('b9',D.so_far,`payback so far, inside ${D.inside} ranges`,t,55.8,60.5,'var(--teal)');
  caption('c9',`Frozen in Bitcoin before the data existed. <span class="t"><b>${D.so_far} so far, inside ${D.inside} ranges.</b></span> They close 14–18 Nov, while you judge.`,t,53.6,60.6);
 
  // 10 VERDICT 61-67
- show('v0','<div class="eyebrow">Verdict for an investor</div>','a',t,61.1,66.6,120,240);
- show('v1','<div class="serif" style="font-size:118px;line-height:1.02">Not yet a supply story.</div>','a',t,61.4,66.6,120,300);
+ show('v0','<div class="eyebrow">Verdict for an investor</div>','a',t,60.9,66.6,120,240);
+ show('v1','<div class="serif" style="font-size:118px;line-height:1.02">Not yet a supply story.</div>','a',t,61.1,66.6,120,300);
  show('v2','<div class="serif" style="font-size:118px;line-height:1.02;color:var(--teal)"><i>The bet is governance.</i></div>','a',t,62.6,66.6,120,430);
  show('v3',`<div style="font:500 40px/1.4 var(--sans);color:var(--ink2);max-width:1500px">Send every Intents fee to the buyback and cut issuance, and break-even comes in about <b style="color:var(--ink)">${D.full_cap_years} years</b>, not decades.</div>`,'a',t,63.8,66.6,120,640);
 
