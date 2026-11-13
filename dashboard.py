@@ -24,13 +24,13 @@ overflow-x:auto;white-space:nowrap;font-size:0.84375rem;scrollbar-width:none}
 nav b{font-size:0.9375rem;letter-spacing:-.01em;margin-right:6px}nav a{text-decoration:none;color:var(--ink2)}
 nav a:hover,nav a[aria-current]{color:var(--ink)}nav a[aria-current]{font-weight:600}nav a:last-child{margin-left:auto;color:var(--ink)}
 main{max-width:1120px;margin:0 auto;padding:0 20px 80px}
-section{padding-top:56px}section>h2{font-size:1.375rem;line-height:1.25;letter-spacing:-.015em;margin:0 0 6px;text-wrap:balance}
+section{padding-top:72px}section>h2{font-size:1.875rem;line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;text-wrap:balance}section>h2+p{font-size:1rem}
 h3{font-size:0.9375rem;line-height:1.4;margin:0;font-weight:600;text-wrap:balance}
 p{margin:0 0 12px;color:var(--ink2);max-width:72ch;text-wrap:pretty}
 .stamp{color:var(--ink2);margin:40px 0 14px}
 h1{font-size:2.375rem;line-height:1.12;letter-spacing:-.025em;margin:0 0 14px;max-width:24ch;text-wrap:balance}
 .lede{font-size:1.0625rem;max-width:64ch}
-.strip{margin:34px 0 0}.strip h3{font-weight:500;color:var(--ink2);font-size:0.84375rem;margin-bottom:8px}
+.strip{margin:44px 0 0}.strip h3{font-weight:500;color:var(--ink2);font-size:0.84375rem;margin-bottom:8px}
 .bar{display:flex;height:44px;background:var(--rest);border:1px solid var(--ink)}.bar.thin{height:18px}
 .bar i{display:block;min-width:3px;transition:width .2s cubic-bezier(.22,1,.36,1)}.bar .bk{background:var(--back)}.bar .bn{background:var(--burn)}
 .key{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 28px;margin:12px 0 0;padding:0;list-style:none;font-size:0.84375rem;color:var(--ink2)}
@@ -38,7 +38,7 @@ h1{font-size:2.375rem;line-height:1.12;letter-spacing:-.025em;margin:0 0 14px;ma
 .sw{flex:none;width:10px;height:10px;display:inline-block;border:1px solid var(--ink);transform:translateY(1px)}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:36px 0 0;border-top:1px solid var(--ink)}
 .facts div{padding:14px 20px 14px 0;border-bottom:1px solid var(--rule)}
-.facts dt{font-size:0.8125rem;color:var(--ink2)}.facts dd{margin:2px 0 0;font-size:1.5rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.facts dt{font-size:0.8125rem;color:var(--ink2)}.facts dd{margin:2px 0 0;font-size:2rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .facts small{display:block;font-size:0.78125rem;font-weight:400;letter-spacing:0;color:var(--ink2)}
 .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:0 40px;margin-top:20px}
 figure{margin:0;padding:18px 0 20px;border-top:1px solid var(--rule);position:relative;min-width:0}
@@ -72,34 +72,44 @@ td small{color:var(--ink2)}.pass{color:var(--good);font-weight:600}.fail{color:v
 .two li b{color:var(--ink);font-weight:600}
 .cmd{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:6px 40px;padding:16px 0;border-top:1px solid var(--rule)}
 .cmd:first-of-type{border-top-color:var(--ink);margin-top:20px}.cmd p{margin:0;font-size:0.875rem}
-pre{margin:0;padding:10px 64px 10px 12px;background:var(--panel);border:1px solid var(--rule);position:relative;white-space:pre-wrap;overflow-wrap:anywhere;
+pre{border-radius:6px;margin:0;padding:10px 64px 10px 12px;background:var(--panel);border:1px solid var(--rule);position:relative;white-space:pre-wrap;overflow-wrap:anywhere;
 font:0.78125rem/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 pre .out{color:var(--ink2)}
 pre button{position:absolute;top:6px;right:6px;font:0.75rem system-ui,sans-serif;padding:2px 8px;background:var(--bg);color:var(--ink);
-border:1px solid var(--rule);cursor:pointer}pre button:hover{border-color:var(--ink)}pre button:active{background:var(--panel);transform:scale(.97)}pre button{transition:transform .1s ease-out}
+border:1px solid var(--rule);border-radius:4px;cursor:pointer}pre button:hover{border-color:var(--ink)}pre button:active{background:var(--panel);transform:scale(.97)}pre button{transition:transform .1s ease-out}
 footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--ink);color:var(--ink2);font-size:0.78125rem}
 .hero{--h-ink:#eef3f2;--h-ink2:#a9b8b5;--h-rule:#2a3533;background:#0e1514;color:var(--h-ink)}
 .hin{max-width:1120px;margin:0 auto;padding:1px 20px 34px}.hero p{color:var(--h-ink2)}.hero code{color:var(--h-ink)}
 .hero h1{font-size:3.375rem;line-height:1.04;letter-spacing:-.035em;max-width:none;margin:0}
 .htop{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:20px 48px;align-items:end}.htop .lede{margin:0 0 6px;font-size:1rem}
 @media (max-width:900px){.htop{grid-template-columns:minmax(0,1fr)}}
-.live{margin:22px 0 0;padding:9px 0;border-top:1px solid var(--h-rule);border-bottom:1px solid var(--h-rule);max-width:none;font-size:.8125rem}
-.live b{color:var(--h-ink);font-weight:600}.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#43d1b7;margin-right:9px;animation:beat 2.4s ease-out infinite}
+.stamp{font-size:.8125rem}
+.livebar{margin:28px 0 0;border-top:1px solid var(--h-rule);border-bottom:1px solid var(--h-rule)}
+.lstat{margin:0;padding:11px 0 0;font-size:.8125rem;display:flex;align-items:center;gap:9px;max-width:none}
+.lstat i{flex:none;width:7px;height:7px;border-radius:50%;background:#43d1b7;animation:beat 2.4s ease-out infinite}
 @keyframes beat{0%{box-shadow:0 0 0 0 rgba(67,209,183,.6)}70%,100%{box-shadow:0 0 0 7px rgba(67,209,183,0)}}
-.tape{margin-top:30px}.tape h2{font-size:1rem;margin:0 0 4px;letter-spacing:-.01em}.tape>p{font-size:.8125rem;max-width:92ch;margin-bottom:12px}
+.hero dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 28px;margin:0}.livebar dl div{padding:9px 0 13px}
+.hero dt{font-size:.75rem;color:var(--h-ink2)}.hero dd{margin:1px 0 0;font-size:1.25rem;font-weight:600;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.hero dd small,.read h3 small{font-size:.75rem;font-weight:400;color:var(--h-ink2);letter-spacing:0;margin-left:3px}
+.tape{margin-top:30px}.tape h2{font-size:1.0625rem;margin:0 0 4px;letter-spacing:-.01em}.tape>p{font-size:.8125rem;max-width:92ch;margin-bottom:12px}
 .tape .k{display:inline-block;width:9px;height:9px;margin:0 5px 0 2px}
 #tape{display:block;width:100%;height:320px;cursor:crosshair;touch-action:pan-y}
-.read{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:10px;min-height:2.6em;color:var(--h-ink2);font-size:.8125rem}.read b{color:var(--h-ink);font-weight:600}
-.vrow{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-.vrow button{font:inherit;font-size:.8125rem;color:var(--h-ink);background:transparent;border:1px solid #4a5a57;padding:7px 14px;cursor:pointer;transition:transform .1s ease-out,border-color .15s}
+.read{margin-top:12px;min-height:5.4rem}.read h3{font-size:.9375rem;margin-bottom:6px}.read dl{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 28px}.read dd{font-size:1rem}.hts{font-size:.875rem;font-weight:500;white-space:nowrap}
+.vrow{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.vrow button{font:inherit;font-size:.875rem;font-weight:600;color:var(--h-ink);background:transparent;border:1px solid #4a5a57;border-radius:6px;padding:9px 16px;cursor:pointer;
+transition:transform .1s ease-out,border-color .15s,background-color .15s}
 .vrow button:hover{border-color:var(--h-ink)}.vrow button:active{transform:scale(.97)}.vrow button:disabled{opacity:.45;cursor:progress}
+#vsel{background:#43d1b7;border-color:#43d1b7;color:#06201c}#vsel:hover{background:#63ddc6;border-color:#63ddc6}
 .vrow button:focus-visible,#tape:focus-visible{outline:2px solid #43d1b7;outline-offset:2px}
-#vlog{flex:1 1 100%;margin:4px 0 0;padding:0 0 0 22px;color:var(--h-ink2);font-size:.78rem}#vlog:empty{display:none}#vlog li{padding:2px 0}
-#vlog .ok{color:#43d1b7;font-weight:600}#vlog .no{color:#ff7b72;font-weight:600}
-.rlive{flex-basis:100%;color:var(--back);font-size:.8125rem}.rlive:empty{display:none}
+.check{margin-top:18px;border-top:1px solid var(--h-rule);padding-top:14px}.check:empty{display:none}.check h3{font-size:.9375rem;margin-bottom:2px}
+.check table{font-size:.875rem;max-width:820px}.check th{color:var(--h-ink2);border-bottom-color:#4a5a57}.check td{border-bottom-color:var(--h-rule)}
+.check .eq{color:#43d1b7;font-weight:600}.check .ne{color:#ff7b72;font-weight:600}.check .wait{color:var(--h-ink2);animation:fade .9s ease-in-out infinite alternate}
+@keyframes fade{from{opacity:.3}to{opacity:1}}
+.check p{font-size:.8125rem;margin:10px 0 0;max-width:none}.check p.verdict{font-size:.9375rem;font-weight:600;color:#43d1b7;margin-top:12px}.check p.verdict.no{color:#ff7b72}
+.rmeta{color:var(--ink2);font-size:.875rem}.rlive{flex-basis:100%;color:var(--back);font-size:.875rem;font-weight:500}.rlive:empty{display:none}
 @media (max-width:720px){.hero h1{font-size:2.125rem}#tape{height:190px}h1{font-size:1.8125rem}.lede{font-size:1rem}.model,.rgrid,.cmd{grid-template-columns:minmax(0,1fr)}section{padding-top:44px}
 .facts div{padding-right:12px}pre button{display:none}}
-@media (prefers-reduced-motion:reduce){.live i{animation:none}.vrow button{transition:none}html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.lstat i,.check .wait{animation:none}.vrow button{transition:none}html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
 @media (prefers-reduced-transparency:reduce){nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:var(--rule)}}
 @media (prefers-contrast:more){:root{--ink2:var(--ink);--rule:var(--ink)}nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}}
 """
@@ -161,7 +171,8 @@ const TD=document.getElementById('tape-data');if(TD){const T=JSON.parse(TD.textC
   [idx(Date.UTC(2026,9,27)/1000),'swaps go private'],[hist.length-1,'forecasts frozen']].filter(m=>m[0]>=0);
  let sel=hist.length-1,pin=false,w=0,h=0,geo;
  const fmt=(x,d=0)=>x.toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d}),
- when=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC',all=()=>hist.concat(fut);
+ when=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC',
+ nice=t=>new Date(t*1000).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC',all=()=>hist.concat(fut);
  function layout(){const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;w=r.width;h=r.height;cv.width=w*dpr;cv.height=h*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
   const top=w<560?10:60,bot=h-18,futW=slots?Math.max(90,w*.15):0,gap=slots?14:0,hw=w-futW-gap;
   geo={top,bot,hw,fx:hw+gap,sw:slots?futW/slots:0,cw:hw/hist.length,y:v=>bot-Math.min(v,ymax)/ymax*(bot-top)}}
@@ -184,9 +195,11 @@ const TD=document.getElementById('tape-data');if(TD){const T=JSON.parse(TD.textC
   if(slots&&w>=560){cx.fillStyle=C.back;cx.textAlign='left';cx.fillText('committed band',g.fx+2,g.y(T.rounds[0].hi)-8)}
   const d=all()[sel],x=xOf(sel),cw=sel<hist.length?g.cw:g.sw;cx.fillStyle='rgba(238,243,242,.9)';cx.fillRect(x+cw/2-.5,g.top-6,1,g.bot-g.top+10);
   cx.textAlign='left';cx.fillStyle=C.ink2;cx.fillText(when(hist[0].t).slice(0,10),0,h-6);cx.textAlign='right';cx.fillText(when(hist[hist.length-1].t).slice(0,10),g.hw,h-6);
-  document.getElementById('read').innerHTML=`<b>Epoch ending ${when(d.t)}</b><span>heights ${d.s} to ${d.e}</span><span>minted <b>${fmt(d.mint)}</b> NEAR</span><span>burnt <b>${fmt(d.burn,1)}</b></span>`+
-   (d.buy==null?'<span>no buyback balance cached</span>':d.lump?`<span>${fmt(d.buy)} NEAR moved in from other revenue wallets, excluded</span>`:`<span>buyback gain <b>${fmt(d.buy)}</b></span><span><b>${(d.share*100).toFixed(1)}%</b> of mint</span>`)+
-   (sel>=hist.length?'<span>closed after the forecasts were frozen</span>':'')}
+  const cell=(k,v)=>`<div><dt>${k}</dt><dd>${v}</dd></div>`;
+  document.getElementById('read').innerHTML=`<h3>Epoch ending ${nice(d.t)}`+(sel>=hist.length?' <small>closed after the forecasts were frozen</small>':'')+'</h3><dl>'+
+   cell('Minted',fmt(d.mint)+' <small>NEAR</small>')+cell('Burnt in gas fees',fmt(d.burn,1)+' <small>NEAR</small>')+
+   (d.buy==null?cell('Buyback gain','not cached'):d.lump?cell('Moved in from other wallets, excluded',fmt(d.buy)+' <small>NEAR</small>'):cell('Buyback gain',fmt(d.buy)+' <small>NEAR</small>')+cell('Share of mint matched',(d.share*100).toFixed(1)+'%'))+
+   cell('Block heights','<span class="hts">'+d.s+' to '+d.e+'</span>')+'</dl>'}
  function pick(e){const r=cv.getBoundingClientRect(),px=e.clientX-r.left,n=all().length;
   let i=px<geo.fx-7?Math.floor(px/geo.cw):hist.length+Math.floor((px-geo.fx)/geo.sw);return Math.max(0,Math.min(n-1,Math.min(i,px<geo.fx-7?hist.length-1:n-1)))}
  cv.addEventListener('pointermove',e=>{if(!pin){sel=pick(e);draw()}});cv.addEventListener('pointerdown',e=>{sel=pick(e);pin=true;draw()});
@@ -194,33 +207,38 @@ const TD=document.getElementById('tape-data');if(TD){const T=JSON.parse(TD.textC
  cv.addEventListener('keydown',e=>{const k={ArrowLeft:-1,ArrowRight:1}[e.key];if(k){pin=true;sel=Math.max(0,Math.min(all().length-1,sel+k*(e.shiftKey?10:1)));draw();e.preventDefault()}});
  new ResizeObserver(()=>{layout();draw()}).observe(cv);layout();draw();
  // --- check one epoch against mainnet, in this browser ---
- const ARCH='https://archival-rpc.mainnet.fastnear.com',LIVE='https://rpc.mainnet.fastnear.com',log=document.getElementById('vlog'),
+ const ARCH='https://archival-rpc.mainnet.fastnear.com',LIVE='https://rpc.mainnet.fastnear.com',BUY='buybacks.multisignature.near',box=document.getElementById('check'),
  rpc=async(u,method,params)=>{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
-  if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(j.error)throw new Error(j.error.cause&&j.error.cause.name||j.error.message);return j.result},
- near=x=>fmt(Number(x/10n**18n)/1e6,3),say=(t,c)=>{const li=document.createElement('li');li.textContent=t;if(c)li.className=c;log.appendChild(li)};
- async function verify(i){const d=all()[i],bs=[...document.querySelectorAll('.vrow button')];bs.forEach(b=>b.disabled=true);log.textContent='';sel=i;pin=true;draw();
-  try{say(`Epoch ending ${when(d.t)}. Asking ${ARCH.slice(8)} for three block headers.`);
-   const B={};for(const [k,hh] of [['prev',d.p],['first',d.s],['last',d.e]]){const b=await rpc(ARCH,'block',{block_id:hh});
-    B[k]={sup:BigInt(b.header.total_supply),burnt:b.chunks.filter(c=>c.height_included===hh).reduce((a,c)=>a+BigInt(c.balance_burnt),0n)};
-    say(`block ${hh} (${k==='prev'?'last of previous epoch':k+' of epoch'}): total_supply ${near(B[k].sup)} NEAR`+(k==='first'?`, burnt in block ${near(B[k].burnt)}`:''))}
-   const mint=B.first.sup-B.prev.sup+B.first.burnt,burn=B.first.burnt+B.first.sup-B.last.sup,cm=BigInt(d.raw[4]),cb=BigInt(d.raw[5]);
-   say(`mint = supply(first) - supply(prev) + burnt(first) = ${near(mint)} NEAR. Cache: ${near(cm)}. ${mint===cm?'Equal to the yoctoNEAR.':'DIFFERENT.'}`);
-   say(`burn = burnt(first) + supply(first) - supply(last) = ${near(burn)} NEAR. Cache: ${near(cb)}. ${burn===cb?'Equal to the yoctoNEAR.':'DIFFERENT.'}`);
-   mint===cm&&burn===cb?say('PASS: mainnet and the committed cache agree for this epoch.','ok'):say('FAIL: the cache does not match mainnet for this epoch.','no')}
-  catch(err){say(`Could not finish: ${err.message}. The free endpoint rate-limits; try again in a minute.`,'no')}
-  bs.forEach(b=>b.disabled=false)}
+  if(!r.ok)throw new Error('the endpoint answered '+r.status);const j=await r.json();if(j.error)throw new Error(j.error.cause&&j.error.cause.name||j.error.message);return j.result},
+ near=x=>fmt(Number(x/10n**18n)/1e6,3),
+ bal=async hh=>{try{return BigInt((await rpc(ARCH,'query',{request_type:'view_account',block_id:hh,account_id:BUY})).amount)}catch(e){if(/UNKNOWN_ACCOUNT/.test(e.message))return 0n;throw e}};
+ function show(st){box.innerHTML=`<h3>Epoch ending ${nice(st.d.t)}, checked against mainnet</h3><div class="wrap"><table><tr><th>Quantity</th><th>Mainnet, just now</th><th>Committed cache</th><th>Result</th></tr>`+
+  st.rows.map(r=>`<tr><td>${r.k}</td><td>${r.a==null?'<span class="wait">reading</span>':near(r.a)+' NEAR'}</td><td>${near(r.b)} NEAR</td><td>${r.a==null?'':r.a===r.b?'<span class="eq">Equal to the yoctoNEAR</span>':'<span class="ne">Different</span>'}</td></tr>`).join('')+
+  '</table></div>'+(st.verdict?`<p class="verdict${st.ok?'':' no'}">${st.verdict}</p>`:'')+
+  `<p>Read from the headers of blocks ${st.d.p}, ${st.d.s} and ${st.d.e}`+(st.rows.length>2?` and the balance of ${BUY} at the first and last of them`:'')+`, on ${ARCH.slice(8)}.</p>`}
+ async function verify(i){const d=all()[i],bs=[...document.querySelectorAll('.vrow button')];bs.forEach(b=>b.disabled=true);sel=i;pin=true;draw();
+  const st={d,rows:[{k:'Minted',a:null,b:BigInt(d.raw[4])},{k:'Burnt in gas fees',a:null,b:BigInt(d.raw[5])}]};
+  if(d.raw[6]!=null)st.rows.push({k:d.lump?'Buyback account change':'Buyback gain',a:null,b:BigInt(d.raw[6])});show(st);
+  try{const B={};for(const [k,hh] of [['prev',d.p],['first',d.s],['last',d.e]]){const b=await rpc(ARCH,'block',{block_id:hh});
+    B[k]={sup:BigInt(b.header.total_supply),burnt:b.chunks.filter(c=>c.height_included===hh).reduce((a,c)=>a+BigInt(c.balance_burnt),0n)}}
+   st.rows[0].a=B.first.sup-B.prev.sup+B.first.burnt;st.rows[1].a=B.first.burnt+B.first.sup-B.last.sup;show(st);
+   if(st.rows[2]){st.rows[2].a=await bal(d.e)-await bal(d.p)}
+   st.ok=st.rows.every(r=>r.a===r.b);st.verdict=st.ok?'Mainnet and the committed cache agree for this epoch.':'The cache does not match mainnet for this epoch.'}
+  catch(err){st.ok=false;st.verdict=`Could not finish: ${err.message}. The free endpoint limits requests; try again in a minute.`}
+  show(st);bs.forEach(b=>b.disabled=false)}
  document.getElementById('vsel').addEventListener('click',()=>verify(sel));
  document.getElementById('vrnd').addEventListener('click',()=>verify(Math.floor(Math.random()*all().length)));
  // --- what mainnet says right now ---
- const live=document.getElementById('live');
- async function now(){try{const b=await rpc(LIVE,'block',{finality:'final'}),a=await rpc(LIVE,'query',{request_type:'view_account',finality:'final',account_id:'buybacks.multisignature.near'});
-   const hgt=b.header.height,bal=BigInt(a.amount),gain=T.bal?bal-BigInt(T.bal):null,ep=(hgt-T.snap)/43200;
-   live.innerHTML=`<i></i>Mainnet now: block <b>${fmt(hgt)}</b> · supply <b>${fmt(Number(BigInt(b.header.total_supply)/10n**24n))}</b> NEAR · buyback account holds <b>${fmt(Number(bal/10n**24n))}</b> NEAR`+
-    (gain!=null&&T.rounds.length?`, <b>${gain<0n?'':'+'}${fmt(Number(gain/10n**21n)/1e3)}</b> since the forecasts were frozen ${ep.toFixed(1)} epochs ago`:'');
-   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n;s.textContent=ep>=n?'Live: the window has closed on mainnet; the next rebuild scores it.':
+ const set=(id,v)=>document.getElementById(id).innerHTML=v,msg=document.getElementById('lmsg');
+ async function now(){try{const b=await rpc(LIVE,'block',{finality:'final'}),a=await rpc(LIVE,'query',{request_type:'view_account',finality:'final',account_id:BUY});
+   const hgt=b.header.height,bl=BigInt(a.amount),gain=T.bal?bl-BigInt(T.bal):null,ep=(hgt-T.snap)/43200;
+   set('l-h',fmt(hgt));set('l-s',fmt(Number(BigInt(b.header.total_supply)/10n**24n))+' <small>NEAR</small>');set('l-b',fmt(Number(bl/10n**24n))+' <small>NEAR</small>');
+   if(gain!=null&&T.rounds.length)set('l-g',(gain<0n?'':'+')+fmt(Number(gain/10n**21n)/1e3)+` <small>NEAR in ${ep.toFixed(1)} epochs</small>`);
+   msg.textContent='Live from NEAR mainnet, read by your browser';
+   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n;s.textContent=ep>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
     `Live: about ${ep.toFixed(1)} of ${n} epochs elapsed`+(gain!=null?`, buyback gain so far ${fmt(Number(gain/10n**21n)/1e3)} NEAR`:'')+'.'})}
-  catch(err){if(!live.dataset.ok)live.textContent='Live read unavailable (free endpoint rate limit). Everything below comes from the committed cache.';return}
-  live.dataset.ok=1}
+  catch(err){if(!msg.dataset.ok)msg.textContent='Live read unavailable: the free endpoint is limiting requests. Everything below comes from the committed cache.';return}
+  msg.dataset.ok=1}
  now();setInterval(()=>{if(!document.hidden)now()},60000)}
 """
 
@@ -463,8 +481,8 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
         inside = f"{L['hits']} of {L['resolved']} inside" if L["resolved"] else "no epoch has closed yet"
         led += (f"<div class='round'><header><h3>Next {L['total']} epochs after height {L['after_end_height']}</h3>"
                 f"<span class='pill {cls.get(L['verdict'], 'pending')}'>{e(L['verdict'])}</span>"
-                f"<span class='mono'>{L['resolved']} of {L['total']} epochs closed, {when}</span>"
-                f"<span class='rlive mono' data-n='{L['total']}' aria-live='polite'></span></header>"
+                f"<span class='rmeta'>{L['resolved']} of {L['total']} epochs closed, {when}</span>"
+                f"<span class='rlive' data-n='{L['total']}' aria-live='polite'></span></header>"
                 f"<div class='rgrid'><div>{claims}</div><div><p class='sub' style='margin-top:9px'>NEAR burnt in each epoch against the committed "
                 f"10% to 90% band ({e(L['table_model'])} model): {inside}</p>{fan(L['rows'])}</div></div>"
                 f"<p class='src'><code>predictions/{e(L['file'])}</code> sha256 <code>{e(L['commit'])}</code>, "
@@ -509,15 +527,18 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
                    "LEDGER round-<height>-h05.json: 5/5 epochs closed -> PASS or FALSIFIED"))
 
     tape_html = "" if not tape else (
-        "<p class='live mono' id='live' aria-live='polite'>Reading NEAR mainnet from your browser</p>"
+        "<div class='livebar'><p class='lstat'><i></i><span id='lmsg' aria-live='polite'>Reading NEAR mainnet from your browser</span></p>"
+        "<dl><div><dt>Latest block</dt><dd id='l-h'>&ndash;</dd></div><div><dt>Total supply</dt><dd id='l-s'>&ndash;</dd></div>"
+        "<div><dt>Buyback account holds</dt><dd id='l-b'>&ndash;</dd></div>"
+        + ("<div><dt>Gained since the forecasts were frozen</dt><dd id='l-g'>&ndash;</dd></div>" if tape["rounds"] else "") + "</dl></div>"
         f"<div class='tape'><h2>Every epoch since {e(s['first'])}, one column each</h2>"
         "<p>Column height is the share of that epoch's minted NEAR matched by <span class='k' style='background:#f2915a'></span>gas burn and "
         "<span class='k' style='background:#43d1b7'></span>buyback gain. The white line is the 100-epoch payback. Right of the divider are the "
         "epochs after the forecasts were frozen, against the committed payback band. Hover or use the arrow keys; click to hold an epoch.</p>"
         "<canvas id='tape' tabindex='0' role='img' aria-label='Burn and buyback gain as a share of mint, for every epoch'></canvas>"
-        "<div class='read mono' id='read' aria-live='polite'></div>"
+        "<div class='read' id='read' aria-live='polite'></div>"
         "<div class='vrow'><button type='button' id='vsel'>Check this epoch against mainnet</button>"
-        "<button type='button' id='vrnd'>Check a random epoch</button><ol id='vlog' class='mono' aria-live='polite'></ol></div></div>"
+        "<button type='button' id='vrnd'>Check a random epoch</button></div><div class='check' id='check' aria-live='polite'></div></div>"
         f"<script type='application/json' id='tape-data'>{json.dumps(tape, separators=(',', ':'))}</script>")
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Coverage: what NEAR pays back</title>
@@ -525,7 +546,7 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <style>{CSS}</style></head><body>
 <nav><div><b>Coverage</b><a href="#chain">Onchain dashboard</a>{'<a href="#app">NEAR Intents</a>' if intents else ''}<a href="#models">Models</a>{'<a href="#rounds">Forecast rounds</a>' if led else ''}{'<a href="#case">For and against</a>' if case else ''}<a href="#reproduce">Reproduce</a><a href="{REPO}">GitHub</a></div></nav>
 <header class="hero"><div class="hin">
-<p class="stamp mono">NEAR mainnet, {e(s['first'])} to {e(s['last'])}: {s['epochs']} epochs, heights {s['first_height']} to {s['last_height']}. Headline window: last 100 epochs, {days} days.</p>
+<p class="stamp">NEAR mainnet, {e(s['first'])} to {e(s['last'])} &middot; {s['epochs']} epochs &middot; headline figures cover the last 100 epochs, {days} days</p>
 <div class="htop"><h1>{e(head)}</h1>
 <p class="lede">{e(lede)}</p></div>
 {tape_html}</div></header>
