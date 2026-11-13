@@ -15,9 +15,10 @@ through on 2026-11-02, would lower it to 1.6% over 24 months). The usual questio
 the gas-fee burn gives back. The answer from the chain is __BURN_COV__, which puts break-even
 __BURN_MULT__ times away.
 
-That measures one layer. Since 23 February 2026 the NEAR Intents contract has been sending NEAR
-to `buybacks.multisignature.near`, the wallet NEAR names for buybacks funded by Intents fee
-revenue.
+That measures one layer. NEAR Intents began capturing fees on 23 February 2026. The wallet NEAR
+names for buybacks funded by that revenue, `buybacks.multisignature.near`, was created on
+2026-03-18, and the Intents contract has sent NEAR to it since 2026-04-23 (both dates from the
+account's receipts, `data/wallet_history.csv`).
 
 | Flow | NEAR a day | Share of mint |
 |---|---|---|
@@ -199,7 +200,7 @@ __OUT_IN__ epochs in the window), so no threshold changes the __PAYBACK__ figure
 the window's epochs gives a 90% range of __PAY_LO__ to __PAY_HI__: a few large buyback epochs
 carry much of the flow.
 
-**The history is short and needed one exclusion.** Buybacks began on 2026-02-23. One gain of
+**The history is short and needed one exclusion.** Fee capture began on 2026-02-23; the first NEAR from `intents.near` reached the buyback account on 2026-04-23. One gain of
 __LUMP__ NEAR was excluded by a mechanical rule (more than 20 times the median of the previous
 100 epochs). The chain shows what it was: across that epoch, heights 214890733 to 214933933,
 the other two revenue wallets fell by __LUMP_OUT__ NEAR (`data/wallets.csv`). That is revenue

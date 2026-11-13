@@ -6,7 +6,7 @@ Everything needed to submit. Numbers below are filled from `out/results.json`.
 
 Coverage: what offsets NEAR's issuance, measured from the chain with no keys.
 
-NEAR mints about 2.5% of supply a year. Counting only the gas-fee burn, under 1% of that comes back, so break-even looks 108x away. Since February 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, 12.0% of issuance is offset and break-even is 8.4x away.
+NEAR mints about 2.5% of supply a year. Counting only the gas-fee burn, under 1% of that comes back, so break-even looks 108x away. Since April 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, 12.0% of issuance is offset and break-even is 8.4x away.
 
 Since 27 October a growing share of Intents swaps settles privately (found by another entry, Tideline), so public swap data no longer shows their fees. The buyback account is a mainnet balance and still does: 10,452 NEAR a day since, against 9,298 before.
 

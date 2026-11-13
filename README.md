@@ -16,7 +16,7 @@ and commits it. Nobody edits the numbers by hand.
 
 - NEAR mints about 2.5% of its supply a year. The gas-fee burn gives back 0.92% of that, so
   on burn alone flows would have to grow 108x to equal issuance.
-- Since February 2026 the NEAR Intents contract also sends NEAR to a buyback account. Burn plus
+- Since April 2026 the NEAR Intents contract has also sent NEAR to a buyback account. Burn plus
   that flow equals 12.0% of issuance: flows would have to grow 8.4x, not 108x.
 - The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
   and payback has fallen from 16.5% to 12.0%.
@@ -34,7 +34,7 @@ evidence someone else can reproduce."
 | Onchain analytics from public data | `fetch.py`: mint and burn from `total_supply` in block headers for every one of 901 epochs; buyback balance by `view_account` | Free keyless endpoints; a full rebuild takes hours because they rate-limit |
 | An Intents data pull | `data/inflows.csv` (transfers into the buyback account, with senders) and `data/llama.csv` | Third-party (NearBlocks, DefiLlama). They never feed mint, burn, payback or the multiple |
 | One command rebuilds every figure | `python3 run.py`, offline, under 2 seconds, prints a hash that must match this file | Rebuilds from the committed cache; `verify.py` compares the cache with mainnet |
-| A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source. It draws every epoch as one column, reads the current block and buyback balance from mainnet in your browser, and its "Check a random epoch" button refetches three block headers and compares mint, burn and the buyback gain with the cache to the yoctoNEAR | One static file, no build step, no external assets. The live parts call a free keyless RPC from the browser and say so when it rate-limits |
+| A dashboard: each chart, its method, one sentence | `dist/index.html`, live at the link above: every chart is titled with its finding and carries its source. It draws every epoch as one column, reads the current block and buyback balance from mainnet in your browser, and its "Check a random epoch" button refetches three block headers and compares mint, burn and the buyback gain with the cache to the yoctoNEAR. Its "Check it yourself" chapter shows the recorded output of `run.py` and `test_run.py` from the build that produced the page, with a link to that run's GitHub Actions log | One static file, no build step; only the fonts load from Google Fonts, with system fallbacks. The live parts call a free keyless RPC from the browser and say so when it rate-limits |
 | Reproducible models | Four, listed on the dashboard under Models with the `run.py` functions behind each | The burn forecasters' bands are too narrow (about two-thirds held against a nominal 80%); stated, not hidden |
 | Claim, evidence for, evidence against, what would change our mind | [THESIS.md](THESIS.md), generated from the results | The case against has equal weight; the headline counts held buybacks, which are not burns |
 | An audit of the account the thesis rests on | `run.py` reconciles all 3,374 receipts of the buyback account against balances read from the chain: 658 of 658 transfer-only epochs match to the yoctoNEAR. It also lists who pays in, what left and who can move it ([THESIS.md](THESIS.md), "audited the way a short seller would") | Receipts come from a third-party index (FastNear); balances come from the chain. 5 epochs with multisig calls differ by 0.34 NEAR of gas |
@@ -241,7 +241,8 @@ the code derives from the data up to that round's height.
 |---|---|
 | `fetch.py` | chain and indexers to `data/`; resumable; needs network |
 | `run.py` | `data/` to results, predictions, ledger and dashboard; offline, deterministic |
-| `dashboard.py` | renders `dist/index.html`; no external assets |
+| `dashboard.py` | renders `dist/index.html` and writes into it the output `run.py` printed; fonts from Google Fonts, nothing else external |
+| `record.py` | runs a command and saves its output (`out/selftest.json`) for the dashboard |
 | `verify.py` | spot-checks cached epochs against the chain |
 | `docs.py`, `templates/` | generate this file, `THESIS.md` and `SUBMISSION.md` from the results |
 | `test_run.py` | self-test and tamper checks |
