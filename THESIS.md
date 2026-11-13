@@ -254,11 +254,11 @@ after it. `run.py freeze` writes a round from the newest cached epoch and never 
 Rounds are short on purpose: they close before and during judging, and `python3 fetch.py
 --epochs 45 && python3 run.py` scores whatever has closed.
 
-| Round | Epochs | Expected to close (UTC) | Payback | NEAR burnt | Buyback gain, NEAR | Payback interval held in the past | sha256 |
+| Round | Epochs | Status (UTC) | Payback | NEAR burnt | Buyback gain, NEAR | Payback interval held in the past | sha256 |
 |---|---|---|---|---|---|---|---|
-| `round-224265136-h05.json` | 5 | about 2026-11-14 07:00 | 6.9% to 27.2% | 1,193 to 1,880 | 7,318 to 35,576 | 134 of 168 | `e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba` |
-| `round-224265136-h10.json` | 10 | about 2026-11-15 19:00 | 6.3% to 30.8% | 2,174 to 3,554 | 14,073 to 86,748 | 71 of 83 | `2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f` |
-| `round-224265136-h20.json` | 20 | about 2026-11-18 17:00 | 6.9% to 26.8% | 2,820 to 6,524 | 34,148 to 133,348 | 35 of 40 | `926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5` |
+| `round-224265136-h05.json` | 5 | about 2026-11-14 07:00; 2 of 5 closed, payback so far 23.1% | 6.9% to 27.2% | 1,193 to 1,880 | 7,318 to 35,576 | 134 of 168 | `e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba` |
+| `round-224265136-h10.json` | 10 | about 2026-11-15 19:00; 2 of 10 closed, payback so far 23.1% | 6.3% to 30.8% | 2,174 to 3,554 | 14,073 to 86,748 | 71 of 83 | `2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f` |
+| `round-224265136-h20.json` | 20 | about 2026-11-18 17:00; 2 of 20 closed, payback so far 23.1% | 6.9% to 26.8% | 2,820 to 6,524 | 34,148 to 133,348 | 35 of 40 | `926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5` |
 
 Each round commits to three intervals for its window: payback, total NEAR burnt and total NEAR
 gained by the buyback account. An interval is the last same-length window's value scaled by how
@@ -270,8 +270,8 @@ procedure, run at earlier dates on data available then, contained the outcome
   that round. The band is the 5% to 95% range of past window-to-window changes. It has held
   less often than 90% of the time (see the table), so an occasional miss is expected even when
   the model is right; we accept that.
-- The other two claims are reported as `HIT` or `MISS`. The burn interval has held less often
-  than the payback band, so a burn miss is weaker evidence than a payback miss.
+- The other two claims are reported as `HIT` or `MISS`. How often each interval has held is in
+  the table; where an interval has held less often, a miss on it is weaker evidence.
 - The payback interval is wide because consecutive windows differ a lot. What it rules out is
   the burn-only picture: its lower bound is several times 0.92%. A result near the
   bounds is weak support, not confirmation.
@@ -361,7 +361,8 @@ percent a year.
 
 Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
 payback (12.0%) and holds the capture share and the NEAR price constant. HSP-029 is
-modelled as a linear ramp from 2.5% to 1.6% over the 24 months after the snapshot.
+modelled as a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible
+date, about 2027-02-14 (after the veto window and the 90-day grace period).
 
 | Scenario | Growth a year | Payback in 10 years (2.5% / HSP-029) | Break-even, issuance 2.5% | Break-even, HSP-029 ramp |
 |---|---|---|---|---|

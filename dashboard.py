@@ -1252,7 +1252,7 @@ def render(results, sha, ledgers=None, tape=None):
         ch4 = f"""<section class="chapter" id="c4" data-t="The case, both ways"><div class="ch-head"><div class="ch-num"><span class="n">{later(4)}</span><span class="eyebrow">The case, both ways</span><span class="line"></span></div>
 <h2>The bear case gets the same page as the bull case.</h2><p>{dict(enumerate(["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven"])).get(len([x for x in a_ if x]), "Several")} points each side, at equal weight. The full argument, with what would change our mind, is in <a href="{REPO}/blob/main/THESIS.md">THESIS.md</a>.</p></div>
 <div class="spread">{side('For', 'The flow is on chain, exact, and has levers.', f_)}{side('Against', 'Held is not burnt, and the trend matters.', a_)}</div>
-<div class="verdict"><blockquote>“If the buybacks were burnt, realized inflation would be {pct(s['inflation_if_buybacks_were_burnt'], 2)} instead of {pct(s['realized_inflation'], 2)}. They are not, yet.”<cite>Inflation if buybacks were burnt · out/results.json</cite></blockquote></div></section>"""
+<div class="verdict"><blockquote>“If the buybacks were burnt, net inflation would be {pct(s['inflation_if_buybacks_were_burnt'], 2)} instead of {pct(s['inflation_if_buybacks_were_burnt'] / (1 - s['payback']) * (1 - s['burn_coverage']), 2)}. They are not, yet.”<cite>Inflation if buybacks were burnt · out/results.json</cite></blockquote></div></section>"""
 
     # ---- chapter 05: check it yourself ----
     cls = {"PASS": "pass", "HIT": "pass", "FALSIFIED": "fail", "MISS": "fail"}
@@ -1270,7 +1270,8 @@ def render(results, sha, ledgers=None, tape=None):
         if L["after_end_height"] != newest and L["verdict"] != "PENDING":
             continue  # closed older rounds live in the scoreboard only
         if L["ends"]:
-            when = f"closed {L['ends']}"
+            ce = datetime.datetime.strptime(L["ends"], "%Y-%m-%d %H:%M UTC")
+            when = f"closed {ce.day} {MONTHS[ce.month - 1][:3]} {ce:%H:%M}<small>UTC</small>"
         elif end and L["after_end_height"] == s["last_height"]:
             t = end + datetime.timedelta(hours=s["window_days"] * 24 / 100 * L["total"])
             closes.append(t)
@@ -1310,7 +1311,7 @@ def render(results, sha, ledgers=None, tape=None):
             rng_ = (f"{a_.day}–{b_.day} {MONTHS[b_.month - 1][:3]}" if (a_.month, a_.year) == (b_.month, b_.year)
                     else f"{a_.day} {MONTHS[a_.month - 1][:3]} – {b_.day} {MONTHS[b_.month - 1][:3]}") if a_.date() != b_.date() else f"{a_.day} {MONTHS[a_.month - 1][:3]}"
             k = len(closes)
-            lead = f"{'All ' + str(k) + ' open rounds close' if k > 1 else 'The open round closes'} in this window, each scored by mainnet when it does."
+            lead = f"{('Both open rounds close' if k == 2 else 'All ' + str(k) + ' open rounds close') if k > 1 else 'The open round closes'} in this window, each scored by mainnet when it does."
         else:
             rng_, lead = f"{sum(tally.values())} rounds", f"Scored so far: {tal}."
         rounds = (f"<div class='rounds'>{cards}</div><div class='judging'><div class='d'>{rng_}</div><p>{lead} Historically the payback band has held {held} "

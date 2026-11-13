@@ -14,7 +14,7 @@ What makes it checkable:
 - One command, `python3 run.py`: no keys, no network, no dependencies. It prints a hash that must match the README.
 - `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
 - `python3 test_run.py`: the command refuses a cache with one yoctoNEAR changed, and edited predictions.
-- Audit: all __W_RECEIPTS__ receipts of the buyback account reconcile with chain balances to the yoctoNEAR in __W_BUSY__ of __W_BUSY__ transfer-only epochs. intents.near sent __W_TOP1_SHARE__ of the NEAR; __W_PAID_SHARE__ has left; __C_CONF__ of __C_KEYS__ keys can move it.
+- Audit: all __W_RECEIPTS__ receipts of the buyback account reconcile with chain balances to the yoctoNEAR in __W_EXACT__ of __W_BUSY__ transfer-only epochs. intents.near sent __W_TOP1_SHARE__ of the NEAR; __W_PAID_SHARE__ has left; __C_CONF__ of __C_KEYS__ keys can move it.
 - BigQuery SQL in queries/, results committed: the chain got quieter; intents.near's receipts grew 2.8x.
 - Verdict: not yet a supply story. The bet is governance: fee capture and HSP-029.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
@@ -34,7 +34,7 @@ https://github.com/nice-bills/Coverage
 
 (Reply to it with: the dashboard https://nice-bills.github.io/Coverage/ ; "Forecasts frozen and
 Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and "The three rounds close
-14 to 18 Nov; all are inside their ranges so far".)
+14 to 18 Nov; the live scoreboard is on the dashboard".)
 
 ## Demo video (72 seconds)
 

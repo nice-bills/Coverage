@@ -35,8 +35,10 @@ jobs:
         continue-on-error: true   # run.py only reconciles epochs the committed history covers
         timeout-minutes: 15
         run: python3 fetch.py history
+      # Paused for judging (14 to 25 Nov 2026): a new round moves the headline snapshot away from the submitted
+      # figures, and the three open rounds are what judging scores. Re-enable by restoring the condition below.
       - name: Freeze a new round when three epochs have closed since the newest one
-        if: steps.fetch.outcome == 'success' && github.event_name != 'push'
+        if: false && steps.fetch.outcome == 'success' && github.event_name != 'push'
         continue-on-error: true
         run: |
           before=$(ls predictions/*.json | sort)

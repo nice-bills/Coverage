@@ -175,7 +175,7 @@ def render(results, sha, ledgers=None):
 <div class="base"><div class="k">Middle</div><div class="g">{g('base')}</div><div class="y num">{yr('base')}</div></div>
 <div class="bear"><div class="k">Shrinking</div><div class="g">{g('bear')}</div><div class="y">{yr('bear')}</div></div></div>
 <div class="chart fan-w" style="margin-top:26px">{D.path_svg(sc, True)}</div><div class="chart fan-n" style="margin-top:22px">{D.path_svg(sc, False)}</div>
-<p class="plain">The fastest fix isn't growth. If the buyback took <b>every</b> Intents fee and NEAR cut issuance (a proposal called <b>HSP-029</b>), even the middle speed gets there in about <b>{full['years_base_hsp029']:.0f} years</b>.</p>""")
+<p class="plain">The fastest fix isn't growth. If the buyback took <b>every</b> Intents fee and NEAR cut issuance (a proposal called <b>HSP-029</b>), even the middle speed {'gets there in about <b>' + format(full['years_base_hsp029'], '.0f') + ' years</b>' if full.get('years_base_hsp029') is not None else 'still takes over a century'}.</p>""")
 
     quiet = ""
     try:

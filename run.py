@@ -599,6 +599,10 @@ def main():
         led["file"] = name
         led["commit"] = hashlib.sha256(open(os.path.join(ROOT, "predictions", name), "rb").read()).hexdigest()
         leds.append(led)
+    # round status for the docs (README table); kept out of results.json so the result hash never depends on it
+    json.dump([dict(file=L["file"], verdict=L["verdict"], resolved=L["resolved"], total=L["total"], so_far=L["so_far"], ends=L["ends"],
+                    payback=(L["claims"].get("payback") or {}).get("actual")) for L in leds],
+              open(os.path.join(ROOT, "out", "ledger.json"), "w"), indent=1, sort_keys=True)
     for k, v in results["summary"].items():
         print(f"{k:30} {v}")
     for m, v in results["backtest"].items():

@@ -34,7 +34,7 @@ https://github.com/nice-bills/Coverage
 
 (Reply to it with: the dashboard https://nice-bills.github.io/Coverage/ ; "Forecasts frozen and
 Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and "The three rounds close
-14 to 18 Nov; all are inside their ranges so far".)
+14 to 18 Nov; the live scoreboard is on the dashboard".)
 
 ## Demo video (72 seconds)
 

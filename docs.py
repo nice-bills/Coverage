@@ -17,9 +17,9 @@ def values():
     blob = open(os.path.join(ROOT, "out", "results.json")).read()
     r = json.loads(blob)
     s, bt, cb, pv = r["summary"], r["backtest"], r["claims_backtest"], r["private_settlement"]
-    pct = lambda x, n=1: f"{100 * x:.{n}f}%"
+    pct = lambda x, n=1: "n/a" if x is None else f"{100 * x:.{n}f}%"
     usd = lambda x: f"${x:,.0f}"
-    num = lambda x: f"{x:,.0f}"
+    num = lambda x: "n/a" if x is None else f"{x:,.0f}"
     yr = lambda x: "over 100" if x is None else f"{x:.1f}"
     skill = lambda m: f"{abs(100 * m['skill_vs_persistence']):.0f}% {'better' if m['skill_vs_persistence'] > 0 else 'worse'}"
 
@@ -29,6 +29,10 @@ def values():
     hours = s["window_days"] * 24 / 100  # average epoch length in the last window
     end = datetime.datetime.strptime(s["last_end_utc"], "%Y-%m-%d %H:%M")
     lines, hashes = [], []
+    try:
+        status = {x["file"]: x for x in json.load(open(os.path.join(ROOT, "out", "ledger.json")))}
+    except (OSError, ValueError):
+        status = {}
     for name in names:
         raw = open(os.path.join(rdir, name), "rb").read()
         c, sha = json.loads(raw), hashlib.sha256(raw).hexdigest()
@@ -36,11 +40,16 @@ def values():
         hashes.append(f"{name} {sha}")
         close = ((end + datetime.timedelta(hours=hours * h)).strftime("about %Y-%m-%d %H:00")
                  if c["after_end_height"] == s["last_height"] else "see the ledger")
+        st = status.get(name)
+        if st and st["verdict"] != "PENDING":
+            close = f"**{st['verdict']}**, closed {st['ends'][:16]}, payback {pct(st['payback'])}"
+        elif st and st["so_far"] is not None:
+            close += f"; {st['resolved']} of {st['total']} closed, payback so far {pct(st['so_far'])}"
         lines.append(f"| `{name}` | {h} | {close} | {pct(cl['payback'][0])} to {pct(cl['payback'][2])} "
                      f"| {num(cl['burn_total'][0])} to {num(cl['burn_total'][2])} "
                      f"| {num(cl['buyback_total'][0])} to {num(cl['buyback_total'][2])} "
                      f"| {held['hit']} of {held['n']} | `{sha}` |")
-    table = ("| Round | Epochs | Expected to close (UTC) | Payback | NEAR burnt | Buyback gain, NEAR "
+    table = ("| Round | Epochs | Status (UTC) | Payback | NEAR burnt | Buyback gain, NEAR "
              "| Payback interval held in the past | sha256 |\n|---|---|---|---|---|---|---|---|\n" + "\n".join(lines)
              if lines else "(no rounds frozen yet)")
 
@@ -49,7 +58,7 @@ def values():
     if w:
         c, top = w["custody"], w["top_senders"]
         extra.update(
-            W_RECEIPTS=num(w["receipts"]), W_BUSY=str(w["epochs_with_receipts"]), W_CALLS=str(w["call_epochs"]),
+            W_RECEIPTS=num(w["receipts"]), W_BUSY=str(w["epochs_with_receipts"]), W_EXACT=str(w["exact_with_receipts"]), W_CALLS=str(w["call_epochs"]),
             W_RESID=f"{abs(w['call_residual_near']):.2f}", W_IN=num(w["inflow_near"]), W_SENDERS=str(w["senders"]),
             W_TOP1=top[0]["account"], W_TOP1_SHARE=pct(top[0]["share"]), W_TOP1_N=num(top[0]["transfers"]),
             W_TOP2=top[1]["account"], W_TOP2_SHARE=pct(top[1]["share"]), W_TOP2_N=str(top[1]["transfers"]), W_TOP2_NEAR=num(top[1]["near"]),
@@ -134,7 +143,7 @@ def values():
         PB_N=str(pv["before"]["epochs"]), PB_IN=str(pv["before"]["epochs_with_inflow"]),
         PS_N=str(pv["since"]["epochs"]), PS_IN=str(pv["since"]["epochs_with_inflow"]),
         PS_DAYS=f"{pv['since']['days']:.0f}", PB_DAYS=f"{pv['before']['days']:.0f}",
-        ALL_PAY=pct(s["all_revenue_wallets_payback"]), ALL_MULT=f"{1 / s['all_revenue_wallets_payback']:.1f}",
+        ALL_PAY=pct(s["all_revenue_wallets_payback"]), ALL_MULT=f"{1 / s['all_revenue_wallets_payback']:.1f}" if s.get("all_revenue_wallets_payback") else "n/a",
         BUY_SHARE=pct(s["buyback_per_day"] / s["llama_buyback_near_per_day"], 0),
         LUMP_IN=str(s["lump_epochs_in_window"]), OUT_IN=str(s["outflow_epochs_in_window"]),
         PAY_LO=pct(s["payback_p05"]), PAY_HI=pct(s["payback_p95"]),

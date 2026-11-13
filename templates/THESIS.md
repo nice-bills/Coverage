@@ -260,8 +260,8 @@ procedure, run at earlier dates on data available then, contained the outcome
   that round. The band is the 5% to 95% range of past window-to-window changes. It has held
   less often than 90% of the time (see the table), so an occasional miss is expected even when
   the model is right; we accept that.
-- The other two claims are reported as `HIT` or `MISS`. The burn interval has held less often
-  than the payback band, so a burn miss is weaker evidence than a payback miss.
+- The other two claims are reported as `HIT` or `MISS`. How often each interval has held is in
+  the table; where an interval has held less often, a miss on it is weaker evidence.
 - The payback interval is wide because consecutive windows differ a lot. What it rules out is
   the burn-only picture: its lower bound is several times __BURN_COV__. A result near the
   bounds is weak support, not confirmation.
@@ -341,7 +341,8 @@ __SC_MEASURES__
 
 Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
 payback (__PAYBACK__) and holds the capture share and the NEAR price constant. HSP-029 is
-modelled as a linear ramp from 2.5% to 1.6% over the 24 months after the snapshot.
+modelled as a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible
+date, about 2027-02-14 (after the veto window and the 90-day grace period).
 
 __SC_TABLE__
 
