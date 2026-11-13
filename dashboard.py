@@ -1,5 +1,5 @@
 """Render out/results.json (+ optional ledger) to one static HTML file. No dependencies, no external assets."""
-import datetime, html, json
+import csv, datetime, html, json, os
 
 REPO = "https://github.com/nice-bills/Coverage"
 
@@ -21,7 +21,7 @@ nav{position:sticky;top:0;z-index:var(--z-nav);background:color-mix(in oklch,var
 -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid color-mix(in oklch,var(--rule) 60%,transparent)}
 nav div{max-width:1120px;margin:0 auto;padding:0 20px;display:flex;gap:22px;align-items:center;height:44px;
 overflow-x:auto;white-space:nowrap;font-size:0.84375rem;scrollbar-width:none}
-nav b{font-size:0.9375rem;letter-spacing:-.01em;margin-right:6px}nav a{text-decoration:none;color:var(--ink2)}
+nav a,nav b{flex:none}nav b{font-size:0.9375rem;letter-spacing:-.01em;margin-right:6px}nav a{text-decoration:none;color:var(--ink2)}
 nav a:hover,nav a[aria-current]{color:var(--ink)}nav a[aria-current]{font-weight:600}nav a:last-child{margin-left:auto;color:var(--ink)}
 main{max-width:1120px;margin:0 auto;padding:0 20px 80px}
 section{padding-top:72px}section>h2{font-size:1.875rem;line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;text-wrap:balance}section>h2+p{font-size:1rem}
@@ -109,7 +109,19 @@ transition:transform .1s ease-out,border-color .15s,background-color .15s}
 .rmeta{color:var(--ink2);font-size:.875rem}.rlive{flex-basis:100%;color:var(--back);font-size:.875rem;font-weight:500}.rlive:empty{display:none}
 @media (max-width:720px){.hero h1{font-size:2.125rem}#tape{height:190px}h1{font-size:1.8125rem}.lede{font-size:1rem}.model,.rgrid,.cmd{grid-template-columns:minmax(0,1fr)}section{padding-top:44px}
 .facts div{padding-right:12px}pre button{display:none}}
-@media (prefers-reduced-motion:reduce){.lstat i,.check .wait{animation:none}.vrow button{transition:none}html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
+.lsrc{color:var(--h-ink2);font-weight:400}.lfoot{margin:0;padding:0 0 12px;font-size:.75rem;color:var(--h-ink2);max-width:none}.lfoot[hidden]{display:none}
+.lede b{color:var(--h-ink);font-weight:600;font-variant-numeric:tabular-nums}
+details{border-top:1px solid var(--rule);margin-top:24px}details[open]{border-bottom:1px solid var(--rule)}
+details>summary{cursor:pointer;list-style:none;padding:14px 28px 14px 0;position:relative;font-weight:600;font-size:1rem;line-height:1.4;text-wrap:balance}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"";position:absolute;right:4px;top:50%;width:8px;height:8px;margin-top:-6px;border:solid var(--ink2);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .15s ease-out}
+details[open]>summary::after{transform:rotate(-135deg);margin-top:-1px}
+details>summary:hover{color:var(--back)}details>summary small{display:block;font-weight:400;font-size:.875rem;color:var(--ink2);margin-top:2px}
+details>:last-child{margin-bottom:20px}.calc{margin-top:14px}.calc+details{margin-top:28px}
+@media (max-width:480px){.livebar dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.livebar dd{font-size:1.0625rem}.livebar dd small{display:block;margin:0}}
+@media (max-width:720px){nav div{padding:0 20px;gap:18px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--fl,0px),#000 calc(100% - var(--fr,32px)),transparent 100%);
+mask-image:linear-gradient(90deg,transparent 0,#000 var(--fl,0px),#000 calc(100% - var(--fr,32px)),transparent 100%)}nav a:last-child{margin-left:0}}
+@media (prefers-reduced-motion:reduce){details>summary::after{transition:none}.lstat i,.check .wait{animation:none}.vrow button{transition:none}html{scroll-behavior:auto}.bar i,pre button{transition:none}pre button:active{transform:none}}
 @media (prefers-reduced-transparency:reduce){nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:var(--rule)}}
 @media (prefers-contrast:more){:root{--ink2:var(--ink);--rule:var(--ink)}nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}}
 """
@@ -125,6 +137,8 @@ const C=document.querySelector('.calc');if(C){const g=id=>document.getElementByI
  C.addEventListener('input',f);f()}
 document.querySelectorAll('pre[data-copy]').forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent='Copy';
  b.addEventListener('click',()=>navigator.clipboard.writeText(p.dataset.copy).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}));p.appendChild(b)});
+const NB=document.querySelector('nav div');if(NB){const nf=()=>{const m=NB.scrollWidth-NB.clientWidth;NB.style.setProperty('--fl',NB.scrollLeft>4?'32px':'0px');NB.style.setProperty('--fr',m-NB.scrollLeft>4?'32px':'0px')};
+ NB.addEventListener('scroll',nf,{passive:true});addEventListener('resize',nf);nf()}
 const NAV=[...document.querySelectorAll('nav a[href^="#"]')];if('IntersectionObserver' in window){
  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting)NAV.forEach(a=>a.getAttribute('href')=='#'+x.target.id?a.setAttribute('aria-current','true'):a.removeAttribute('aria-current'))}),{rootMargin:'-45% 0px -50% 0px'});
  document.querySelectorAll('section[id]').forEach(s=>io.observe(s))}
@@ -229,15 +243,15 @@ const TD=document.getElementById('tape-data');if(TD){const T=JSON.parse(TD.textC
  document.getElementById('vsel').addEventListener('click',()=>verify(sel));
  document.getElementById('vrnd').addEventListener('click',()=>verify(Math.floor(Math.random()*all().length)));
  // --- what mainnet says right now ---
- const set=(id,v)=>document.getElementById(id).innerHTML=v,msg=document.getElementById('lmsg');
+ const set=(id,v)=>document.getElementById(id).innerHTML=v,msg=document.getElementById('lmsg'),fail=document.getElementById('lfail');
  async function now(){try{const b=await rpc(LIVE,'block',{finality:'final'}),a=await rpc(LIVE,'query',{request_type:'view_account',finality:'final',account_id:BUY});
    const hgt=b.header.height,bl=BigInt(a.amount),gain=T.bal?bl-BigInt(T.bal):null,ep=(hgt-T.snap)/43200;
    set('l-h',fmt(hgt));set('l-s',fmt(Number(BigInt(b.header.total_supply)/10n**24n))+' <small>NEAR</small>');set('l-b',fmt(Number(bl/10n**24n))+' <small>NEAR</small>');
    if(gain!=null&&T.rounds.length)set('l-g',(gain<0n?'':'+')+fmt(Number(gain/10n**21n)/1e3)+` <small>NEAR in ${ep.toFixed(1)} epochs</small>`);
-   msg.textContent='Live from NEAR mainnet, read by your browser';
+   msg.textContent='Live from NEAR mainnet, read by your browser';msg.className='';fail.hidden=true;
    document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n;s.textContent=ep>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
     `Live: about ${ep.toFixed(1)} of ${n} epochs elapsed`+(gain!=null?`, buyback gain so far ${fmt(Number(gain/10n**21n)/1e3)} NEAR`:'')+'.'})}
-  catch(err){if(!msg.dataset.ok)msg.textContent='Live read unavailable: the free endpoint is limiting requests. Everything below comes from the committed cache.';return}
+  catch(err){if(!msg.dataset.ok)fail.hidden=false;return}
   msg.dataset.ok=1}
  now();setInterval(()=>{if(!document.hidden)now()},60000)}
 """
@@ -332,10 +346,11 @@ def render(results, sha, ledgers=None, tape=None):
     if has:
         head = (f"NEAR's fee burn plus Intents buybacks equal {pct(s['payback'], 1)} of what it mints. "
                 f"Break-even is {s['multiple']:.1f}x away.")
-        lede = (f"{pct(s['buyback_coverage'], 1)} is NEAR sent by the NEAR Intents contract to the buyback account, "
-                f"where it is held, not burnt. {pct(s['burn_coverage'])} is gas fees burnt. A fee-burn dashboard "
-                f"sees only the second number and puts break-even {s['burn_only_multiple']:.0f}x away.")
         bk, bn = 100 * s["buyback_coverage"], 100 * s["burn_coverage"]
+        lede = (f"<b>Burn {bn:.2f}% and Intents buybacks {bk:.2f}% add up to {pct(s['payback'], 1)} of issuance.</b> "
+                f"Break-even means the flows would have to grow {s['multiple']:.1f}x to equal issuance. The buyback share is NEAR "
+                f"sent by the NEAR Intents contract to the buyback account, where it is held, not burnt. A fee-burn dashboard "
+                f"sees only the burn and puts break-even {s['burn_only_multiple']:.0f}x away.")
         strip = (f"<div class='strip'><h3>Every NEAR minted in the last {days} days, to scale</h3>"
                  f"<div class='bar' role='img' aria-label='Buybacks {bk:.1f}%, burn {bn:.2f}%, not matched {100 - bk - bn:.1f}% of issuance'>"
                  f"<i class='bk' style='width:{bk:.3f}%'></i><i class='bn' style='width:{bn:.3f}%'></i></div>"
@@ -356,7 +371,7 @@ def render(results, sha, ledgers=None, tape=None):
                  ("Realized inflation a year", pct(s["realized_inflation"]), "<small>measured from mint, whole cache</small>")]
     else:
         head = f"NEAR burns back {pct(s['burn_coverage'])} of what it mints."
-        lede = "Buyback balances are not cached for this window yet."
+        lede = html.escape("Buyback balances are not cached for this window yet.")
         strip = (f"<div class='strip'><h3>Every NEAR minted in the last {days} days, to scale</h3><div class='bar'>"
                  f"<i class='bn' style='width:{100 * s['burn_coverage']:.3f}%'></i></div></div>")
         facts = [("Burn over mint", pct(s["burn_coverage"]), ""), ("NEAR burnt a day", num(s["burn_per_day"]), ""),
@@ -432,7 +447,7 @@ def render(results, sha, ledgers=None, tape=None):
                    f"<div class='figs'>{figs('weekly', WEEKLY)}</div></section>")
 
     # ---- models ----
-    models = ""
+    models, calc = "", ""
     if has:
         models += (f"<div class='model'><div><h3>Flow identity</h3><p>Mint and burn per epoch from <code>total_supply</code> in block "
                    f"headers, exact to the yoctoNEAR. The buyback gain is a balance change. No parameters.</p>"
@@ -476,6 +491,8 @@ gross Intents fees that reaches the buyback account, and inversely with the issu
 HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification, would lower maximum issuance to 1.6% a year.</p>
 <p class='how'><code>run.py: main</code> (<code>breakeven_years</code>, <code>growth_needed_*</code>, <code>payback_if_all_intents_fees_captured</code>)</p>
 <div class='wrap' style='margin-top:14px'><table><tr><th>Growth in burn plus buybacks</th><th>Years, issuance 2.5%</th><th>Years, ramp to 1.6%</th></tr>{rows_}</table></div></div>
+"""
+        calc = f"""<h3 style="margin-top:20px">Lever calculator</h3><p class="sub">Move volume, the share of Intents fees that reaches the buyback account, and the issuance rate to see how far burn plus buybacks move toward issuance.</p>
 <div class="calc" data-burn="{s['burn_coverage']}" data-buy="{s['buyback_coverage']}" data-cap="{cap}">
 <label>NEAR Intents volume <output id="o-vol">1.0x today</output>
 <input type="range" id="vol" min="1" max="20" step="0.5" value="1"></label>
@@ -484,7 +501,7 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <label>Issuance rate <output id="o-inf">2.5% a year (today)</output>
 <input type="range" id="inf" min="0.5" max="2.5" step="0.1" value="2.5"></label>
 <div class="bar"><i class="bk" id="c-bk"></i><i class="bn" id="c-bn"></i></div>
-<p id="o-pay" aria-live="polite"></p></div></div>"""
+<p id="o-pay" aria-live="polite"></p></div>"""
 
     # ---- forecast rounds ----
     led = ""
@@ -533,11 +550,13 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
                f"the code derives from the data up to its height, so neither the numbers nor the method can be edited afterwards. "
                f"Historically the payback band has held {held} of the time, so an occasional miss is expected even when the model "
                f"is right, and a pass near the bounds is weak support.</p>"
-               f"<h3>Scoreboard</h3><p class='sub'>{len(ledgers)} rounds frozen: "
+               f"<details><summary>Scoreboard<small>{len(ledgers)} rounds frozen: "
+               + ", ".join(f"{n} {k.lower()}" for k, n in sorted(tally.items())) + "</small></summary>"
+               f"<p class='sub'>{len(ledgers)} rounds frozen: "
                + ", ".join(f"{n} {k.lower()}" for k, n in sorted(tally.items())) +
                ". A scheduled job freezes a new 5-epoch round about once a day, timestamps it and commits it; nothing is ever removed.</p>"
                f"<div class='wrap'><table><tr><th>Frozen</th><th>Window</th><th>Committed payback</th><th>Actual</th>"
-               f"<th>Epochs closed</th><th>Verdict</th></tr>{board}</table></div>{led}</section>")
+               f"<th>Epochs closed</th><th>Verdict</th></tr>{board}</table></div></details>{led}</section>")
 
     # ---- for and against ----
     case = ""
@@ -554,9 +573,14 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
               f"<b>The flow is concentrated.</b> One application supplies {pct(s['buyback_coverage'] / s['payback'], 0)} of the payback.",
               f"<b>The balance has fallen before.</b> {num(s['buyback_outflow_near'])} NEAR left the account in {s['buyback_outflow_epochs']} of {s['buyback_epochs']} epochs."]
         li = lambda xs: "".join(f"<li>{x}</li>" for x in xs if x)
+        gist = (f"For: the flow is on chain and exact, and capture and issuance are both levers. Against: buybacks are held, not burnt; "
+                f"payback is {pct(s['payback'], 1)} against a peak of {pct(s['payback_peak'], 1)}; Intents volume is "
+                f"{s['intents_volume_usd_ratio_1y']:.2f}x a year ago.")
         case = (f"<section id='case'><h2>The case, both ways</h2><p>The full argument, with what would change our mind, is in "
-                f"<a href='{REPO}/blob/main/THESIS.md'>THESIS.md</a>.</p><div class='two'><div><h3>For</h3><ul>{li(f_)}</ul></div>"
-                f"<div><h3>Against</h3><ul>{li(a_)}</ul></div></div></section>")
+                f"<a href='{REPO}/blob/main/THESIS.md'>THESIS.md</a>.</p>"
+                f"<details><summary>Read the case for and against<small>{e(gist)}</small></summary>"
+                f"<div class='two'><div><h3>For</h3><ul>{li(f_)}</ul></div>"
+                f"<div><h3>Against</h3><ul>{li(a_)}</ul></div></div></details></section>")
 
     def cmd(text, what, out=""):
         return (f"<div class='cmd'><p>{what}</p><pre data-copy='{e(text)}'>{e(text)}"
@@ -569,11 +593,34 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
              + cmd("python3 fetch.py --epochs 45 && python3 run.py", "Fetch the epochs that closed since and score the forecast rounds.",
                    "LEDGER round-<height>-h05.json: 5/5 epochs closed -> PASS or FALSIFIED"))
 
+    c_h = c_s = c_b = c_g = c_when = None  # newest cached epoch, for the live strip's first paint
+    if tape:
+        try:
+            d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+            with open(os.path.join(d, "epochs.csv")) as fh:
+                ep = list(csv.DictReader(fh))
+            with open(os.path.join(d, "buybacks.csv")) as fh:
+                bal = {int(r["end_height"]): int(r["balance"]) for r in csv.DictReader(fh) if r["balance"]}
+            last = ep[-1]
+            h = int(last["end_height"])
+            c_h = f"{h:,}"
+            c_s = f"{int(last['supply_end']) // 10**24:,}"
+            c_when = datetime.datetime.fromtimestamp(int(last["t1_ns"]) / 1e9, datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            if h in bal:
+                c_b = f"{bal[h] // 10**24:,}"
+                if tape["rounds"] and tape["snap"] in bal:
+                    n = sum(int(r["end_height"]) > tape["snap"] for r in ep)
+                    g = (bal[h] - bal[tape["snap"]]) / 10**24
+                    c_g = f"{'+' if g >= 0 else ''}{g:,.0f} <small>NEAR in {n} epochs</small>"
+        except (OSError, KeyError, ValueError, IndexError):
+            pass
+    nc = lambda v, u="": "&ndash;" if v is None else v + (f" <small>{u}</small>" if u else "")
     tape_html = "" if not tape else (
-        "<div class='livebar'><p class='lstat'><i></i><span id='lmsg' aria-live='polite'>Reading NEAR mainnet from your browser</span></p>"
-        "<dl><div><dt>Latest block</dt><dd id='l-h'>&ndash;</dd></div><div><dt>Total supply</dt><dd id='l-s'>&ndash;</dd></div>"
-        "<div><dt>Buyback account holds</dt><dd id='l-b'>&ndash;</dd></div>"
-        + ("<div><dt>Gained since the forecasts were frozen</dt><dd id='l-g'>&ndash;</dd></div>" if tape["rounds"] else "") + "</dl></div>"
+        f"<div class='livebar'><p class='lstat'><i></i><span id='lmsg' aria-live='polite'>{'<span class=lsrc>From cache, epoch ending ' + c_when + '</span>' if c_when else 'Reading NEAR mainnet from your browser'}</span></p>"
+        f"<dl><div><dt>Latest block</dt><dd id='l-h'>{nc(c_h)}</dd></div><div><dt>Total supply</dt><dd id='l-s'>{nc(c_s, 'NEAR')}</dd></div>"
+        f"<div><dt>Buyback account holds</dt><dd id='l-b'>{nc(c_b, 'NEAR')}</dd></div>"
+        + (f"<div><dt>Gained since the forecasts were frozen</dt><dd id='l-g'>{nc(c_g)}</dd></div>" if tape["rounds"] else "")
+        + "</dl><p class='lfoot' id='lfail' hidden>Live read unavailable (rate limited); showing the committed cache.</p></div>"
         f"<div class='tape'><h2>Every epoch since {e(s['first'])}, one column each</h2>"
         "<p>Column height is the share of that epoch's minted NEAR matched by <span class='k' style='background:#f2915a'></span>gas burn and "
         "<span class='k' style='background:#43d1b7'></span>buyback gain. The white line is the 100-epoch payback. Right of the divider are the "
@@ -591,7 +638,7 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <header class="hero"><div class="hin">
 <p class="stamp">NEAR mainnet, {e(s['first'])} to {e(s['last'])} &middot; {s['epochs']} epochs &middot; headline figures cover the last 100 epochs, {days} days</p>
 <div class="htop"><h1>{e(head)}</h1>
-<p class="lede">{e(lede)}</p></div>
+<p class="lede">{lede}</p></div>
 {tape_html}</div></header>
 <main>
 {strip}
@@ -600,15 +647,17 @@ HSP-029, passed by NEAR's House of Stake on 2026-11-02 and awaiting ratification
 <p>Mint and burn are read from <code>total_supply</code> in block headers and are exact to the yoctoNEAR. The buyback gain is the
 change in the account's balance between epoch ends. Every point is a 100-epoch rolling window; hover a chart for values.</p>
 <div class="figs">{figs('series', CHARTS, 'payback')}</div>
+<details><summary>Cross-checks and data tables<small>Private settlement, chain versus indexer, and the buyback account audit</small></summary>
 {private}{plog}
 <h3 style="margin-top:28px">Chain versus the indexer</h3>
 <p class="sub">The same flows over the same days, in NEAR a day. DefiLlama reports USD; each day is converted at that day's price.</p>
 <div class="wrap"><table><tr><th>Flow, NEAR a day</th><th>This repo, from chain</th><th>DefiLlama</th></tr>{check}</table></div>
-{attr}{audit}</section>
+{attr}{audit}</details></section>
 {intents}
 <section id="models"><h2>Models</h2>
 <p>Four models, each a few functions in <code>run.py</code>, each rebuilt by <code>python3 run.py</code> from the cached data with
-no network. Their outputs are in <code>out/results.json</code>.</p>{models}</section>
+no network. Their outputs are in <code>out/results.json</code>.</p>{calc}
+<details><summary>Model detail<small>Flow identity, burn forecasters, window bands and break-even years</small></summary>{models}</details></section>
 {led}
 {case}
 <section id="reproduce"><h2>Reproduce it</h2>
