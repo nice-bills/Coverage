@@ -301,10 +301,19 @@ __YEARS_TABLE__
 | Lower issuance to 1.6% a year (HSP-029) | the multiple falls to __MULT_HSP__x at today's flows |
 
 HSP-029 is the issuance lever being pulled now. It lowers maximum issuance from 2.5% to 1.6% a
-year over 24 months. NEAR's House of Stake passed it on 2026-11-02. As of 2026-11-13 it still needs the
-Security Council veto window (closing about 2026-11-16) to pass and validators to adopt it
-(https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644).
-The row above only rescales today's multiple; the scenarios below model the ramp.
+year over 24 months. Its timeline
+(https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644):
+
+| Date | Step |
+|---|---|
+| 2026-10-07 | Proposal posted (author: Sal Ternullo, SVRN) |
+| 2026-11-02 | House of Stake vote passes, 99.96% of voting power, 36 voters |
+| 2026-11-16, 16:48 UTC | Security Council veto window closes; with no veto it is ratified |
+| about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
+| after that | Validators adopt a nearcore release; the cut binds only then |
+
+As of 2026-11-13 no veto and no nearcore release had been reported. The row above only
+rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over __WEEKS__ weeks (correlation
 __CORR__), and two of the three levers are governance decisions. Against: the product's volume

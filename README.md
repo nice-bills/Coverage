@@ -56,7 +56,7 @@ Forecasts frozen before the epochs existed, scored by mainnet while you judge:
 
 - **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2091. Don't own NEAR expecting buybacks to offset dilution soon.
 - **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 23%) and HSP-029's lower issuance would bring even the base case to about 8 years. Both are votes, not market conditions.
-- **Turn more bullish if:** HSP-029 clears its veto window (about 16 Nov 2026) and validators adopt it, or the buyback's share of Intents fees rises toward 50%.
+- **Turn more bullish if:** HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
 ## Where each track requirement is met
@@ -102,7 +102,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=544723ab97176cc67caa0faf7dc040e0ae524df38a60d7164ee4669942a4fb9b
+RESULT sha256=505432748cb53d707967526ca56680cf8124b1c07b364c36f2ba755d0e1309d1
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes

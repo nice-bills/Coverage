@@ -351,7 +351,16 @@ def private_logs():
 
 # ---- path to break-even (forward-looking scenarios; reads the summary and the DefiLlama year, changes nothing above)
 
-HSP029 = 1.6 / 2.5   # HSP-029: maximum issuance from 2.5% to 1.6% a year, assumed to ramp linearly over 24 months from the snapshot
+HSP029 = 1.6 / 2.5   # HSP-029: maximum issuance from 2.5% to 1.6% a year, ramping linearly over 24 months
+# The ramp cannot start before this date: the House of Stake vote passed on 2026-11-02, the Security Council veto
+# window closes on 2026-11-16 (16:48 UTC), and a 90-day grace period follows. Validators must also adopt a nearcore
+# release, so this is the earliest start, not a known one.
+HSP029_EARLIEST = datetime.date(2027, 2, 14)
+
+
+def hsp_delay(snapshot):
+    """Months from the snapshot date to the earliest start of the HSP-029 ramp (0 if already past)."""
+    return max(0.0, (HSP029_EARLIEST - datetime.date.fromisoformat(snapshot[:10])).days / (365.25 / 12))
 
 
 def growth_measures(llama, before):
@@ -371,16 +380,17 @@ def growth_measures(llama, before):
     return out
 
 
-def breakeven(payback, growth, ramp, horizon=100):
+def breakeven(payback, growth, ramp, horizon=100, delay=0.0):
     """Years until payback, growing at `growth` a year (monthly steps), reaches 100% of issuance; None if not within `horizon`."""
     for m in range(0, 12 * horizon + 1):
-        if payback * (1 + growth) ** (m / 12) / issuance_factor(m, ramp) >= 1:
+        if payback * (1 + growth) ** (m / 12) / issuance_factor(m, ramp, delay) >= 1:
             return m / 12
     return None
 
 
-def issuance_factor(month, ramp):
-    return 1 - (1 - HSP029) * min(month, 24) / 24 if ramp else 1.0
+def issuance_factor(month, ramp, delay=0.0):
+    """Issuance relative to 2.5% after `month` months; the HSP-029 ramp starts `delay` months from now."""
+    return 1 - (1 - HSP029) * min(max(month - delay, 0), 24) / 24 if ramp else 1.0
 
 
 def scenarios(s, llama, before):
@@ -392,25 +402,26 @@ def scenarios(s, llama, before):
     pay, g = s["payback"], growth_measures(llama, before)
     rates = sorted(g.values())
     start = datetime.date.fromisoformat(s["last"])
+    dl = hsp_delay(s["last"])
     when = lambda y: None if y is None else start.year + (start.timetuple().tm_yday / 365.25 + y)
     cases = {}
     for name, rate in (("bear", rates[0]), ("base", quantile(rates, 0.5)), ("bull", rates[-1])):
-        y, yh = breakeven(pay, rate, False), breakeven(pay, rate, True)
+        y, yh = breakeven(pay, rate, False), breakeven(pay, rate, True, delay=dl)
         cases[name] = dict(growth=rate, years=y, years_hsp029=yh,
                            year=None if y is None else int(when(y)), year_hsp029=None if yh is None else int(when(yh)),
                            payback_10y=pay * (1 + rate) ** 10, payback_10y_hsp029=pay * (1 + rate) ** 10 / HSP029)
     path = dict(years=[q / 4 for q in range(41)])
     for name, c in cases.items():
         for ramp in (False, True):
-            path[name + ("_hsp029" if ramp else "")] = [pay * (1 + c["growth"]) ** (q / 4) / issuance_factor(3 * q, ramp) for q in range(41)]
+            path[name + ("_hsp029" if ramp else "")] = [pay * (1 + c["growth"]) ** (q / 4) / issuance_factor(3 * q, ramp, dl) for q in range(41)]
     # capture lever: the burn stays, the buyback part scales with the share of gross Intents fees captured
     cap = []
     for share in sorted({s["capture_share"], 0.5, 1.0}):
         p = s["burn_coverage"] + s["buyback_coverage"] * share / s["capture_share"]
         cap.append(dict(share=share, payback=p, payback_hsp029=p / HSP029,
-                        years_base=breakeven(p, cases["base"]["growth"], False), years_base_hsp029=breakeven(p, cases["base"]["growth"], True)))
+                        years_base=breakeven(p, cases["base"]["growth"], False), years_base_hsp029=breakeven(p, cases["base"]["growth"], True, delay=dl)))
     return dict(rule="bear = lowest, base = median, bull = highest of the four year-long growth measures",
-                start=s["last"], payback=pay, measures=g, cases=cases, path=path,
+                start=s["last"], hsp029_start=HSP029_EARLIEST.isoformat(), payback=pay, measures=g, cases=cases, path=path,
                 levers=dict(capture=cap, breakeven_issuance_pct=2.5 * pay,
                             growth_needed_5y=s.get("growth_needed_5y")))
 
@@ -509,9 +520,10 @@ def main():
     peak = max(paid, key=lambda r: r["payback"]) if paid else None
     def years_to_breakeven(growth, ramp):
         """Years until burn plus buybacks, growing at a constant yearly rate, equal issuance.
-        ramp=True lowers issuance linearly from 2.5% to 1.6% over 24 months (HSP-029)."""
+        ramp=True lowers issuance linearly from 2.5% to 1.6% over 24 months (HSP-029), from its earliest start."""
+        dl = hsp_delay(rows[-1]["date"] if "date" in rows[-1] else day(rows[-1]["t1_ns"]).strftime("%Y-%m-%d"))
         for month in range(1, 12 * 100 + 1):
-            issuance = 1 - (1 - 1.6 / 2.5) * min(month, 24) / 24 if ramp else 1.0
+            issuance = issuance_factor(month, ramp, dl)
             if (1 + growth) ** (month / 12) >= now["multiple"] * issuance:
                 return month / 12
         return None

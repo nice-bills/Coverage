@@ -18,7 +18,7 @@ def items(results):
                   f"break-even is {'in ' + str(base) if base else 'more than a century away'}. Don't own NEAR expecting buybacks to offset dilution soon."),
         ("The bet", f"**Governance, not growth.** Sending every Intents fee to the buyback (today about {100 * s['capture_share']:.0f}%) and HSP-029's lower "
                     f"issuance would bring even the base case to about {full['years_base_hsp029']:.0f} years. Both are votes, not market conditions."),
-        ("Turn more bullish if", "HSP-029 clears its veto window (about 16 Nov 2026) and validators adopt it, or the buyback's share of Intents fees "
+        ("Turn more bullish if", "HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees "
                                  "rises toward 50%."),
         ("Turn bearish if", f"the buyback balance keeps falling, payback over 100 epochs drops below {50 * s['payback']:.0f}%, or transfers "
                             "stop coming from intents.near."),
