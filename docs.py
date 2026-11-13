@@ -38,9 +38,10 @@ def values():
         c, sha = json.loads(raw), hashlib.sha256(raw).hexdigest()
         h, cl, held = c["horizon_epochs"], c["claims"], cb[str(c["horizon_epochs"])]["payback"]
         hashes.append(f"{name} {sha}")
-        close = ((end + datetime.timedelta(hours=hours * h)).strftime("about %Y-%m-%d %H:00")
-                 if c["after_end_height"] == s["last_height"] else "see the ledger")
         st = status.get(name)
+        t0 = (datetime.datetime.fromtimestamp(st["frozen_t"], datetime.timezone.utc).replace(tzinfo=None) if st and st.get("frozen_t")
+              else end if c["after_end_height"] == s["last_height"] else None)
+        close = (t0 + datetime.timedelta(hours=hours * h)).strftime("about %Y-%m-%d %H:00") if t0 else "see the ledger"
         if st and st["verdict"] != "PENDING":
             close = f"**{st['verdict']}**, closed {st['ends'][:16]}, payback {pct(st['payback'])}"
         elif st and st["so_far"] is not None:

@@ -14,9 +14,9 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 | [THESIS.md](THESIS.md) | Verdict, claim, evidence for, evidence against, what would change our mind | The full argument with the bear case at equal weight |
 | [Forecast rounds](#forecasts-and-the-outside-judge) | Ranges frozen before the epochs existed, timestamped in Bitcoin | The chain scores them during judging, 14 to 18 Nov |
 
-It runs itself. Every 6 hours a scheduled job fetches the epochs that closed, scores the frozen
-forecast rounds and redeploys. About once a day it freezes a new round, timestamps it in Bitcoin
-and commits it. Nobody edits the numbers by hand.
+It runs itself. Every hour during judging a scheduled job fetches the epochs that closed, scores
+the frozen forecast rounds, commits and redeploys. Nobody edits the numbers by hand. Freezing new
+rounds is paused until judging ends (25 Nov), so the headline numbers stay those submitted.
 
 ![The dashboard](docs/dashboard.jpg)
 
@@ -318,7 +318,7 @@ the code derives from the data up to that round's height.
 | `predictions/` | the frozen forecast rounds and their OpenTimestamps proofs |
 | `VERIFY.txt` | recorded output of one `verify.py` run |
 | `THESIS.md` | claim, evidence for and against, what would change our mind |
-| `.github/workflows/pages.yml` | every 6 hours: fetches new epochs, scores and freezes rounds, commits them to `main`, redeploys the dashboard |
+| `.github/workflows/pages.yml` | hourly during judging: fetches new epochs, scores the rounds, commits to `main`, redeploys the dashboard (freezing new rounds is paused until 25 Nov) |
 
 ## Limits
 
@@ -336,8 +336,9 @@ the code derives from the data up to that round's height.
 - The scheduled job refetches epochs, buyback balances and the account's receipts. DefiLlama
   and price stay at the committed snapshot, so the price model in rounds frozen later uses the
   last cached price. A round's verdict depends on the payback band, which does not use price.
-- Once a new round is frozen, the headline window moves to that round's height, so the result
-  hash changes about daily. The job regenerates this file in the same commit.
+- When a new round is frozen, the headline window moves to that round's height and the result
+  hash changes; the job regenerates this file in the same commit. Freezing is paused during
+  judging, so the hash in this file stays fixed until 25 Nov.
 - Utilization and the ceiling come from 3 blocks per epoch and are only meaningful as 100-epoch
   figures. The ceiling assumes today's effective gas price and is not a capacity guarantee.
 - Floats in `out/results.json` are rounded to 6 significant figures so the hash does not depend

@@ -1,12 +1,12 @@
-# The standing meter. Every 6 hours: fetch the epochs that closed, score the frozen rounds, and about
-# once a day freeze a new 5-epoch round, timestamp it in Bitcoin and commit everything to main.
+# The standing meter. Hourly during judging (6-hourly otherwise): fetch the epochs that closed, score the frozen
+# rounds and commit to main. Freezing a new 5-epoch round (about daily) is paused until judging ends.
 # A push only rebuilds and deploys; it never commits.
 name: pages
 on:
   push:
     branches: [main]
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 * * * *"   # hourly during judging (14 to 25 Nov 2026), so a closed round is scored within the hour; was every 6 hours
   workflow_dispatch:
 permissions:
   contents: write
@@ -37,6 +37,10 @@ jobs:
         run: python3 fetch.py history
       # Paused for judging (14 to 25 Nov 2026): a new round moves the headline snapshot away from the submitted
       # figures, and the three open rounds are what judging scores. Re-enable by restoring the condition below.
+      - name: Keep the committed cache if a fetch stopped part-way
+        # fetch.py writes the CSVs before it re-hashes them into data/sources.json; a run cut off in between would fail
+        # the self-test below and block the deploy, so fall back to the committed data instead
+        run: python3 test_run.py > /dev/null 2>&1 || { echo "cache inconsistent after fetch; restoring the committed data"; git checkout -- data; }
       - name: Freeze a new round when three epochs have closed since the newest one
         if: false && steps.fetch.outcome == 'success' && github.event_name != 'push'
         continue-on-error: true

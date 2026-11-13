@@ -19,7 +19,7 @@ What makes it checkable:
 - Verdict: not yet a supply story. The bet is governance: fee capture and HSP-029.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Forecast rounds in predictions/ commit to ranges for payback, burn and buyback gain after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round, and refuses any round it cannot re-derive exactly. A scheduled job freezes a new round about daily.
+The outside judge is the chain. Forecast rounds in predictions/ commit to ranges for payback, burn and buyback gain after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round, and refuses any round it cannot re-derive exactly. An hourly job scores them as they close.
 
 ## X post (attach the video; fits 280 characters)
 
@@ -59,9 +59,9 @@ then mux (see `film/voiceover.md`). It works on mute; the optional voiceover scr
 ## Checklist
 
 Already done: the repo is public, GitHub Pages serves the dashboard, and the scheduled `pages`
-workflow fetches new epochs, scores the frozen rounds, upgrades their Bitcoin timestamps, freezes a
-new round about daily and commits every 6 hours. The first round closes about 14 November
-07:00 UTC and is scored by the next run after that.
+workflow fetches new epochs, scores the frozen rounds, upgrades their Bitcoin timestamps and
+commits every hour during judging (freezing new rounds is paused until 25 Nov). The first round
+closes about 14 November 07:00 UTC and is scored within the hour.
 
 Left before Saturday 14 November, 23:59 UTC:
 

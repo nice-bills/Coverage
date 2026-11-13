@@ -1010,7 +1010,8 @@ def render(results, sha, ledgers=None, tape=None):
         except (OSError, KeyError, ValueError, IndexError):
             pass
         nd = lambda v: "&ndash;" if v is None else v
-        pend = [L for L in (ledgers or []) if L["verdict"] == "PENDING" and L.get("so_far") is not None and L["claims"].get("payback")]
+        pend = [L for L in (ledgers or []) if L["verdict"] == "PENDING" and L.get("so_far") is not None and L["claims"].get("payback")
+                and L["after_end_height"] == tape.get("snap")]
         sofar_live = ""
         if pend:
             ins = sum(L["claims"]["payback"]["lo"] <= L["so_far"] <= L["claims"]["payback"]["hi"] for L in pend)
@@ -1272,8 +1273,9 @@ def render(results, sha, ledgers=None, tape=None):
         if L["ends"]:
             ce = datetime.datetime.strptime(L["ends"], "%Y-%m-%d %H:%M UTC")
             when = f"closed {ce.day} {MONTHS[ce.month - 1][:3]} {ce:%H:%M}<small>UTC</small>"
-        elif end and L["after_end_height"] == s["last_height"]:
-            t = end + datetime.timedelta(hours=s["window_days"] * 24 / 100 * L["total"])
+        elif L.get("frozen_t"):
+            t = (datetime.datetime.fromtimestamp(L["frozen_t"], datetime.timezone.utc).replace(tzinfo=None)
+                 + datetime.timedelta(hours=s["window_days"] * 24 / 100 * L["total"]))
             closes.append(t)
             when = "≈ " + f"{t.day} {MONTHS[t.month - 1][:3]} {t:%H}:00<small>UTC</small>"
         else:
@@ -1316,7 +1318,7 @@ def render(results, sha, ledgers=None, tape=None):
             rng_, lead = f"{sum(tally.values())} rounds", f"Scored so far: {tal}."
         rounds = (f"<div class='rounds'>{cards}</div><div class='judging'><div class='d'>{rng_}</div><p>{lead} Historically the payback band has held {held} "
                   "of the time, so an occasional miss is expected even when the model is right, and a pass near the bounds is weak support.</p></div>"
-                  f"<details><summary>Scoreboard<small>{len(ledgers)} rounds frozen: {tal}. A scheduled job freezes a new 5-epoch round about once a day, timestamps it and commits it; nothing is ever removed.</small></summary>"
+                  f"<details><summary>Scoreboard<small>{len(ledgers)} rounds frozen: {tal}. An hourly job scores each round as its epochs close; nothing is ever removed. Freezing new rounds is paused during judging.</small></summary>"
                   "<div class='tw'><table class='tbl'><tr><th>Frozen</th><th>Window</th><th class='r'>Committed payback</th><th class='r'>Actual</th>"
                   f"<th class='r'>Epochs closed</th><th class='r'>Verdict</th></tr>{board}</table></div></details>")
     # recorded output

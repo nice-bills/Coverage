@@ -597,10 +597,11 @@ def main():
             sys.exit(f"predictions/{name} is not what the model derives from the data up to its height")
         led = ledger(every[idx + 1:], commit)
         led["file"] = name
+        led["frozen_t"] = every[idx]["t1_ns"] // 10**9  # end of the epoch the round was frozen at, unix seconds
         led["commit"] = hashlib.sha256(open(os.path.join(ROOT, "predictions", name), "rb").read()).hexdigest()
         leds.append(led)
     # round status for the docs (README table); kept out of results.json so the result hash never depends on it
-    json.dump([dict(file=L["file"], verdict=L["verdict"], resolved=L["resolved"], total=L["total"], so_far=L["so_far"], ends=L["ends"],
+    json.dump([dict(file=L["file"], verdict=L["verdict"], resolved=L["resolved"], total=L["total"], so_far=L["so_far"], ends=L["ends"], frozen_t=L["frozen_t"],
                     payback=(L["claims"].get("payback") or {}).get("actual")) for L in leds],
               open(os.path.join(ROOT, "out", "ledger.json"), "w"), indent=1, sort_keys=True)
     for k, v in results["summary"].items():

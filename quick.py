@@ -221,11 +221,14 @@ def render(results, sha, ledgers=None):
         import datetime
         end = datetime.datetime.strptime(s["last_end_utc"], "%Y-%m-%d %H:%M")
         hrs = s["window_days"] * 24 / 100
-        cl = sorted(end + datetime.timedelta(hours=hrs * L["total"]) for L in pend)
+        at = lambda L: ((datetime.datetime.fromtimestamp(L["frozen_t"], datetime.timezone.utc).replace(tzinfo=None) if L.get("frozen_t") else end)
+                        + datetime.timedelta(hours=hrs * L["total"]))
+        pend = sorted(pend, key=at)
+        cl = [at(L) for L in pend]
         ins = sum(L["claims"]["payback"]["lo"] <= L["so_far"] <= L["claims"]["payback"]["hi"] for L in pend)
         d = lambda t: f"{t.day} {t:%b}"
         live = (f"<div class='q-live'><div class='k'>Live right now</div><div class='v'><b>{ins} of {len(pend)}</b> live forecasts are inside their range so far "
-                f"(payback {pct(pend[0]['so_far'])} after {pend[0]['resolved']} epochs).</div>"
+                f"(the first to close: payback {pct(pend[0]['so_far'])} after {pend[0]['resolved']} of {pend[0]['total']} epochs).</div>"
                 f"<div class='v'>The first closes about <b>{d(cl[0])} {cl[0]:%H}:00 UTC</b>; " + (f"all close by <b>{d(cl[-1])}</b>." if len(cl) > 1 else "")
                 + f"</div><a class='q-btn small' href='index.html#c5'>See the live scoreboard</a></div>")
 
