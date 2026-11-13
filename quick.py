@@ -183,8 +183,8 @@ def render(results, sha, ledgers=None):
         bs = bq.summary(bq.load())
         x, a_ = bs.get("intents_share"), bs.get("daily_active_accounts")
         if x and a_ and x["per_day_first"]:
-            quiet = (f"<li><span class='ic'>iv</span><div><b>The chain got quieter.</b><span>Daily active accounts are {e(a_['change'])} since February, mostly one app "
-                     f"(KaiChing) leaving. Intents went the other way: {x['per_day_last'] / x['per_day_first']:.1f}× more activity.</span></div></li>")
+            quiet = (f"<li><span class='ic'>iv</span><div><b>The chain got quieter.</b><span>Daily active accounts are {e(a_['change'])} since February. Most of the drop in app activity "
+                     f"is one app (KaiChing) leaving. Intents went the other way: {x['per_day_last'] / x['per_day_first']:.1f}× more activity.</span></div></li>")
     except Exception:
         pass
     step("catch", "The honest catch", f"""

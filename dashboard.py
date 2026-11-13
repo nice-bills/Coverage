@@ -236,6 +236,7 @@ details>summary:hover{color:var(--teal)}details>summary small{display:block;font
 .band .m span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-2);white-space:nowrap}
 .band .a{position:absolute;top:15px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--card)}
 .band .lbl{position:absolute;top:33px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.live .lsf{display:block;margin-top:4px;color:var(--ink-2)}.live .lsf b{color:var(--teal);font-weight:600}
 .round .sofar{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 12px;border-radius:12px;padding:12px 14px;background:var(--teal-soft)}
 .round .sofar span{font-size:13px;color:var(--ink-2)}.round .sofar b{font:400 30px/1 var(--serif);color:var(--teal);grid-row:span 2;align-self:center}
 .round .sofar small{font-size:12.5px;color:var(--ink-2)}.round .sofar.out{background:var(--terra-soft)}.round .sofar.out b{color:var(--terra)}
@@ -1009,13 +1010,19 @@ def render(results, sha, ledgers=None, tape=None):
         except (OSError, KeyError, ValueError, IndexError):
             pass
         nd = lambda v: "&ndash;" if v is None else v
+        pend = [L for L in (ledgers or []) if L["verdict"] == "PENDING" and L.get("so_far") is not None and L["claims"].get("payback")]
+        sofar_live = ""
+        if pend:
+            ins = sum(L["claims"]["payback"]["lo"] <= L["so_far"] <= L["claims"]["payback"]["hi"] for L in pend)
+            sofar_live = (f"<small class='lsf'>Payback so far <b>{pct(pend[0]['so_far'])}</b>: inside {ins} of {len(pend)} committed ranges, "
+                          f"<a href='#c5'>scoreboard</a></small>")
         live = (f"<div class='live' role='group' aria-label='NEAR mainnet now'><div><span class='pulse' id='lmsg' aria-live='polite'>Mainnet, from cache</span>"
                 f"<small id='lsub' data-cache='{'Epoch ending ' + c_when + ', committed cache' if c_when else 'Committed cache'}'>{'Epoch ending ' + c_when + ', reading mainnet' if c_when else 'Reading NEAR mainnet from your browser'}</small></div>"
                 f"<div><small>Latest block</small><div class='v' id='l-h'>{nd(c_h)}</div></div>"
                 f"<div><small>Total supply, NEAR</small><div class='v' id='l-s'>{nd(c_s)}</div></div>"
                 f"<div><small>Buyback account holds, NEAR</small><div class='v' id='l-b'>{nd(c_b)}</div></div>"
                 + (f"<div><small>Gained since the forecasts were frozen</small><div class='v teal' id='l-g'>{nd(c_g)}</div>"
-                   f"<small id='l-gs'>{'NEAR in ' + str(c_n) + ' epochs' if c_n is not None else ''}</small></div>" if tape["rounds"] else "<div></div>")
+                   f"<small id='l-gs'>{'NEAR in ' + str(c_n) + ' epochs' if c_n is not None else ''}</small>{sofar_live}</div>" if tape["rounds"] else "<div></div>")
                 + "<p class='lfoot' id='lfail' hidden>Live read unavailable (the free endpoint rate-limits); showing the committed cache.</p></div>")
 
     # ---- chapter 01: the claim ----
@@ -1229,11 +1236,21 @@ def render(results, sha, ledgers=None, tape=None):
                f"Over a year, daily volume is {s['intents_volume_usd_ratio_1y']:.2f}× and gross fees {s['intents_fees_usd_ratio_1y']:.2f}× (DefiLlama)."),
               ("The flow is concentrated.", f"One application supplies {pct(s['buyback_coverage'] / s['payback'], 0)} of the payback."),
               ("The balance has fallen before.", f"{num(s['buyback_outflow_near'])} NEAR left the account in {s['buyback_outflow_epochs']} of {s['buyback_epochs']} epochs.")]
+        try:  # BigQuery: the network got quieter while Intents grew; one point on each side, or neither
+            import bq
+            bs = bq.summary(bq.load())
+            xi, xa, xt = bs.get("intents_share"), bs.get("daily_active_accounts"), bs.get("daily_transactions")
+            if xi and xa and xt and xi["per_day_first"]:
+                f_.append(("Intents grows as the chain shrinks.", f"intents.near's daily receipts grew {xi['per_day_last'] / xi['per_day_first']:.1f}× since February; "
+                                                                  f"its share of all receipts rose from {pct(xi['first'])} to {pct(xi['last'])} (BigQuery)."))
+                a_.append(("The chain got quieter.", f"Daily active accounts are {xa['change']} and transactions {xt['change']} since February. Most of the drop in app activity is one app, KaiChing, leaving (BigQuery)."))
+        except Exception:
+            pass
         side = lambda name, k, xs: (f"<div class='side'><h3>{name}</h3><div class='k'>{k}</div>"
                                     + "".join(f"<div class='pt'><span class='i'>{ROMAN[i]}</span><h4>{h}</h4><p>{p}</p></div>"
                                               for i, (h, p) in enumerate(x for x in xs if x)) + "</div>")
         ch4 = f"""<section class="chapter" id="c4" data-t="The case, both ways"><div class="ch-head"><div class="ch-num"><span class="n">{later(4)}</span><span class="eyebrow">The case, both ways</span><span class="line"></span></div>
-<h2>The bear case gets the same page as the bull case.</h2><p>Five points each side, at equal weight. The full argument, with what would change our mind, is in <a href="{REPO}/blob/main/THESIS.md">THESIS.md</a>.</p></div>
+<h2>The bear case gets the same page as the bull case.</h2><p>{dict(enumerate(["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven"])).get(len([x for x in a_ if x]), "Several")} points each side, at equal weight. The full argument, with what would change our mind, is in <a href="{REPO}/blob/main/THESIS.md">THESIS.md</a>.</p></div>
 <div class="spread">{side('For', 'The flow is on chain, exact, and has levers.', f_)}{side('Against', 'Held is not burnt, and the trend matters.', a_)}</div>
 <div class="verdict"><blockquote>“If the buybacks were burnt, realized inflation would be {pct(s['inflation_if_buybacks_were_burnt'], 2)} instead of {pct(s['realized_inflation'], 2)}. They are not, yet.”<cite>Inflation if buybacks were burnt · out/results.json</cite></blockquote></div></section>"""
 

@@ -197,6 +197,8 @@ CSS = """
 .bq .says{margin:12px 0 0;font-size:14.5px;color:var(--ink-2);line-height:1.55;max-width:60ch}
 .bq .pend{margin-top:14px;border-radius:12px;padding:22px 20px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
 .bq .pend b{display:block;font:400 20px/1.2 var(--serif);color:var(--ink);margin-bottom:4px}
+.bq .gone{margin-top:14px;border-top:1px solid var(--rule-2);padding-top:12px;font-size:13.5px;color:var(--ink-2)}
+.bq .gone b{font-weight:600;color:var(--terra)}.bq .gone ul{margin:6px 0 0;padding-left:18px}
 .bq .meta{margin:12px 0 0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .bq details.sql{margin-top:14px;border-top:1px solid var(--rule-2)}
 .bq details.sql[open]{border-bottom:0;padding-bottom:0}
@@ -278,8 +280,10 @@ def chapter(num="06", cid="c6", d=None):
             f"{'was ' + str(x['top_first'][r['contract']]) if r['contract'] in x['top_first'] else 'new in top 25'}</span></span>"
             f"<span class='pc'>{pct(r['share'])}</span><span class='tr'><i class='{'t' if r['contract'] == INTENTS else ''}' style='width:{100 * r['share'] / mx:.1f}%'></i></span></div>"
             for r in top)
+        gone = "".join(f"<li><code>{e(_name(r['contract']))}</code> was {_ord(r['rank'])} with {pct(r['share'])} of all calls</li>" for r in x.get("gone", []))
         ch = (f"<p class='fig-sub' style='margin-top:10px'>Share of all function calls, last 30 days, top 10; grey text: rank in the first 30 days</p>"
-              f"<div class='senders bars' role='list'>{rows}</div>")
+              f"<div class='senders bars' role='list'>{rows}</div>"
+              + (f"<div class='gone'><b>Gone from the top 25 since the first 30 days</b><ul>{gone}</ul></div>" if gone else ""))
         r1 = x["last"]
         t = f"intents.near ranks {_ord(r1['rank'])} by function calls" if r1 else "The contracts NEAR's function calls go to"
     else:
