@@ -251,7 +251,10 @@ def ledger(later, commit):
     # the verdict is the payback claim: the thesis number must hold on epochs that did not exist when it was frozen
     v = claims.get("payback", {}).get("verdict", "PENDING")
     verdict = {"HIT": "PASS", "MISS": "FALSIFIED"}.get(v, "PENDING")
-    return dict(claims=claims, resolved=k, total=h, hits=sum(r["hit"] for r in rows), loss=loss, verdict=verdict,
+    # running payback over the epochs closed so far: display only, never a verdict
+    part = later[:k]
+    so_far = CLAIMS["payback"][0](part) if k and "payback" in CLAIMS and all(r["buy"] is not None for r in part) else None
+    return dict(claims=claims, resolved=k, total=h, so_far=so_far, hits=sum(r["hit"] for r in rows), loss=loss, verdict=verdict,
                 rows=rows, table_model=commit["table_model"], after_end_height=commit["after_end_height"],
                 ends=day(later[h - 1]["t1_ns"]).strftime("%Y-%m-%d %H:%M UTC") if k == h else None)
 
@@ -599,7 +602,7 @@ def main():
         bal=next((r["balance"] for r in csv.DictReader(open(os.path.join(ROOT, "data", "buybacks.csv")))
                   if int(r["end_height"]) == snap), None))))
     import quick
-    page = quick.render(results, sha)
+    page = quick.render(results, sha, leds)
     if page:
         open(os.path.join(ROOT, "dist", "quick.html"), "w").write(page)
     for led in leds:

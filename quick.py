@@ -1,6 +1,6 @@
 """Render dist/quick.html: Coverage in 60 seconds.
 
-The same results, design and motion as dist/index.html, cut down for readers who skim: six steps, one idea
+The same results, design and motion as dist/index.html, cut down for readers who skim: a few steps, one idea
 each, one big number each, plain words, nothing hidden behind hover or a click. Every number comes from
 out/results.json, so this page cannot drift from the full report. Stdlib only.
 """
@@ -62,6 +62,14 @@ body{font-size:18px;line-height:1.6}
 .q-list .ic{font:400 30px/1 var(--serif);color:var(--terra)}
 .q-list b{display:block;font-size:20px;font-weight:600}
 .q-list span{color:var(--ink-2);font-size:17px}
+.q-verdict{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:14px}
+.q-verdict li{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;display:grid;gap:6px;background:var(--paper)}
+.q-verdict .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.q-verdict li:nth-child(4) .k{color:var(--terra)}
+.q-verdict .v{font-size:18px;line-height:1.5}
+.q-live{margin-top:20px;border:2px solid var(--teal);border-radius:16px;padding:16px 18px;display:grid;gap:8px}
+.q-live .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.q-live .v{font-size:18px}.q-live .q-btn{justify-self:start;margin-top:6px}
 .q-cmd{margin-top:22px;background:var(--term);color:var(--term-ink);border-radius:14px;padding:18px 20px;font:400 18px var(--mono);overflow-x:auto}
 .q-cmd .ok{color:var(--term-ok)}
 .q-end{text-align:center;padding:40px 0 72px}
@@ -115,7 +123,7 @@ const root=document.documentElement,$=q=>document.querySelector(q);
 """
 
 
-def render(results, sha):
+def render(results, sha, ledgers=None):
     s, sc = results["summary"], results.get("scenarios")
     if s.get("payback") is None:
         return None
@@ -143,7 +151,7 @@ def render(results, sha):
 <p class="say">That's how much of the new NEAR gets <b>burnt</b> (destroyed) in fees.</p>
 <div class="q-bars"><div class="q-bar"><div class="lab"><b>Burnt in fees</b><span>{num(u)} of {num(m)} a day</span></div>
 <div class="track"><div class="q-grow" style="width:{w(u / m)};background:var(--terra)"></div></div></div></div>
-<p class="plain terra">Seen this way, NEAR needs <b>{s['burn_only_multiple']:.0f}×</b> more activity before it destroys as much as it makes. Hopeless.</p>""")
+<p class="plain terra">Seen this way, NEAR needs <b>{s['burn_only_multiple']:.0f}×</b> more activity before it destroys as much as it makes.</p>""")
 
     step("buyback", "What gets missed", f"""
 <h2>But there's a second flow: buybacks.</h2>
@@ -169,13 +177,32 @@ def render(results, sha):
 <div class="chart fan-w" style="margin-top:26px">{D.path_svg(sc, True)}</div><div class="chart fan-n" style="margin-top:22px">{D.path_svg(sc, False)}</div>
 <p class="plain">The fastest fix isn't growth. If the buyback took <b>every</b> Intents fee and NEAR cut issuance (a proposal called <b>HSP-029</b>), even the middle speed gets there in about <b>{full['years_base_hsp029']:.0f} years</b>.</p>""")
 
+    quiet = ""
+    try:
+        import bq
+        bs = bq.summary(bq.load())
+        x, a_ = bs.get("intents_share"), bs.get("daily_active_accounts")
+        if x and a_ and x["per_day_first"]:
+            quiet = (f"<li><span class='ic'>iv</span><div><b>The chain got quieter.</b><span>Daily active accounts are {e(a_['change'])} since February, mostly one app "
+                     f"(KaiChing) leaving. Intents went the other way: {x['per_day_last'] / x['per_day_first']:.1f}× more activity.</span></div></li>")
+    except Exception:
+        pass
     step("catch", "The honest catch", f"""
 <h2>The catch. We show this too.</h2>
 <ul class="q-list">
 <li><span class="ic">i</span><div><b>Bought back isn't burnt.</b><span>The NEAR sits in an account. Its owners could spend it.</span></div></li>
 <li><span class="ic">ii</span><div><b>It has dipped.</b><span>From a peak of {pct(s['payback_peak'])} down to {pct(s['payback'])} now.</span></div></li>
 <li><span class="ic">iii</span><div><b>One app does most of it.</b><span>NEAR Intents supplies {pct(s['buyback_coverage'] / s['payback'], 0)} of what's won back.</span></div></li>
+{quiet}
 </ul>""")
+
+    import verdict
+    vi = verdict.html(results, e)
+    if vi:
+        step("verdict", "So, buy or not?", f"""
+<h2>So what should an investor do?</h2>
+<p class="say">Our honest call, in four lines:</p>
+<ul class="q-verdict">{vi}</ul>""")
 
     cb = results.get("claims_backtest") or {}
     tot = [sum(v["payback"][k] for v in cb.values() if "payback" in v) for k in ("hit", "n")]
@@ -188,11 +215,25 @@ def render(results, sha):
 <p class="say">of the time, the real number landed <b>inside</b> our range when we tested it on past data.</p>
 <p class="plain">That's the honest bar: tight enough to be useful, wide enough to be right most of the time. Expect the odd miss. A range that is never wrong is too wide to mean anything.</p>""")
 
+    live = ""
+    pend = [L for L in (ledgers or []) if L["verdict"] == "PENDING" and L.get("so_far") is not None and L["claims"].get("payback")]
+    if pend and s.get("last_end_utc"):
+        import datetime
+        end = datetime.datetime.strptime(s["last_end_utc"], "%Y-%m-%d %H:%M")
+        hrs = s["window_days"] * 24 / 100
+        cl = sorted(end + datetime.timedelta(hours=hrs * L["total"]) for L in pend)
+        ins = sum(L["claims"]["payback"]["lo"] <= L["so_far"] <= L["claims"]["payback"]["hi"] for L in pend)
+        d = lambda t: f"{t.day} {t:%b}"
+        live = (f"<div class='q-live'><div class='k'>Live right now</div><div class='v'><b>{ins} of {len(pend)}</b> live forecasts are inside their range so far "
+                f"(payback {pct(pend[0]['so_far'])} after {pend[0]['resolved']} epochs).</div>"
+                f"<div class='v'>The first closes about <b>{d(cl[0])} {cl[0]:%H}:00 UTC</b>; " + (f"all close by <b>{d(cl[-1])}</b>." if len(cl) > 1 else "")
+                + f"</div><a class='q-btn small' href='index.html#c5'>See the live scoreboard</a></div>")
+
     step("check", "Check it yourself", f"""
 <h2>Don't trust us. Check it.</h2>
 <p class="say">One command rebuilds every number on this page from the chain data, in under 2 seconds:</p>
 <div class="q-cmd">$ python3 run.py<br><span class="ok">RESULT sha256={sha[:16]}…</span></div>
-<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p>""")
+<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p>{live}""")
 
     n = len(steps)
     body = "".join(

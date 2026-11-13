@@ -6,10 +6,8 @@
 --         receipt_id strings.
 -- Columns read: block_date, index_in_action_receipt, action_kind, receipt_receiver_account_id.
 -- Window  2026-02-13 to 2026-11-12, filtered on block_date so only these 273 days are read.
--- Cost    about 50 bytes a row. At 20 to 40 million actions a day, roughly 270 to 550 GB: the
---         largest of the four. The console shows the exact figure before you run it. The free
---         sandbox allows 1 TB a month; to halve the cost, run it twice with half the window each
---         and concatenate the two CSVs.
+-- Cost    measured on 2026-11-13 (dry run): 83 GB, the largest of the four. The console shows
+--         the exact figure before you run it. Free sandbox: 1 TB a month.
 -- Run     BigQuery console (sandbox: free, no card): paste, Run, then
 --         "Save results" -> "CSV (local file)", saved as data/bq/intents_share.csv
 --     or  mkdir -p data/bq && bq query --use_legacy_sql=false --format=csv --max_rows=1000 \

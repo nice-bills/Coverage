@@ -69,6 +69,11 @@ def _ord(n):
     return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 
 
+def _name(c):
+    """A 64-hex implicit account reads as noise in a chart; say what it is and keep its start."""
+    return f"implicit account {c[:6]}…" if len(c) == 64 and all(ch in "0123456789abcdef" for ch in c) else c
+
+
 def _mean(xs):
     return sum(xs) / len(xs) if xs else None
 
@@ -99,6 +104,8 @@ def summary(data):
         trend = "rose" if b > 1.1 * a else "fell" if b < 0.9 * a else "held about steady"
         s["intents_share"] = dict(first=a, last=b, calls_first=fa, calls_last=fb, days=k, trend=trend,
                                   per_day_last=_mean([r["intents_receipts"] for r in rows[-k:]]),
+                                  per_day_first=_mean([r["intents_receipts"] for r in rows[:k]]),
+                                  all_first=_mean([r["receipts"] for r in rows[:k]]), all_last=_mean([r["receipts"] for r in rows[-k:]]),
                                   start=rows[0]["block_date"], end=rows[-1]["block_date"], n=len(rows))
     rows = data["top_contracts"]["rows"]
     if data["top_contracts"]["status"] == "ok":
@@ -106,6 +113,15 @@ def summary(data):
         s["top_contracts"] = dict(first=rank["first_30d"], last=rank["last_30d"],
                                   top_last=[r for r in rows if r["period"] == "last_30d" and r["rank"] <= 25][:10],
                                   top_first={r["contract"]: r["rank"] for r in rows if r["period"] == "first_30d"})
+        last_set = {r["contract"] for r in rows if r["period"] == "last_30d"}
+        # the contracts that led the first 30 days and are not in the last 30 days' top 25: what left the chain
+        gone = [r for r in rows if r["period"] == "first_30d" and r["rank"] <= 5 and r["contract"] not in last_set]
+        s["top_contracts"]["gone"] = gone
+        s["top_contracts"]["gone_share"] = sum(r["share"] for r in gone)
+    rows = data["daily_active_accounts"]["rows"]
+    if data["daily_active_accounts"]["status"] == "ok" and len(rows) >= 3:
+        i = min(range(1, len(rows)), key=lambda j: rows[j]["active_accounts"] - rows[j - 1]["active_accounts"])
+        s["dau_step"] = dict(date=rows[i]["block_date"], before=rows[i - 1]["active_accounts"], after=rows[i]["active_accounts"])
     return s
 
 
@@ -160,6 +176,14 @@ def doc_values(d=None):
     table = ("| Query | Measures | Table | Result |\n|---|---|---|---|\n"
              + "\n".join(f"| [`queries/{n}.sql`](queries/{n}.sql) | {what} | `{t}` | {st(data[n])} |" for n, _, what, t in QUERIES))
     finding = say.get("intents_share") or "Pending until `data/bq/intents_share.csv` is added."
+    x, tc, a_, t_ = s.get("intents_share"), s.get("top_contracts") or {}, s.get("daily_active_accounts"), s.get("daily_transactions")
+    if x and x["per_day_first"] and x["all_first"] and a_ and t_:
+        finding = (f"the chain got quieter and Intents did not. Over the last {x['days']} days against the first {x['days']}, daily active accounts are "
+                   f"{a_['change']} and transactions {t_['change']}, but intents.near's receipts grew {x['per_day_last'] / x['per_day_first']:.1f}x "
+                   f"({x['per_day_first']:,.0f} to {x['per_day_last']:,.0f} a day), so its share of all receipts rose from {100 * x['first']:.1f}% to {100 * x['last']:.1f}%.")
+        if tc.get("gone") and tc.get("gone_share", 0) > 0.3:
+            finding += (" Most of the fall in network activity is one app leaving: " + " and ".join(f"`{r['contract']}`" for r in tc["gone"][:2])
+                        + f" made {100 * tc['gone_share']:.0f}% of all function calls over the first 30 days and are not in the top 25 now.")
     return dict(BQ_STATUS=status_line(data), BQ_TABLE=table, BQ_FINDING=finding)
 
 
@@ -250,7 +274,7 @@ def chapter(num="06", cid="c6", d=None):
         top = x["top_last"]
         mx = max((r["share"] for r in top), default=1) or 1
         rows = "".join(
-            f"<div class='srow'><span class='nm'><code>{e(r['contract'])}</code><span class='rk'>"
+            f"<div class='srow'><span class='nm'><code>{e(_name(r['contract']))}</code><span class='rk'>"
             f"{'was ' + str(x['top_first'][r['contract']]) if r['contract'] in x['top_first'] else 'new in top 25'}</span></span>"
             f"<span class='pc'>{pct(r['share'])}</span><span class='tr'><i class='{'t' if r['contract'] == INTENTS else ''}' style='width:{100 * r['share'] / mx:.1f}%'></i></span></div>"
             for r in top)
@@ -264,9 +288,22 @@ def chapter(num="06", cid="c6", d=None):
 
     x = s.get("intents_share")
     if x:
-        h2 = (f"intents.near received {pct(x['last'])} of NEAR's receipts in the last {x['days']} days, "
+        g = x["per_day_last"] / x["per_day_first"] if x["per_day_first"] else None
+        h2 = (f"The chain got quieter; Intents did not. intents.near's daily receipts grew {g:.1f}× while the chain's fell by {100 * (1 - x['all_last'] / x['all_first']):.0f}%."
+              if g and x["all_first"] and g > 1 and x["all_last"] < x["all_first"] else
+              f"intents.near received {pct(x['last'])} of NEAR's receipts in the last {x['days']} days, "
               + ("up from" if x["trend"] == "rose" else "down from" if x["trend"] == "fell" else "close to") + f" {pct(x['first'])}.")
-        link = {"rose": "Intents is taking a larger share of the chain's activity, which fits the claim that NEAR's token flow is moving to the application layer. "
+        tc, st = s.get("top_contracts") or {}, s.get("dau_step")
+        why_drop = ""
+        if tc.get("gone") and tc.get("gone_share", 0) > 0.3:
+            names = " and ".join(f"<code>{e(r['contract'])}</code>" for r in tc["gone"][:2])
+            import datetime as _dt
+            day = lambda d: (lambda t: f"{t.day} {t:%b} {t.year}")(_dt.date.fromisoformat(d))
+            why_drop = (f"Most of the fall in calls is one app leaving: over the first 30 days {names} made {100 * tc['gone_share']:.0f}% of all function calls, "
+                        f"and neither is in the top 25 now." + (f" Daily active accounts fell in one step on {day(st['date'])}, from {st['before']:,.0f} to {st['after']:,.0f}, "
+                        "which looks like a single exit rather than a slow drift." if st else "") + " ")
+        link = {"rose": why_drop + f"Over the same window intents.near's own activity grew in absolute terms, so its share rose from {pct(x['first'])} to {pct(x['last'])}: "
+                        "NEAR's activity is moving to the application that pays the buybacks. "
                         "It does not by itself raise payback: the buyback account is paid from Intents fees, not from receipts.",
                 "fell": "Intents is a smaller share of the chain's activity than at the start of the window. Payback depends on Intents fees, not on receipts, "
                         "so this is context for the thesis rather than a test of it.",

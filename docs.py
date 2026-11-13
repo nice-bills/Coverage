@@ -99,6 +99,8 @@ def values():
     # BigQuery queries (queries/*.sql) and the status of their exports in data/bq/; not part of results.json
     import bq
     extra.update(bq.doc_values())
+    import verdict
+    extra["VERDICT"] = verdict.markdown(r)
 
     return dict(
         **extra,

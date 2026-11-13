@@ -8,6 +8,13 @@ Terms used below: an *epoch* is NEAR's accounting period, about 12 hours (43,200
 *yoctoNEAR* is 10^-24 NEAR, the chain's smallest unit; *payback* is burn plus buyback inflow
 divided by new issuance; *break-even* is how many times flows must grow to equal issuance.
 
+## Verdict for an investor
+
+__VERDICT__
+
+The rest of this file is the evidence for that stance, the case against it, and the rounds that
+test it while judging runs.
+
 ## Claim
 
 NEAR mints about 2.5% of its supply a year to validators (the current maximum; HSP-029, voted
@@ -213,6 +220,13 @@ sender check above does not reach back that far.
 arrives as NEAR, so the same revenue is fewer NEAR at a higher price. This is arithmetic, not
 something the repo tests.
 
+**The chain got quieter.** Over the last 30 days against the first 30 of the window, BigQuery
+shows daily active accounts and transactions both down by more than two thirds (see Network
+activity below). A smaller network is a weaker base for any token. Most of the fall traces to one
+application, KaiChing, which made most of the chain's function calls in February and has left
+the top 25, while intents.near's own receipts grew. If activity outside Intents keeps shrinking,
+the application-layer case narrows to a single product.
+
 **Public volume and fee series may now undercount.** If Tideline's finding is right, the
 DefiLlama volume, fee and take-rate figures used here for context understate activity from
 2026-10-27. The correlation and the capture share are computed on those series.
@@ -274,8 +288,9 @@ Beyond the rounds, rerunning `fetch.py` and `run.py` would change our mind if:
 
 ## What this implies for the long term
 
-The investment question is whether the flows that offset issuance can grow about __MULT__x. The
-evidence supports a conditional answer, not a forecast:
+The investment question is whether the flows that offset issuance can grow about __MULT__x. Our
+stance is the verdict at the top of this file; the evidence behind it is conditional, not a
+forecast:
 
 __YEARS_TABLE__
 

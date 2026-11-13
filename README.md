@@ -4,9 +4,15 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 
 [![pages](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml/badge.svg)](https://github.com/nice-bills/Coverage/actions/workflows/pages.yml)
 
-Live dashboard: https://nice-bills.github.io/Coverage/
+## Start here
 
-**Short on time? [Coverage in 60 seconds](https://nice-bills.github.io/Coverage/quick.html)**: six steps, one idea each, plain words.
+| | What it is | Why it matters |
+|---|---|---|
+| ★ [Coverage in 60 seconds](https://nice-bills.github.io/Coverage/quick.html) | The short version: one idea per step, plain words | The whole thesis and our verdict in a minute |
+| ★ [Live dashboard](https://nice-bills.github.io/Coverage/) | Every chart with the query or code behind it and one sentence on what it shows | Reads NEAR mainnet live in your browser; the forecast cards update as epochs close |
+| ★ `python3 run.py` | Rebuilds every number offline in under 2 seconds and prints a hash | Must match the hash in this file: no keys, no network, no trust needed |
+| [THESIS.md](THESIS.md) | Verdict, claim, evidence for, evidence against, what would change our mind | The full argument with the bear case at equal weight |
+| [Forecast rounds](#forecasts-and-the-outside-judge) | Ranges frozen before the epochs existed, timestamped in Bitcoin | The chain scores them during judging, 14 to 18 Nov |
 
 It runs itself. Every 6 hours a scheduled job fetches the epochs that closed, scores the frozen
 forecast rounds and redeploys. About once a day it freezes a new round, timestamps it in Bitcoin
@@ -45,6 +51,13 @@ The case for and against, at equal weight:
 Forecasts frozen before the epochs existed, scored by mainnet while you judge:
 
 ![Forecast rounds and their committed bands](docs/shot-check.jpg)
+
+## Verdict for an investor
+
+- **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2091. Don't own NEAR expecting buybacks to offset dilution soon.
+- **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 23%) and HSP-029's lower issuance would bring even the base case to about 8 years. Both are votes, not market conditions.
+- **Turn more bullish if:** HSP-029 clears its veto window (about 16 Nov 2026) and validators adopt it, or the buyback's share of Intents fees rises toward 50%.
+- **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
 ## Where each track requirement is met
 
@@ -193,8 +206,8 @@ python3 run.py
 ```
 
 `fetch.py` adds only epochs and balances newer than the cache. `run.py` then prints, per round
-(illustrative; the committed cache was frozen at the rounds' height, so it prints `0/5`, `0/10`
-and `0/20` until `fetch.py` adds the epochs that closed since):
+(illustrative; the count of closed epochs grows as the scheduled job adds the epochs that closed
+since the rounds were frozen):
 
 ```
 LEDGER round-<height>-h10.json: 7/10 epochs closed -> PENDING
@@ -317,7 +330,7 @@ the code derives from the data up to that round's height.
 | `predictions/` | the frozen forecast rounds and their OpenTimestamps proofs |
 | `VERIFY.txt` | recorded output of one `verify.py` run |
 | `THESIS.md` | claim, evidence for and against, what would change our mind |
-| `.github/workflows/pages.yml` | rebuilds the hosted dashboard every 6 hours without changing `main` |
+| `.github/workflows/pages.yml` | every 6 hours: fetches new epochs, scores and freezes rounds, commits them to `main`, redeploys the dashboard |
 
 ## Limits
 

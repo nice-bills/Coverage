@@ -4,10 +4,9 @@
 -- Columns read: block_date (DATE), signer_account_id (STRING). Nothing else is scanned.
 -- Window  2026-02-13 to 2026-11-12, the same days as the repo's chain window; the WHERE clause
 --         on block_date prunes partitions, so only these 273 days are read.
--- Cost    BigQuery bills the bytes of the columns read: about 30 bytes a row (8 for the date, ~22
---         for the account id). At 5 to 10 million transactions a day that is roughly 40 to 80 GB.
+-- Cost    BigQuery bills the bytes of the columns read. Measured on 2026-11-13 (dry run): 9.6 GB.
 --         The console shows the exact figure ("This query will process ...") before you run it.
---         The free BigQuery sandbox allows 1 TB of queries a month; all four queries fit.
+--         All four queries together scanned 122 GB; the free sandbox allows 1 TB a month.
 -- Run     BigQuery console (sandbox: free, no card): paste, Run, then
 --         "Save results" -> "CSV (local file)", saved as data/bq/daily_active_accounts.csv
 --     or  mkdir -p data/bq && bq query --use_legacy_sql=false --format=csv --max_rows=1000 \

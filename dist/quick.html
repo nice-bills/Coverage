@@ -37,8 +37,14 @@ code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
 .mast nav{display:flex;gap:22px;font-size:13.5px;color:var(--ink-2)}.mast nav a{text-decoration:none}.mast nav a:hover{color:var(--ink)}
 .toggle{flex:none;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;font:500 12.5px var(--sans);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .toggle:hover{border-color:var(--muted)}
+.mast nav a{white-space:nowrap}@media (max-width:1440px){.brand span{display:none}}
 .toggle.quick{text-decoration:none;margin-left:auto;background:var(--teal);border-color:var(--teal);color:#fff;font-size:14px;font-weight:600;padding:8px 16px}
 .quick-cta{grid-column:1/-1;justify-self:start;width:fit-content;display:inline-flex;align-items:center;gap:16px;margin:32px 0 28px;padding:18px 26px;border-radius:18px;background:var(--teal);color:#fff;text-decoration:none;box-shadow:0 10px 30px -12px var(--teal);max-width:100%;transition:transform .2s var(--ease),box-shadow .2s}
+.inv{grid-column:1/-1;margin-top:40px;border:1px solid var(--ink);border-radius:20px;padding:24px 28px;background:var(--card)}
+.inv ul{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 36px}
+.inv li{display:grid;gap:4px;align-content:start}.inv .k{font:600 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.inv li:nth-child(4) .k{color:var(--terra)}.inv .v{font-size:17px;line-height:1.5;color:var(--ink)}
+@media (max-width:720px){.inv ul{grid-template-columns:1fr}.inv{padding:20px}}
 .quick-cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px var(--teal)}
 .quick-cta .ic{font-size:28px;line-height:1}.quick-cta b{display:block;font:600 clamp(18px,2.2vw,22px)/1.25 var(--sans)}
 .quick-cta small{display:block;font-size:15px;opacity:.9;margin-top:2px}.quick-cta .ar{font-size:26px;margin-left:auto}
@@ -220,6 +226,9 @@ details>summary:hover{color:var(--teal)}details>summary small{display:block;font
 .band .m span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-2);white-space:nowrap}
 .band .a{position:absolute;top:15px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--card)}
 .band .lbl{position:absolute;top:33px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.round .sofar{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 12px;border-radius:12px;padding:12px 14px;background:var(--teal-soft)}
+.round .sofar span{font-size:13px;color:var(--ink-2)}.round .sofar b{font:400 30px/1 var(--serif);color:var(--teal);grid-row:span 2;align-self:center}
+.round .sofar small{font-size:12.5px;color:var(--ink-2)}.round .sofar.out{background:var(--terra-soft)}.round .sofar.out b{color:var(--terra)}
 .round dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;font-size:13px}
 .round dt{color:var(--muted)}.round dd{margin:0;text-align:right;white-space:nowrap;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .round dd small{display:block;font-size:11.5px;color:var(--muted)}.round dd .hit{color:var(--teal)}.round dd .miss{color:var(--bad)}
@@ -400,6 +409,14 @@ body{font-size:18px;line-height:1.6}
 .q-list .ic{font:400 30px/1 var(--serif);color:var(--terra)}
 .q-list b{display:block;font-size:20px;font-weight:600}
 .q-list span{color:var(--ink-2);font-size:17px}
+.q-verdict{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:14px}
+.q-verdict li{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;display:grid;gap:6px;background:var(--paper)}
+.q-verdict .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.q-verdict li:nth-child(4) .k{color:var(--terra)}
+.q-verdict .v{font-size:18px;line-height:1.5}
+.q-live{margin-top:20px;border:2px solid var(--teal);border-radius:16px;padding:16px 18px;display:grid;gap:8px}
+.q-live .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.q-live .v{font-size:18px}.q-live .q-btn{justify-self:start;margin-top:6px}
 .q-cmd{margin-top:22px;background:var(--term);color:var(--term-ink);border-radius:14px;padding:18px 20px;font:400 18px var(--mono);overflow-x:auto}
 .q-cmd .ok{color:var(--term-ok)}
 .q-end{text-align:center;padding:40px 0 72px}
@@ -421,12 +438,12 @@ html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 </style></head><body>
 <div class="q-wrap"><header class="q-mast"><div class="brand"><b>Coverage</b><span>in 60 seconds</span></div>
 <div class="acts"><a class="q-btn small" href="index.html">Full report</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></div></header></div>
-<div class="q-prog" aria-hidden="true"><div class="q-wrap"><div class="row"><b id="q-n">Step 1 of 7</b><span id="q-t">NEAR makes new coins</span></div><div class="bar"><i id="q-bar"></i></div></div></div>
+<div class="q-prog" aria-hidden="true"><div class="q-wrap"><div class="row"><b id="q-n">Step 1 of 8</b><span id="q-t">NEAR makes new coins</span></div><div class="bar"><i id="q-bar"></i></div></div></div>
 <main class="q-wrap">
 <section class="q-hero"><span class="eyebrow">NEAR · the short version</span>
 <h1>NEAR makes new coins. We measured how much it <em>wins back</em>.</h1>
-<p class="lead">7 quick steps. One idea each. Every number is real and you can check it.</p>
-<ul class="chips"><li>About 60 seconds</li><li>7 steps</li><li>Last 29 days of NEAR mainnet</li></ul></section>
+<p class="lead">8 quick steps. One idea each. Every number is real and you can check it.</p>
+<ul class="chips"><li>About 60 seconds</li><li>8 steps</li><li>Last 29 days of NEAR mainnet</li></ul></section>
 <section class='q-step' id='s1' data-t='NEAR makes new coins'><div class='tag'><span class='n'>1</span>NEAR makes new coins</div>
 <h2>Every day, NEAR makes new coins.</h2>
 <div class="big num">89,783<small>new NEAR a day</small></div>
@@ -439,7 +456,7 @@ html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 <p class="say">That's how much of the new NEAR gets <b>burnt</b> (destroyed) in fees.</p>
 <div class="q-bars"><div class="q-bar"><div class="lab"><b>Burnt in fees</b><span>829 of 89,783 a day</span></div>
 <div class="track"><div class="q-grow" style="width:0.92%;background:var(--terra)"></div></div></div></div>
-<p class="plain terra">Seen this way, NEAR needs <b>108×</b> more activity before it destroys as much as it makes. Hopeless.</p></section><section class='q-step' id='s3' data-t='What gets missed'><div class='tag'><span class='n'>3</span>What gets missed</div>
+<p class="plain terra">Seen this way, NEAR needs <b>108×</b> more activity before it destroys as much as it makes.</p></section><section class='q-step' id='s3' data-t='What gets missed'><div class='tag'><span class='n'>3</span>What gets missed</div>
 <h2>But there's a second flow: buybacks.</h2>
 <p class="say">The <b>NEAR Intents</b> app sends NEAR into a buyback account every day. Count that too:</p>
 <div class="big num teal">12.0%</div>
@@ -460,16 +477,20 @@ html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 <li><span class="ic">i</span><div><b>Bought back isn't burnt.</b><span>The NEAR sits in an account. Its owners could spend it.</span></div></li>
 <li><span class="ic">ii</span><div><b>It has dipped.</b><span>From a peak of 16.5% down to 12.0% now.</span></div></li>
 <li><span class="ic">iii</span><div><b>One app does most of it.</b><span>NEAR Intents supplies 92% of what's won back.</span></div></li>
-</ul></section><section class='q-step' id='s6' data-t='Ranges, not guesses'><div class='tag'><span class='n'>6</span>Ranges, not guesses</div>
+<li><span class='ic'>iv</span><div><b>The chain got quieter.</b><span>Daily active accounts are down 70% since February, mostly one app (KaiChing) leaving. Intents went the other way: 2.8× more activity.</span></div></li>
+</ul></section><section class='q-step' id='s6' data-t='So, buy or not?'><div class='tag'><span class='n'>6</span>So, buy or not?</div>
+<h2>So what should an investor do?</h2>
+<p class="say">Our honest call, in four lines:</p>
+<ul class="q-verdict"><li><span class='k'>Today</span><span class='v'><b>Not yet a supply story.</b> NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2091. Don&#x27;t own NEAR expecting buybacks to offset dilution soon.</span></li><li><span class='k'>The bet</span><span class='v'><b>Governance, not growth.</b> Sending every Intents fee to the buyback (today about 23%) and HSP-029&#x27;s lower issuance would bring even the base case to about 8 years. Both are votes, not market conditions.</span></li><li><span class='k'>Turn more bullish if</span><span class='v'>HSP-029 clears its veto window (about 16 Nov 2026) and validators adopt it, or the buyback&#x27;s share of Intents fees rises toward 50%.</span></li><li><span class='k'>Turn bearish if</span><span class='v'>the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.</span></li></ul></section><section class='q-step' id='s7' data-t='Ranges, not guesses'><div class='tag'><span class='n'>7</span>Ranges, not guesses</div>
 <h2>We give ranges, not guesses.</h2>
 <p class="say">One exact number is almost always wrong. So for every forecast we give a <b>range</b>, like "between 7% and 27%".</p>
 <div class="big num teal">82%</div>
 <p class="say">of the time, the real number landed <b>inside</b> our range when we tested it on past data.</p>
-<p class="plain">That's the honest bar: tight enough to be useful, wide enough to be right most of the time. Expect the odd miss. A range that is never wrong is too wide to mean anything.</p></section><section class='q-step' id='s7' data-t='Check it yourself'><div class='tag'><span class='n'>7</span>Check it yourself</div>
+<p class="plain">That's the honest bar: tight enough to be useful, wide enough to be right most of the time. Expect the odd miss. A range that is never wrong is too wide to mean anything.</p></section><section class='q-step' id='s8' data-t='Check it yourself'><div class='tag'><span class='n'>8</span>Check it yourself</div>
 <h2>Don't trust us. Check it.</h2>
 <p class="say">One command rebuilds every number on this page from the chain data, in under 2 seconds:</p>
 <div class="q-cmd">$ python3 run.py<br><span class="ok">RESULT sha256=544723ab97176cc6…</span></div>
-<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p></section>
+<p class="plain">Our newest ranges were locked <b>before</b> the data existed and stamped in Bitcoin. NEAR's own chain scores them live.</p><div class='q-live'><div class='k'>Live right now</div><div class='v'><b>3 of 3</b> live forecasts are inside their range so far (payback 23.1% after 2 epochs).</div><div class='v'>The first closes about <b>14 Nov 07:00 UTC</b>; all close by <b>18 Nov</b>.</div><a class='q-btn small' href='index.html#c5'>See the live scoreboard</a></div></section>
 <section class="q-end"><h2>That's it.</h2><p>NEAR wins back <b>12.0%</b> of what it makes, and break-even is <b>8.4×</b> away, not 108×.</p>
 <div class="acts"><a class="q-btn solid" href="index.html">Read the full report</a><a class="q-btn" href="https://github.com/nice-bills/Coverage">See the code</a></div></section>
 <footer class="q-foot"><span>Coverage · MIT licence · result <code>544723ab9717</code></span><span>Same numbers as the full report, from <code>out/results.json</code>.</span></footer>

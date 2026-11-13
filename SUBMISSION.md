@@ -8,16 +8,18 @@ Coverage: what offsets NEAR's issuance, measured from the chain with no keys.
 
 NEAR mints about 2.5% of supply a year. Counting only the gas-fee burn, under 1% of that comes back, so break-even looks 108x away. Since April 2026 the NEAR Intents contract has been sending NEAR to buybacks.multisignature.near. Counting burn plus that buyback flow, 12.0% of issuance is offset and break-even is 8.4x away.
 
-Since 27 October a growing share of Intents swaps settles privately (found by another entry, Tideline), so public swap data no longer shows their fees. The buyback account is a mainnet balance and still does: 10,452 NEAR a day since, against 9,298 before.
+Since 27 October more Intents swaps settle privately (found by another entry, Tideline), so public swap data misses their fees. The buyback account is a mainnet balance and still does: 10,452 NEAR a day since, against 9,298 before.
 
 What makes it checkable:
-- One command, `python3 run.py`: no keys, no network, no dependencies. It prints a result hash that must equal the one in the README.
+- One command, `python3 run.py`: no keys, no network, no dependencies. It prints a hash that must match the README.
 - `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
-- `python3 test_run.py` shows the command refuses a cache with one yoctoNEAR changed and refuses edited predictions.
+- `python3 test_run.py`: the command refuses a cache with one yoctoNEAR changed, and edited predictions.
 - Audit: all 3,374 receipts of the buyback account reconcile with chain balances to the yoctoNEAR in 658 of 658 transfer-only epochs. intents.near sent 77.2% of the NEAR; 0.53% has left; 2 of 4 keys can move it.
+- BigQuery SQL in queries/, results committed: the chain got quieter; intents.near's receipts grew 2.8x.
+- Verdict: not yet a supply story. The bet is governance: fee capture and HSP-029.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from 16.5% to 12.0%; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Short forecast rounds in predictions/ commit to intervals for payback, burn and buyback gain over the epochs after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close before and during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round. The command refuses any round it cannot re-derive exactly, so outcomes cannot be edited. A scheduled job freezes and commits a new round about daily.
+The outside judge is the chain. Forecast rounds in predictions/ commit to ranges for payback, burn and buyback gain after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round, and refuses any round it cannot re-derive exactly. A scheduled job freezes a new round about daily.
 
 ## X post (attach the video; fits 280 characters)
 
@@ -31,8 +33,8 @@ No keys: python3 run.py
 https://github.com/nice-bills/Coverage
 
 (Reply to it with: the dashboard https://nice-bills.github.io/Coverage/ ; "Forecasts frozen and
-Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and the round hashes from
-the README.)
+Bitcoin-timestamped on 12 Nov; mainnet scores them during judging"; and "The three rounds close
+14 to 18 Nov; all are inside their ranges so far".)
 
 ## 60-second video
 

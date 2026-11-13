@@ -5,8 +5,8 @@
 -- Columns read: block_date, action_kind, receipt_receiver_account_id.
 -- Window  two 30-day slices of 2026-02-13 to 2026-11-12: 2026-02-13 to 2026-03-14 and
 --         2026-10-14 to 2026-11-12. The WHERE clause on block_date reads only those 60 days.
--- Cost    about 45 bytes a row: at 20 to 40 million actions a day, roughly 55 to 110 GB.
---         The console shows the exact figure before you run it. Free sandbox: 1 TB a month.
+-- Cost    measured on 2026-11-13 (dry run): 26 GB. The console shows the exact figure before
+--         you run it. Free sandbox: 1 TB a month.
 -- Run     BigQuery console (sandbox: free, no card): paste, Run, then
 --         "Save results" -> "CSV (local file)", saved as data/bq/top_contracts.csv
 --     or  mkdir -p data/bq && bq query --use_legacy_sql=false --format=csv --max_rows=1000 \
