@@ -12,7 +12,7 @@ and commits it. Nobody edits the numbers by hand.
 
 ![The dashboard](docs/dashboard.jpg)
 
-## The result in four lines
+## The result in five lines
 
 - NEAR mints about 2.5% of its supply a year. The gas-fee burn gives back 0.92% of that, so
   on burn alone flows would have to grow 108x to equal issuance.
@@ -20,6 +20,9 @@ and commits it. Nobody edits the numbers by hand.
   that flow equals 12.0% of issuance: flows would have to grow 8.4x, not 108x.
 - The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
   and payback has fallen from 16.5% to 12.0%.
+- Path to break-even (THESIS.md): at the median year-long Intents growth in the data (+3.4%
+  a year), burn plus buybacks reach issuance in 2091 (2077 with HSP-029);
+  at the year's best trend (+50.2%) in 2032; at the worst (−25.5%), break-even never comes, because the flow shrinks.
 - Every number above is rebuilt offline by `python3 run.py` and checked against mainnet by
   `python3 verify.py`; forecasts frozen before judging are scored by the chain during it.
 
@@ -65,7 +68,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=097b178507e170b124860b7ca077404e011e8c8e47405283566885b7c6e60e89
+RESULT sha256=544723ab97176cc67caa0faf7dc040e0ae524df38a60d7164ee4669942a4fb9b
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes

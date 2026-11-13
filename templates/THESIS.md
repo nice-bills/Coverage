@@ -265,6 +265,11 @@ Beyond the rounds, rerunning `fetch.py` and `run.py` would change our mind if:
   (__OUT_NEAR__ NEAR in total), so a single further outflow would not, but a run of them would;
 - payback over a 100-epoch window drops below half of __PAYBACK__;
 - transfers into the buyback account stop coming from `intents.near`.
+- the year-long growth measures behind the scenarios move. The base case is their median
+  (__SC_BASE_G__ a year, break-even in __SC_BASE_YEAR__): another year of falling Intents fees
+  would make the bear case the base, and a year at the volume trend's pace (__SC_BULL_G__)
+  would bring the base case within about five years. The path to break-even below is
+  recomputed by every run.
 
 ## What this implies for the long term
 
@@ -283,7 +288,7 @@ HSP-029 is the issuance lever being pulled now. It lowers maximum issuance from 
 year over 24 months. NEAR's House of Stake passed it on 2026-11-02. As of 2026-11-13 it still needs the
 Security Council veto window (closing about 2026-11-16) to pass and validators to adopt it
 (https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644).
-This repo does not model the ramp; the row above only rescales today's multiple.
+The row above only rescales today's multiple; the scenarios below model the ramp.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over __WEEKS__ weeks (correlation
 __CORR__), and two of the three levers are governance decisions. Against: the product's volume
@@ -293,6 +298,41 @@ fee-burn analysis shows, and still far from doing so. A long-term case needs eit
 volume growth of the size in the table or a governance decision on capture or issuance. The
 rounds above check only that the flow persists, which is necessary for that case and
 not sufficient.
+
+## Path to break-even
+
+Where does this go? Not a forecast: three growth rates taken from the data by a fixed rule, and
+the year each one brings burn plus buybacks to 100% of issuance (`run.py: scenarios`,
+`scenarios` in `out/results.json`).
+
+The rule. The captured flow is about nine months old and was ramping up, so its own growth rate
+is not used. What drives it is: buybacks are __BUY_COV__ of __PAYBACK__ payback and track NEAR
+Intents volume week by week (correlation __CORR__). The data hold a full year of Intents volume
+and gross fees, each measured two ways. Windows shorter than a year are left out because they
+annualise one regime shift (weekly volume doubled in August 2026) into rates of several hundred
+percent a year.
+
+__SC_MEASURES__
+
+Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
+payback (__PAYBACK__) and holds the capture share and the NEAR price constant. HSP-029 is
+modelled as a linear ramp from 2.5% to 1.6% over the 24 months after the snapshot.
+
+__SC_TABLE__
+
+In plain words: if Intents fees keep shrinking as they did over the last year (__SC_BEAR_G__),
+__SC_BEAR_SENT__. At the median year-long growth (__SC_BASE_G__) it comes in
+__SC_BASE_YEAR__, or __SC_BASE_YEAR_HSP__ with HSP-029: decades, not years. At the year's best
+trend, Intents volume's __SC_BULL_G__ a year, it comes in __SC_BULL_YEAR__, or __SC_BULL_YEAR_HSP__
+with HSP-029; that rate is close to the __G5__ a year that five-year break-even needs.
+
+Capture is the larger lever on the base case. At today's volume, by share of gross Intents fees
+reaching the buyback account:
+
+__SC_LEVERS__
+
+Issuance: today's flow would equal issuance if issuance were __SC_BE_ISS__ a year. HSP-029's
+1.6% takes the multiple from __MULT__x to __MULT_HSP__x; capture and growth have to close the rest.
 
 ## How to read the multiple
 

@@ -272,6 +272,11 @@ Beyond the rounds, rerunning `fetch.py` and `run.py` would change our mind if:
   (10,283 NEAR in total), so a single further outflow would not, but a run of them would;
 - payback over a 100-epoch window drops below half of 12.0%;
 - transfers into the buyback account stop coming from `intents.near`.
+- the year-long growth measures behind the scenarios move. The base case is their median
+  (+3.4% a year, break-even in 2091): another year of falling Intents fees
+  would make the bear case the base, and a year at the volume trend's pace (+50.2%)
+  would bring the base case within about five years. The path to break-even below is
+  recomputed by every run.
 
 ## What this implies for the long term
 
@@ -295,7 +300,7 @@ HSP-029 is the issuance lever being pulled now. It lowers maximum issuance from 
 year over 24 months. NEAR's House of Stake passed it on 2026-11-02. As of 2026-11-13 it still needs the
 Security Council veto window (closing about 2026-11-16) to pass and validators to adopt it
 (https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644).
-This repo does not model the ramp; the row above only rescales today's multiple.
+The row above only rescales today's multiple; the scenarios below model the ramp.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over 37 weeks (correlation
 0.90), and two of the three levers are governance decisions. Against: the product's volume
@@ -305,6 +310,54 @@ fee-burn analysis shows, and still far from doing so. A long-term case needs eit
 volume growth of the size in the table or a governance decision on capture or issuance. The
 rounds above check only that the flow persists, which is necessary for that case and
 not sufficient.
+
+## Path to break-even
+
+Where does this go? Not a forecast: three growth rates taken from the data by a fixed rule, and
+the year each one brings burn plus buybacks to 100% of issuance (`run.py: scenarios`,
+`scenarios` in `out/results.json`).
+
+The rule. The captured flow is about nine months old and was ramping up, so its own growth rate
+is not used. What drives it is: buybacks are 11.1% of 12.0% payback and track NEAR
+Intents volume week by week (correlation 0.90). The data hold a full year of Intents volume
+and gross fees, each measured two ways. Windows shorter than a year are left out because they
+annualise one regime shift (weekly volume doubled in August 2026) into rates of several hundred
+percent a year.
+
+| Year-long growth measure (DefiLlama, to 2026-11-12) | Rate a year |
+|---|---|
+| Gross NEAR Intents fees, last 30 days against the first 30 of the year | −25.5% |
+| NEAR Intents volume, last 30 days against the first 30 of the year | +1.9% |
+| Gross NEAR Intents fees, log-linear trend through every day of the year | +4.8% |
+| NEAR Intents volume, log-linear trend through every day of the year | +50.2% |
+
+Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
+payback (12.0%) and holds the capture share and the NEAR price constant. HSP-029 is
+modelled as a linear ramp from 2.5% to 1.6% over the 24 months after the snapshot.
+
+| Scenario | Growth a year | Payback in 10 years (2.5% / HSP-029) | Break-even, issuance 2.5% | Break-even, HSP-029 ramp |
+|---|---|---|---|---|
+| Bear | −25.5% | 0.6% / 1.0% | never, because the flow shrinks | never, because the flow shrinks |
+| Base | +3.4% | 17% / 26% | 2091 (in 64 years) | 2077 (in 51 years) |
+| Bull | +50.2% | above 100% / above 100% | 2032 (in 5 years) | 2031 (in 4 years) |
+
+In plain words: if Intents fees keep shrinking as they did over the last year (−25.5%),
+break-even never comes, because the flow shrinks. At the median year-long growth (+3.4%) it comes in
+2091, or 2077 with HSP-029: decades, not years. At the year's best
+trend, Intents volume's +50.2% a year, it comes in 2032, or 2031
+with HSP-029; that rate is close to the 53% a year that five-year break-even needs.
+
+Capture is the larger lever on the base case. At today's volume, by share of gross Intents fees
+reaching the buyback account:
+
+| Share of gross Intents fees captured | Payback today, 2.5% / 1.6% issuance | Base case break-even, 2.5% / HSP-029 ramp |
+|---|---|---|
+| 23% (today) | 12% / 19% | 64.3 / 50.8 years |
+| 50% | 25% / 39% | 41.9 / 28.4 years |
+| 100% | 49% / 77% | 21.5 / 8.0 years |
+
+Issuance: today's flow would equal issuance if issuance were 0.30% a year. HSP-029's
+1.6% takes the multiple from 8.4x to 5.3x; capture and growth have to close the rest.
 
 ## How to read the multiple
 

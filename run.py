@@ -346,6 +346,72 @@ def private_logs():
     return out
 
 
+# ---- path to break-even (forward-looking scenarios; reads the summary and the DefiLlama year, changes nothing above)
+
+HSP029 = 1.6 / 2.5   # HSP-029: maximum issuance from 2.5% to 1.6% a year, assumed to ramp linearly over 24 months from the snapshot
+
+
+def growth_measures(llama, before):
+    """Year-long growth rates of what drives the captured flow: NEAR Intents volume and gross NEAR Intents fees
+    (buybacks are about 92% of burn plus buybacks and track volume, r = 0.90 by week). Each is measured two ways
+    over the DefiLlama year before the snapshot: the last 30 days against the first 30 (year on year), and the
+    log-linear trend through every day, annualised. Windows shorter than a year are not used: they annualise one
+    regime shift (weekly volume doubled in August 2026) into rates of several hundred percent a year."""
+    days = [r for r in llama if r["date"] < before]
+    t0 = datetime.date.fromisoformat(days[0]["date"]).toordinal()
+    out = {}
+    for k, name in (("intents_volume_usd", "intents_volume"), ("intents_fees_usd", "intents_fees")):
+        v = [float(r[k] or 0) for r in days]
+        out[name + "_yoy"] = sum(v[-30:]) / sum(v[:30]) - 1
+        pts = [(datetime.date.fromisoformat(r["date"]).toordinal() - t0, math.log(x)) for r, x in zip(days, v) if x > 0]
+        out[name + "_trend"] = math.exp(365.25 * ols([a for a, _ in pts], [b for _, b in pts])[1]) - 1
+    return out
+
+
+def breakeven(payback, growth, ramp, horizon=100):
+    """Years until payback, growing at `growth` a year (monthly steps), reaches 100% of issuance; None if not within `horizon`."""
+    for m in range(0, 12 * horizon + 1):
+        if payback * (1 + growth) ** (m / 12) / issuance_factor(m, ramp) >= 1:
+            return m / 12
+    return None
+
+
+def issuance_factor(month, ramp):
+    return 1 - (1 - HSP029) * min(month, 24) / 24 if ramp else 1.0
+
+
+def scenarios(s, llama, before):
+    """Bear, base and bull: the lowest, the median and the highest of the four year-long growth measures
+    (growth_measures). Payback is projected from today's value at constant capture share and NEAR price,
+    at 2.5% issuance and with the HSP-029 ramp. Levers: capture share and issuance at today's volume."""
+    if s.get("payback") is None:
+        return None
+    pay, g = s["payback"], growth_measures(llama, before)
+    rates = sorted(g.values())
+    start = datetime.date.fromisoformat(s["last"])
+    when = lambda y: None if y is None else start.year + (start.timetuple().tm_yday / 365.25 + y)
+    cases = {}
+    for name, rate in (("bear", rates[0]), ("base", quantile(rates, 0.5)), ("bull", rates[-1])):
+        y, yh = breakeven(pay, rate, False), breakeven(pay, rate, True)
+        cases[name] = dict(growth=rate, years=y, years_hsp029=yh,
+                           year=None if y is None else int(when(y)), year_hsp029=None if yh is None else int(when(yh)),
+                           payback_10y=pay * (1 + rate) ** 10, payback_10y_hsp029=pay * (1 + rate) ** 10 / HSP029)
+    path = dict(years=[q / 4 for q in range(41)])
+    for name, c in cases.items():
+        for ramp in (False, True):
+            path[name + ("_hsp029" if ramp else "")] = [pay * (1 + c["growth"]) ** (q / 4) / issuance_factor(3 * q, ramp) for q in range(41)]
+    # capture lever: the burn stays, the buyback part scales with the share of gross Intents fees captured
+    cap = []
+    for share in sorted({s["capture_share"], 0.5, 1.0}):
+        p = s["burn_coverage"] + s["buyback_coverage"] * share / s["capture_share"]
+        cap.append(dict(share=share, payback=p, payback_hsp029=p / HSP029,
+                        years_base=breakeven(p, cases["base"]["growth"], False), years_base_hsp029=breakeven(p, cases["base"]["growth"], True)))
+    return dict(rule="bear = lowest, base = median, bull = highest of the four year-long growth measures",
+                start=s["last"], payback=pay, measures=g, cases=cases, path=path,
+                levers=dict(capture=cap, breakeven_issuance_pct=2.5 * pay,
+                            growth_needed_5y=s.get("growth_needed_5y")))
+
+
 def sig(x, n=6):  # round floats so the hash does not depend on the platform's libm
     if isinstance(x, float):
         return float(f"{x:.{n}g}")
@@ -504,6 +570,7 @@ def main():
     bt, pool = backtest(rows) if len(rows) >= 300 + 5 * H else ({}, None)
     results = sig(dict(summary=summary, private_settlement=private, private_logs=private_logs(), wallet=wallet(every, snap), backtest=bt, breakeven_years=paths, claims_backtest={str(h): window_claims(rows, h)[1] for h in sorted({5, 10} | {c["horizon_epochs"] for _, c in frozen})},
                        series=roll[::3], weekly=weekly))
+    results["scenarios"] = sig(scenarios(summary, llama, d1))  # path to break-even
     os.makedirs(os.path.join(ROOT, "out"), exist_ok=True)
     blob = json.dumps(results, sort_keys=True, separators=(",", ":"))
     open(os.path.join(ROOT, "out", "results.json"), "w").write(blob)

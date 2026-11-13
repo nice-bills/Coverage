@@ -12,7 +12,7 @@ and commits it. Nobody edits the numbers by hand.
 
 ![The dashboard](docs/dashboard.jpg)
 
-## The result in four lines
+## The result in five lines
 
 - NEAR mints about 2.5% of its supply a year. The gas-fee burn gives back __BURN_COV__ of that, so
   on burn alone flows would have to grow __BURN_MULT__x to equal issuance.
@@ -20,6 +20,9 @@ and commits it. Nobody edits the numbers by hand.
   that flow equals __PAYBACK__ of issuance: flows would have to grow __MULT__x, not __BURN_MULT__x.
 - The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
   and payback has fallen from __PAY_PEAK__ to __PAYBACK__.
+- Path to break-even (THESIS.md): at the median year-long Intents growth in the data (__SC_BASE_G__
+  a year), burn plus buybacks reach issuance in __SC_BASE_YEAR__ (__SC_BASE_YEAR_HSP__ with HSP-029);
+  at the year's best trend (__SC_BULL_G__) in __SC_BULL_YEAR__; at the worst (__SC_BEAR_G__), __SC_BEAR_SENT__.
 - Every number above is rebuilt offline by `python3 run.py` and checked against mainnet by
   `python3 verify.py`; forecasts frozen before judging are scored by the chain during it.
 

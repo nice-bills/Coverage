@@ -87,4 +87,19 @@ if _w:
     assert _w["quiet_exact"] == _w["epochs_quiet"] and _w["quiet_worst_yocto"] == "0", _w
     assert abs(_w["call_residual_near"]) < 1, _w  # gas and contract rewards in the epochs with multisig calls
 
+# Path to break-even: faster growth never arrives later, HSP-029 never later than 2.5%, and a shrinking flow never arrives.
+assert run.breakeven(0.5, 1.0, False) == 1.0 and run.breakeven(0.1, -0.1, False) is None and run.breakeven(1.0, 0.0, False) == 0
+_sc = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "results.json"))).get("scenarios")
+if _sc:
+    _inf = lambda v: float("inf") if v is None else v
+    _c = _sc["cases"]
+    assert _c["bear"]["growth"] <= _c["base"]["growth"] <= _c["bull"]["growth"], _c
+    for _k in ("years", "years_hsp029"):
+        assert _inf(_c["bull"][_k]) <= _inf(_c["base"][_k]) <= _inf(_c["bear"][_k]), _c
+    for _n, _v in _c.items():
+        assert _inf(_v["years_hsp029"]) <= _inf(_v["years"]) and (_v["growth"] >= 0 or _v["years"] is None), _v
+        assert _sc["path"][_n][0] == _sc["path"][_n + "_hsp029"][0] == _sc["payback"]
+    _cap = _sc["levers"]["capture"]
+    assert all(a["payback"] < b["payback"] and _inf(a["years_base"]) >= _inf(b["years_base"]) for a, b in zip(_cap, _cap[1:]))
+
 print("SELFTEST PASS")

@@ -769,6 +769,133 @@ def fan(rows):
         out += f"<text x='{x(i):.1f}' y='{H - 3}' text-anchor='{'start' if i == 0 else 'end'}' fill='var(--muted)' font-size='10'>epoch {rows[i]['k']}</text>"
     return out + "</svg>"
 
+# ---- chapter: the path to break-even (results["scenarios"] from run.py: scenarios). Static SVG, so it reads without JS.
+
+PATH_CSS = """
+.paths .fan-w{display:block}.paths .fan-n{display:none}
+.yrs{border-top:1px solid var(--ink);padding-top:14px}
+.yrs .y{font:400 clamp(56px,6.4vw,104px)/.9 var(--serif);letter-spacing:-.03em;margin:10px 0 10px;font-variant-numeric:tabular-nums}
+.yrs .y.never{font-style:italic;color:var(--terra)}.yrs.bull .y{color:var(--teal)}
+.yrs .y small{font:400 13.5px var(--sans);letter-spacing:0;color:var(--muted);margin-left:8px}
+.yrs .h{font:400 15px/1.4 var(--sans);color:var(--ink-2);margin:0 0 10px}.yrs .h b{font-weight:600;color:var(--ink)}
+.yrs p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink-2);max-width:38ch}
+.paths .defs{margin-top:28px;font-size:12.5px;line-height:1.6;color:var(--muted);max-width:90ch;border-top:1px solid var(--rule-2);padding-top:12px}
+@media (max-width:820px){.paths .fan-w{display:none}.paths .fan-n{display:block}.yrs .y{font-size:64px}}
+"""
+
+
+def path_svg(sc, wide):
+    """Payback over the next ten years under bear, base and bull, on a log scale, with the 100% line."""
+    import math
+    W, H = (880, 400) if wide else (360, 330)
+    L, R, T, B = (44, 128, 18, 30) if wide else (38, 12, 16, 28)
+    lo, hi = 0.005, 2.0
+    P, yrs = sc["path"], sc["path"]["years"]
+    x = lambda t: L + t / yrs[-1] * (W - L - R)
+    y = lambda v: T + (math.log(hi) - math.log(min(max(v, lo / 4), hi * 4))) / (math.log(hi) - math.log(lo)) * (H - T - B)  # drawn past the frame, clipped
+    line = lambda vs: " ".join(f"{'M' if i == 0 else 'L'}{x(t):.1f},{y(v):.1f}" for i, (t, v) in enumerate(zip(yrs, vs)))
+    cid = "pclip-" + ("w" if wide else "n")
+    col = {"bear": "var(--terra)", "base": "var(--ink)", "bull": "var(--teal)"}
+    start = int(sc["start"][:4]) + int(sc["start"][5:7]) / 12
+    o = (f"<svg viewBox='0 0 {W} {H}' role='img' aria-label='Payback over the next ten years under the bear, base and bull growth rates, "
+         f"with and without HSP-029, against the 100% break-even line'><defs><clipPath id='{cid}'><rect x='{L}' y='{T}' width='{W - L - R}' height='{H - T - B}'/></clipPath></defs>")
+    for v, lab in ((0.01, "1%"), (0.03, "3%"), (0.1, "10%"), (0.3, "30%"), (1.0, "100%")):
+        o += (f"<line x1='{L}' x2='{W - R}' y1='{y(v):.1f}' y2='{y(v):.1f}' stroke='var(--{'ink' if v == 1 else 'rule-2'})' stroke-width='{1.25 if v == 1 else 1}'/>"
+              f"<text x='{L - 6}' y='{y(v) + 4:.1f}' text-anchor='end'{' class=lab' if v == 1 else ''}>{lab}</text>")
+    o += f"<text x='{x(0):.1f}' y='{H - 8}' text-anchor='start'>Today</text>"
+    for yr in range(int(start) + 1, int(start) + 11):  # ticks on 1 January
+        t = yr - start
+        if (yr % 2 == 0 if wide else yr % 5 == 0) and 1 < t <= yrs[-1]:
+            o += f"<line x1='{x(t):.1f}' x2='{x(t):.1f}' y1='{H - B}' y2='{H - B + 4}' stroke='var(--rule)'/><text x='{x(t):.1f}' y='{H - 8}' text-anchor='middle'>{yr}</text>"
+    o += f"<text x='{x(10) - 4:.1f}' y='{y(1.0) - 8:.1f}' text-anchor='end' class='lab-s'>{'Break-even: burn + buybacks = issuance' if wide else 'Break-even'}</text>"
+    band = line(P["bull"]) + " " + " ".join(f"L{x(t):.1f},{y(v):.1f}" for t, v in reversed(list(zip(yrs, P["bear"])))) + " Z"
+    o += f"<g clip-path='url(#{cid})'><path class='area' d='{band}' fill='var(--gray-fill)' opacity='.55'/>"
+    for n in ("bear", "base", "bull"):
+        o += f"<path class='area' d='{line(P[n + '_hsp029'])}' fill='none' stroke='{col[n]}' stroke-width='1.5' stroke-dasharray='5 4' opacity='.9'/>"
+        o += f"<path class='draw' pathLength='1' d='{line(P[n])}' fill='none' stroke='{col[n]}' stroke-width='2.25' stroke-linejoin='round'/>"
+    o += "</g>"
+    c = sc["cases"]
+    for n, k in (("bull", ""), ("bull", "_hsp029")):
+        yv = c[n]["years" + k]
+        if yv is not None and yv <= yrs[-1]:
+            o += f"<circle cx='{x(yv):.1f}' cy='{y(1.0):.1f}' r='{4.5 if not k else 3.5}' fill='{'var(--teal)' if not k else 'var(--card)'}' stroke='var(--teal)' stroke-width='1.5'/>"
+    yb = c["bull"]["years"]
+    if yb is not None and yb <= yrs[-1]:
+        o += f"<text x='{x(yb) + 8:.1f}' y='{y(1.0) + 18:.1f}' class='lab' style='fill:var(--teal)'>{c['bull']['year']}</text>"
+    if wide:  # end labels, nudged apart
+        ends = sorted(((min(max(P[n][-1], lo), hi), n) for n in ("bear", "base", "bull")), key=lambda a: -a[0])
+        last = -99
+        for v, n in ends:
+            yy = max(y(v) + 4, last + 30)
+            last = yy
+            g = c[n]["growth"]
+            o += (f"<text x='{W - R + 8}' y='{yy:.1f}' class='lab' style='fill:{col[n]}'>{n.capitalize()}</text>"
+                  f"<text x='{W - R + 8}' y='{yy + 14:.1f}' class='lab-s'>{'+' if g >= 0 else '−'}{abs(100 * g):.1f}% a year</text>")
+    return o + "</svg>"
+
+
+def path_chapter(sc, s, num_, fnk):
+    """The forward-looking chapter: three data-ruled growth rates and the year each reaches break-even."""
+    if not sc:
+        return ""
+    c, pct = sc["cases"], lambda x, n=1: f"{100 * x:.{n}f}%"
+    g = lambda x: f"{'+' if x >= 0 else '−'}{abs(100 * x):.1f}%"
+    fn = f"<sup class='fn'><a href='#n{fnk}'>{fnk}</a></sup>"
+    def big(n):
+        k = c[n]
+        if k["year"] is None:
+            return "<div class='y never'>Never</div>"
+        return f"<div class='y'>{k['year']}<small>in {k['years']:.0f} years</small></div>"
+    def hsp(n):
+        k = c[n]
+        return ("never with HSP-029 either" if k["year_hsp029"] is None and k["growth"] < 0 else
+                "not within 100 years with HSP-029" if k["year_hsp029"] is None else
+                f"<b>{k['year_hsp029']}</b> with HSP-029 ({k['years_hsp029']:.0f} years)")
+    sent = {
+        "bear": (f"If gross Intents fees keep shrinking as they did over the past year, the flow shrinks with them and never reaches issuance."
+                 if c["bear"]["growth"] < 0 else "At the slowest year-long rate in the data, break-even does not come this century."
+                 if c["bear"]["year"] is None else f"Even at the slowest year-long rate in the data, break-even comes in {c['bear']['year']}."),
+        "base": f"At the median year-long rate, payback is {pct(c['base']['payback_10y'], 0)} of issuance in ten years. Break-even is decades away, not years."
+                if c["base"]["year"] and c["base"]["years"] > 15 else f"At the median year-long rate, break-even comes in {c['base']['year'] or 'over a century'}.",
+        "bull": f"If Intents volume keeps the trend it set over the past year, break-even comes in about {c['bull']['years']:.0f} years. "
+                f"Five-year break-even needs {pct(s['growth_needed_5y'], 0)} a year.",
+    }
+    label = {"bear": "Bear", "base": "Base", "bull": "Bull"}
+    tiles = "".join(f"<div style='grid-column:span 4'><div class='yrs {n}'><div class='eyebrow'>{label[n]} · {g(c[n]['growth'])} a year</div>"
+                    f"{big(n)}<p class='h'>{hsp(n)}</p><p>{sent[n]}</p></div></div>" for n in ("bear", "base", "bull"))
+    cap = sc["levers"]["capture"]
+    full = cap[-1]
+    yy = lambda v: "—" if v is None else f"{v:.0f}"
+    lev = ("<div style='grid-column:1/span 7'><div class='eyebrow' style='margin-bottom:14px'>Levers on the base case · at today's volume</div>"
+           "<div class='tw'><table class='tbl'><thead><tr><th>Share of gross Intents fees captured</th><th class='r'>Payback today</th><th class='r'>Break-even, 2.5%</th><th class='r'>With HSP-029</th></tr></thead><tbody>"
+           + "".join(f"<tr><td>{pct(x['share'], 0)}{' <small>today</small>' if abs(x['share'] - s['capture_share']) < 1e-9 else ''}</td><td class='r'>{pct(x['payback'], 0)}</td>"
+                     f"<td class='r big'>{yy(x['years_base'])} <span>yrs</span></td><td class='r big teal'>{yy(x['years_base_hsp029'])} <span>yrs</span></td></tr>"
+                     for x in cap)
+           + "</tbody></table></div></div>"
+           f"<div style='grid-column:9/span 4'><div class='eyebrow' style='margin-bottom:14px'>Issuance</div><p class='prose' style='margin-top:0'>Today's flow would equal issuance "
+           f"if issuance were <b>{sc['levers']['breakeven_issuance_pct']:.2f}%</b> a year. HSP-029's 1.6% takes the distance from {s['multiple']:.1f}× to "
+           f"{s['multiple_at_1_6_issuance']:.1f}×. Capture is the larger lever: all of it, with HSP-029, brings the base case to {yy(full['years_base_hsp029'])} years.</p></div>")
+    m = sc["measures"]
+    defs = (f"How the three rates are set: one rule, not a choice. The captured flow is nine months old and was ramping up, so its own growth is not used; "
+            f"what drives it is (buybacks are {pct(s['buyback_coverage'] / s['payback'], 0)} of payback and follow NEAR Intents volume, r = {s['intents_volume_captured_correlation']:.2f} by week). "
+            f"Four year-long rates from the DefiLlama year: Intents volume, last 30 days against the first 30 ({g(m['intents_volume_yoy'])}) and log-linear trend ({g(m['intents_volume_trend'])}); "
+            f"gross Intents fees, the same two ways ({g(m['intents_fees_yoy'])}, {g(m['intents_fees_trend'])}). Bear is the lowest, base the median, bull the highest. "
+            f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; "
+            f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months from {sc['start']}. Dashed lines: with HSP-029. Shaded: between bear and bull. "
+            f"<code>run.py: scenarios</code>, <code>scenarios</code> in <code>out/results.json</code>.")
+    head = ("At the past year's pace, break-even is decades away. At the year's best trend, about five years."
+            if c["base"]["year"] and c["base"]["years"] > 15 and c["bull"]["years"] is not None and c["bull"]["years"] <= 10 else
+            "Where the flow goes from here, under three growth rates the data set.")
+    return f"""<section class="chapter paths" id="c-path" data-t="The path to break-even"><div class="ch-head"><div class="ch-num"><span class="n">{num_}</span><span class="eyebrow">The path to break-even</span><span class="line"></span></div>
+<h2>{head}</h2><p>Not a forecast: three growth rates taken from the data by one rule, and where each takes payback from today's {pct(s['payback'])}. HSP-029, passed on 2 November 2026 and awaiting ratification, moves every date earlier; it does not change which paths arrive.{fn}</p></div>
+<figure class="fig" style="margin:0"><div class="fig-title"><h3>Payback over the next ten years, bear to bull</h3><div class="legend"><span><i class="l" style="--c:var(--teal)"></i>Bull</span><span><i class="l" style="--c:var(--ink)"></i>Base</span><span><i class="l" style="--c:var(--terra)"></i>Bear</span><span><i class="l" style="--c:var(--muted);background:repeating-linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 9px)"></i>With HSP-029</span></div></div>
+<p class="fig-sub">Burn plus buybacks as a share of issuance, log scale. Above the line, NEAR's flows pay back more than it mints.</p>
+<div class="chart fan-w">{path_svg(sc, True)}</div><div class="chart fan-n">{path_svg(sc, False)}</div>
+<figcaption>Source: <code>out/results.json</code> → <code>scenarios.path</code>. Quarterly steps; the chart stops at 200%.</figcaption></figure>
+<div class="grid12" style="margin-top:56px">{tiles}</div>
+<div class="grid12" style="margin-top:56px">{lev}</div>
+<p class="defs">{defs}</p></section>"""
+
 
 def render(results, sha, ledgers=None, tape=None):
     _capture()
@@ -1065,7 +1192,11 @@ def render(results, sha, ledgers=None, tape=None):
 {calc}<div class="grid12" style="margin-top:56px">{years_tbl}{fc_tbl}</div>{mlist}
 <details><summary>Model detail<small>Four models, each a few functions in <code>run.py</code>, rebuilt by <code>python3 run.py</code> with no network; outputs in <code>out/results.json</code></small></summary>{detail}</details></section>"""
 
-    # ---- chapter 04: the case, both ways ----
+    # ---- chapter 04: the path to break-even (path_chapter above) ----
+    ch_path = path_chapter(results.get("scenarios"), s, "04", 8) if has else ""
+    later = (lambda k: f"{k + (1 if ch_path else 0):02d}")
+
+    # ---- chapter 05: the case, both ways ----
     ch4 = ""
     if has:
         f_ = [("The flow is on chain and exact.", f"{num(s['buyback_per_day'])} NEAR a day reach the buyback account, against {num(s['burn_per_day'])} burnt."),
@@ -1084,7 +1215,7 @@ def render(results, sha, ledgers=None, tape=None):
         side = lambda name, k, xs: (f"<div class='side'><h3>{name}</h3><div class='k'>{k}</div>"
                                     + "".join(f"<div class='pt'><span class='i'>{ROMAN[i]}</span><h4>{h}</h4><p>{p}</p></div>"
                                               for i, (h, p) in enumerate(x for x in xs if x)) + "</div>")
-        ch4 = f"""<section class="chapter" id="c4" data-t="The case, both ways"><div class="ch-head"><div class="ch-num"><span class="n">04</span><span class="eyebrow">The case, both ways</span><span class="line"></span></div>
+        ch4 = f"""<section class="chapter" id="c4" data-t="The case, both ways"><div class="ch-head"><div class="ch-num"><span class="n">{later(4)}</span><span class="eyebrow">The case, both ways</span><span class="line"></span></div>
 <h2>The bear case gets the same page as the bull case.</h2><p>Five points each side, at equal weight. The full argument, with what would change our mind, is in <a href="{REPO}/blob/main/THESIS.md">THESIS.md</a>.</p></div>
 <div class="spread">{side('For', 'The flow is on chain, exact, and has levers.', f_)}{side('Against', 'Held is not burnt, and the trend matters.', a_)}</div>
 <div class="verdict"><blockquote>“If the buybacks were burnt, realized inflation would be {pct(s['inflation_if_buybacks_were_burnt'], 2)} instead of {pct(s['realized_inflation'], 2)}. They are not, yet.”<cite>Inflation if buybacks were burnt · out/results.json</cite></blockquote></div></section>"""
@@ -1177,7 +1308,7 @@ def render(results, sha, ledgers=None, tape=None):
              ("Score the rounds", "Fetch the epochs that closed since; run.py prints PASS or FALSIFIED per round (the LEDGER lines above).",
               term("python3 fetch.py --epochs 45 && python3 run.py"))]
     steps_html = "".join(f"<div class='step'><span class='sn'>{i + 1}</span><div><h4>{a}</h4><p>{b}</p></div><div>{c}</div></div>" for i, (a, b, c) in enumerate(steps))
-    ch5 = f"""<section class="chapter" id="c5" data-t="Check it yourself"><div class="ch-head"><div class="ch-num"><span class="n">05</span><span class="eyebrow">Check it yourself</span><span class="line"></span></div>
+    ch5 = f"""<section class="chapter" id="c5" data-t="Check it yourself"><div class="ch-head"><div class="ch-num"><span class="n">{later(5)}</span><span class="eyebrow">Check it yourself</span><span class="line"></span></div>
 <h2>Forecasts frozen in Bitcoin, scored by the chain while you judge.</h2><p>Each round was frozen before the epochs it describes existed, and its hash is anchored with OpenTimestamps. <code>run.py</code> refuses a round that is not exactly what the code derives from the data up to its height.{fn(7)}</p></div>
 {rounds}<div style="margin-top:72px" id="reproduce"><div class="eyebrow" style="margin-bottom:14px">Reproduce every number · recorded output, so you can check without running anything</div>
 <div class="steps">{steps_html}</div>
@@ -1198,7 +1329,12 @@ def render(results, sha, ledgers=None, tape=None):
              if has and s.get("capture_share") else "Lever model: see run.py.",
              f"<code>python3 run.py</code> prints <code>RESULT sha256={sha[:8]}…{sha[-4:]}</code>. <code>test_run.py</code> fails if any epoch of the buyback account is unexplained.",
              f"<code>predictions/</code>, each round with an <code>.ots</code> proof: <code>ots verify predictions/&lt;file&gt;.ots</code>. "
-             f"Bands are 5–95% from window-to-window variation."]
+             f"Bands are 5–95% from window-to-window variation.",
+             # 8: the path to break-even
+             "Scenarios: <code>run.py: scenarios</code> and <code>growth_measures</code>; bear, base and bull are the lowest, median and highest of four year-long "
+             "growth rates of NEAR Intents volume and gross fees (DefiLlama). HSP-029: "
+             "https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644, "
+             "passed by the House of Stake on 2026-11-02; as of 2026-11-13 awaiting the Security Council veto window and validator adoption."]
     try:
         srcs = json.load(open(os.path.join(HERE, "data", "sources.json")))
     except (OSError, ValueError):
@@ -1212,10 +1348,10 @@ def render(results, sha, ledgers=None, tape=None):
                   + (f"<h4>Data, each file hashed in data/sources.json and checked by test_run.py</h4><ul>{data_list}</ul>" if data_list else "") + "</div></footer>")
 
     chapters = [(c, t) for c, t, body in (("c1", "The claim", ch1), ("c2", "The flow", ch2), ("c3", "The models", ch3),
-                                          ("c4", "The case, both ways", ch4), ("c5", "Check it yourself", ch5)) if body]
+                                          ("c-path", "The path to break-even", ch_path), ("c4", "The case, both ways", ch4), ("c5", "Check it yourself", ch5)) if body]
     idx = "".join(f"<li><a href='#{c}'><span class='n'>{i + 1:02d}</span><span class='t'>{t}</span><span class='bar'><i></i></span></a></li>" for i, (c, t) in enumerate(chapters))
     midx = "".join(f"<li><a href='#{c}'><span>{i + 1:02d}</span>{t}</a></li>" for i, (c, t) in enumerate(chapters))
-    navs = {"c1": "The claim", "c2": "The flow", "c3": "The models", "c4": "Both ways", "c5": "Check it"}
+    navs = {"c1": "The claim", "c2": "The flow", "c3": "The models", "c-path": "Break-even", "c4": "Both ways", "c5": "Check it"}
     nav = "".join(f"<a href='#{c}'>{navs[c]}</a>" for c, _ in chapters) + f"<a href='{REPO}'>GitHub</a>"
     foot = (f"<div class='foot'><b>{s['multiple']:.1f}×</b>flows must grow to match issuance at {iss_s} a year; {s['multiple_at_1_6_issuance']:.1f}× at 1.6%.</div>" if has else "")
 
@@ -1228,7 +1364,7 @@ def render(results, sha, ledgers=None, tape=None):
 <meta name="description" content="{e(title)}"><meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
-<style>{CSS}</style></head><body><div class="wrap">
+<style>{CSS}{PATH_CSS}</style></head><body><div class="wrap">
 <header class="mast"><div class="brand"><b>Coverage</b><span>A research report on what NEAR pays back</span></div>
 <nav aria-label="Chapters">{nav}</nav><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
 <section class="hero" id="top" aria-label="{e(meta)}"><div class="meta"><span class="eyebrow">NEAR mainnet</span><span class="eyebrow">{span}</span><span class="eyebrow">{s['epochs']:,} epochs</span></div>
@@ -1236,7 +1372,7 @@ def render(results, sha, ledgers=None, tape=None):
 {ruler}{live}{scale}
 <div class="body"><aside class="index" aria-label="Contents"><div class="eyebrow">Contents</div><ol id="idx">{idx}</ol>{foot}</aside>
 <main><div class="mobile-index"><details><summary><span class="row"><b id="mi-t">01 {chapters[0][1] if chapters else ''}</b><span id="mi-n" class="eyebrow">1 / {len(chapters)}</span></span><span class="p" style="display:block"><i id="mi-p"></i></span></summary><ol>{midx}</ol></details></div>
-{ch1}{ch2}{ch3}{ch4}{ch5}</main></div>
+{ch1}{ch2}{ch3}{ch_path}{ch4}{ch5}</main></div>
 {notes_html}
 <div class="colophon"><span>Coverage · MIT licence · <a href="{REPO}">{REPO.split('//')[1]}</a> · result <code>{sha[:12]}</code></span><span>Set in Instrument Serif &amp; Inter. Teal comes back to the token; terracotta is burnt.</span></div>
 </div><script type="application/json" id="data">{blob}</script>

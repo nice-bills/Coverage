@@ -70,6 +70,32 @@ def values():
                               "The intervals overlap, so this sample does not confirm a shift on its own."
                               if a["share_p05"] <= b["share_p95"] and a["share_p95"] >= b["share_p05"] else
                               "The share fell, which does not match a shift to private settlement.")
+    # ---- path to break-even: scenarios from run.py: scenarios (results["scenarios"])
+    sc = r.get("scenarios")
+    if sc:
+        sgn = lambda x: f"{'+' if x >= 0 else '−'}{abs(100 * x):.1f}%"
+        when = lambda c, k: (f"{c['year' + k]} (in {c['years' + k]:.0f} years)" if c["years" + k] is not None
+                             else "never, because the flow shrinks" if c["growth"] < 0 else "not within 100 years")
+        p10 = lambda x: "above 100%" if x >= 1 else pct(x, 0 if x > 0.1 else 1)
+        label = {"intents_volume_yoy": "NEAR Intents volume, last 30 days against the first 30 of the year",
+                 "intents_volume_trend": "NEAR Intents volume, log-linear trend through every day of the year",
+                 "intents_fees_yoy": "Gross NEAR Intents fees, last 30 days against the first 30 of the year",
+                 "intents_fees_trend": "Gross NEAR Intents fees, log-linear trend through every day of the year"}
+        cs = sc["cases"]
+        extra.update(
+            SC_TABLE="| Scenario | Growth a year | Payback in 10 years (2.5% / HSP-029) | Break-even, issuance 2.5% | Break-even, HSP-029 ramp |\n|---|---|---|---|---|\n"
+            + "\n".join(f"| {n.capitalize()} | {sgn(c['growth'])} | {p10(c['payback_10y'])} / {p10(c['payback_10y_hsp029'])} "
+                         f"| {when(c, '')} | {when(c, '_hsp029')} |" for n, c in ((n, cs[n]) for n in ("bear", "base", "bull"))),
+            SC_MEASURES="| Year-long growth measure (DefiLlama, to " + sc["start"] + ") | Rate a year |\n|---|---|\n"
+            + "\n".join(f"| {label.get(k, k)} | {sgn(v)} |" for k, v in sorted(sc["measures"].items(), key=lambda kv: kv[1])),
+            SC_LEVERS="| Share of gross Intents fees captured | Payback today, 2.5% / 1.6% issuance | Base case break-even, 2.5% / HSP-029 ramp |\n|---|---|---|\n"
+            + "\n".join(f"| {pct(x['share'], 0)}{' (today)' if abs(x['share'] - s['capture_share']) < 1e-9 else ''} | {pct(x['payback'], 0)} / {pct(x['payback_hsp029'], 0)} "
+                         f"| {yr(x['years_base'])} / {yr(x['years_base_hsp029'])} years |" for x in sc["levers"]["capture"]),
+            SC_BEAR_G=sgn(cs["bear"]["growth"]), SC_BASE_G=sgn(cs["base"]["growth"]), SC_BULL_G=sgn(cs["bull"]["growth"]),
+            SC_BASE_YEAR=str(cs["base"]["year"] or "beyond 100 years"), SC_BASE_YEAR_HSP=str(cs["base"]["year_hsp029"] or "beyond 100 years"),
+            SC_BULL_YEAR=str(cs["bull"]["year"] or "beyond 100 years"), SC_BULL_YEAR_HSP=str(cs["bull"]["year_hsp029"] or "beyond 100 years"),
+            SC_BEAR_SENT=(f"break-even comes in {cs['bear']['year']}" if cs["bear"]["year"] else "break-even never comes, because the flow shrinks"
+                          if cs["bear"]["growth"] < 0 else "break-even does not come within 100 years"), SC_BE_ISS=f"{sc['levers']['breakeven_issuance_pct']:.2f}%")
     return dict(
         **extra,
         RESULT_HASH=hashlib.sha256(blob.encode()).hexdigest(), EPOCHS=str(s["epochs"]), LAST=s["last"],
