@@ -70,6 +70,10 @@ def values():
                               "The intervals overlap, so this sample does not confirm a shift on its own."
                               if a["share_p05"] <= b["share_p95"] and a["share_p95"] >= b["share_p05"] else
                               "The share fell, which does not match a shift to private settlement.")
+    # BigQuery queries (queries/*.sql) and the status of their exports in data/bq/; not part of results.json
+    import bq
+    extra.update(bq.doc_values())
+
     return dict(
         **extra,
         RESULT_HASH=hashlib.sha256(blob.encode()).hexdigest(), EPOCHS=str(s["epochs"]), LAST=s["last"],

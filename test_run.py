@@ -43,8 +43,8 @@ assert run.ledger(later, commit)["verdict"] == "PENDING"
 import json, os, shutil, subprocess, sys, tempfile
 src = os.path.dirname(os.path.abspath(__file__))
 with tempfile.TemporaryDirectory() as tmp:
-    for f in ("run.py", "dashboard.py", "data"):
-        (shutil.copytree if f == "data" else shutil.copy)(os.path.join(src, f), os.path.join(tmp, f))
+    for f in ("run.py", "dashboard.py", "bq.py", "queries", "data"):
+        (shutil.copytree if f in ("data", "queries") else shutil.copy)(os.path.join(src, f), os.path.join(tmp, f))
     go = lambda: subprocess.run([sys.executable, "run.py"], cwd=tmp, capture_output=True, text=True)
     first = go()
     assert first.returncode == 0, first.stderr
@@ -77,7 +77,7 @@ import hashlib
 _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 _src = json.load(open(os.path.join(_d, "sources.json")))
 for _f in sorted(os.listdir(_d)):
-    if _f != "sources.json":
+    if _f != "sources.json" and os.path.isfile(os.path.join(_d, _f)):  # data/bq/ holds optional BigQuery exports, checked below
         assert _src[_f]["sha256"] == hashlib.sha256(open(os.path.join(_d, _f), "rb").read()).hexdigest(), _f
 
 # The buyback account reconciles: in every epoch where it only received or sent transfers, receipts
@@ -86,5 +86,26 @@ _w = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ou
 if _w:
     assert _w["quiet_exact"] == _w["epochs_quiet"] and _w["quiet_worst_yocto"] == "0", _w
     assert abs(_w["call_residual_near"]) < 1, _w  # gas and contract rewards in the epochs with multisig calls
+
+# BigQuery loader: a missing CSV is "pending", a tiny fixture parses, a malformed one is "invalid"; the chapter renders in every state
+import bq
+with tempfile.TemporaryDirectory() as tmp:
+    assert all(q["status"] == "pending" for q in bq.load(tmp).values())
+    assert "Pending" in bq.doc_values(tmp)["BQ_STATUS"] and "Not run yet" in bq.chapter(d=tmp)[0]
+    w = lambda n, s: open(os.path.join(tmp, n + ".csv"), "w").write(s)
+    w("intents_share", "block_date,receipts,intents_receipts,function_calls,intents_function_calls,intents_receipt_share\n"
+      "2026-02-14,1000,100,800,90,0.1\n2026-02-13,1000,100,800,90,0.1\n2026-11-12,1000,200,800,180,0.2\n")
+    w("daily_transactions", "block_date,transactions\n2026-02-13,5\n")
+    w("top_contracts", "period,rank\nlast_30d,1\n")
+    got = bq.load(tmp)
+    assert got["intents_share"]["status"] == "ok" and got["intents_share"]["rows"][0]["block_date"] == "2026-02-13"
+    assert got["top_contracts"]["status"] == "invalid" and got["daily_active_accounts"]["status"] == "pending"
+    sm = bq.summary(got)["intents_share"]
+    assert abs(sm["first"] - 0.1) < 1e-12 and abs(sm["last"] - 0.2) < 1e-12 and sm["trend"] == "rose"
+    page, blob = bq.chapter(d=tmp)
+    assert "bq_share" in blob and "could not be read" in page and "rose" in page
+# a committed BigQuery export must parse
+for _n, _q in bq.load().items():
+    assert _q["status"] != "invalid", (_n, _q["reason"])
 
 print("SELFTEST PASS")

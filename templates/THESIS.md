@@ -307,6 +307,27 @@ constant issuance, to equal issuance. It is not a price target and says nothing 
 | Issuance rate | NEAR governance | proportional: 2.5% to 1.6% takes it from __MULT__x to __MULT_HSP__x |
 | NEAR price | the market | higher price means fewer NEAR per dollar of revenue |
 
+## Network activity (BigQuery)
+
+Does NEAR Intents grow as a share of the network's activity? Four queries against Google's
+public NEAR dataset (`bigquery-public-data.crypto_near_mainnet_us`) measure it, each filtered on
+`block_date` over 2026-02-13 to 2026-11-12:
+
+__BQ_TABLE__
+
+Status: __BQ_STATUS__.
+
+Finding: __BQ_FINDING__
+
+This is context, not evidence for the claim. Payback depends on the fees Intents sends to the
+buyback account, not on how many receipts it handles, so these figures do not enter the
+multiple or the result hash.
+
+We do not pull from the Intents Explorer API. Its terms (1Click Swap API Terms of Use, section
+4.1(e), https://partners.near-intents.org/legal/terms-of-service) forbid keeping its data beyond
+24 hours, and a thesis that others must re-check cannot rest on data that has to be deleted.
+DefiLlama's public NEAR Intents series stands in for it.
+
 ## Sources
 
 - NEAR mainnet: `https://archival-rpc.mainnet.fastnear.com` and `https://mainnet.neardata.xyz` (no key).
