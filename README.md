@@ -301,9 +301,9 @@ per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
 | Round | Epochs | Status (UTC) | Payback | NEAR burnt | Buyback gain, NEAR | Payback interval held in the past | sha256 |
 |---|---|---|---|---|---|---|---|
-| `round-224265136-h05.json` | 5 | about 2026-11-14 07:00; 3 of 5 closed, payback so far 19.3% | 6.9% to 27.2% | 1,193 to 1,880 | 7,318 to 35,576 | 134 of 168 | `e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba` |
-| `round-224265136-h10.json` | 10 | about 2026-11-15 19:00; 3 of 10 closed, payback so far 19.3% | 6.3% to 30.8% | 2,174 to 3,554 | 14,073 to 86,748 | 71 of 83 | `2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f` |
-| `round-224265136-h20.json` | 20 | about 2026-11-18 17:00; 3 of 20 closed, payback so far 19.3% | 6.9% to 26.8% | 2,820 to 6,524 | 34,148 to 133,348 | 35 of 40 | `926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5` |
+| `round-224265136-h05.json` | 5 | about 2026-11-14 07:00; 4 of 5 closed, payback so far 17.9% | 6.9% to 27.2% | 1,193 to 1,880 | 7,318 to 35,576 | 134 of 168 | `e4cf5acdca0e2f74153a91c93febba9a185b9c7b0e1c2a0edc97df11db7530ba` |
+| `round-224265136-h10.json` | 10 | about 2026-11-15 19:00; 4 of 10 closed, payback so far 17.9% | 6.3% to 30.8% | 2,174 to 3,554 | 14,073 to 86,748 | 71 of 83 | `2c738b805dd13904d226f2511ebb437fb7780f908a96e79c6a3f2cedab39321f` |
+| `round-224265136-h20.json` | 20 | about 2026-11-18 17:00; 4 of 20 closed, payback so far 17.9% | 6.9% to 26.8% | 2,820 to 6,524 | 34,148 to 133,348 | 35 of 40 | `926ba45df2401210a5d871b512caddbd92f41fca761cbcebf02d53814c9bddf5` |
 
 Rule, checked by `run.py` once a round's epochs have closed:
 
