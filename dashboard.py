@@ -524,7 +524,7 @@ const TD=D.tape;if(TD){const N=x=>Number(x)/1e24,cv=$('#tape'),cx=cv.getContext(
    set('l-h',fmt(hgt));set('l-s',fmt(Number(BigInt(b.header.total_supply)/10n**24n)));set('l-b',fmt(Number(bl/10n**24n)));
    if(gain!=null&&TD.rounds.length){set('l-g',(gain<0n?'':'+')+fmt(Number(gain/10n**21n)/1e3));set('l-gs','NEAR in '+ep.toFixed(1)+' epochs')}
    msg.textContent='Mainnet, live';sub.textContent='Read by your browser just now, block '+fmt(hgt);fail.hidden=true;
-   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n,h0=+s.dataset.h,e2=(hgt-h0)/TD.len;s.textContent=e2>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
+   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n,h0=+s.dataset.h,e2=(hgt-h0)/TD.len;s.textContent=s.dataset.v!=='PENDING'?'':e2>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
     'Live: about '+e2.toFixed(1)+' of '+n+' epochs elapsed'+(gain!=null&&h0==TD.snap?', buyback gain so far '+fmt(Number(gain/10n**21n)/1e3)+' NEAR':'')+'.'})}
   catch(err){if(!msg.dataset.ok){fail.hidden=false;sub.textContent=sub.dataset.cache}return}
   msg.dataset.ok=1}
@@ -1312,7 +1312,7 @@ def render(results, sha, ledgers=None, tape=None):
                   f"<div><div class='pmeta'><span>{L['resolved']} of {L['total']} epochs closed</span><span>{inside}</span></div>"
                   f"<div class='prog'><i style='width:{100 * L['resolved'] / L['total']:.1f}%'></i></div></div>"
                   f"<div><div class='pmeta'><span>NEAR burnt per epoch, committed 10–90% band ({e(L['table_model'])} model)</span></div>{fan(L['rows'])}</div>"
-                  f"<span class='rlive' data-n='{L['total']}' data-h='{L['after_end_height']}' aria-live='polite'></span>"
+                  f"<span class='rlive' data-n='{L['total']}' data-h='{L['after_end_height']}' data-v='{e(L['verdict'])}' aria-live='polite'></span>"
                   f"<div class='hash'>predictions/{e(L['file'])}<br>sha256 {e(L['commit'])}</div></article>")
     rounds = ""
     if cards:

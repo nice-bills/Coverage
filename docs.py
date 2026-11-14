@@ -162,7 +162,7 @@ def values():
 def main():
     v, stale = values(), []
     for f in FILES:
-        text = open(os.path.join(ROOT, "templates", f)).read()
+        text = open(os.path.join(ROOT, "templates", f), encoding="utf-8").read()
         for k, x in v.items():
             text = text.replace(f"__{k}__", x)
         left = re.findall(r"__[A-Z_0-9]+__", text)
@@ -170,10 +170,10 @@ def main():
             sys.exit(f"templates/{f} has placeholders with no value: {sorted(set(left))}")
         path = os.path.join(ROOT, f)
         if "--check" in sys.argv:
-            if not os.path.exists(path) or open(path).read() != text:
+            if not os.path.exists(path) or open(path, encoding="utf-8").read() != text:
                 stale.append(f)
         else:
-            open(path, "w").write(text)
+            open(path, "w", encoding="utf-8").write(text)
     if stale:
         sys.exit(f"DOCS STALE: {', '.join(stale)} differ from templates/ + out/results.json. Run: python3 docs.py")
     print("DOCS " + ("IN SYNC" if "--check" in sys.argv else "WRITTEN") + f" from result {v['RESULT_HASH'][:12]}")

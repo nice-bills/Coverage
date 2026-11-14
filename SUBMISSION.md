@@ -60,8 +60,8 @@ then mux (see `film/voiceover.md`). It works on mute; the optional voiceover scr
 
 Already done: the repo is public, GitHub Pages serves the dashboard, and the scheduled `pages`
 workflow fetches new epochs, scores the frozen rounds, upgrades their Bitcoin timestamps and
-commits every hour during judging (freezing new rounds is paused until 25 Nov). The first round
-closes about 14 November 07:00 UTC and is scored within the hour.
+commits every hour during judging (freezing new rounds is paused until 25 Nov). Each round
+is scored within the hour of closing; its status is in the README's round table.
 
 Left before Saturday 14 November, 23:59 UTC:
 
