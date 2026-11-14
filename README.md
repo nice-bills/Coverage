@@ -8,6 +8,7 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 
 | | What it is | Why it matters |
 |---|---|---|
+| ★ [Demo video and thread on X](https://x.com/willIsbillls/status/2121603731192160642) | A 72-second film of the thesis, then the case in seven posts | The quickest way in; the first forecast's PASS is in the thread |
 | ★ [Coverage in 60 seconds](https://nice-bills.github.io/Coverage/quick.html) | The short version: one idea per step, plain words | The whole thesis and our verdict in a minute |
 | ★ [Live dashboard](https://nice-bills.github.io/Coverage/) | Every chart with the query or code behind it and one sentence on what it shows | Reads NEAR mainnet live in your browser; the forecast cards update as epochs close |
 | ★ `python3 run.py` | Rebuilds every number offline in under 2 seconds and prints a hash | Must match the hash in this file: no keys, no network, no trust needed |

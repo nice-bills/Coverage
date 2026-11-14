@@ -65,6 +65,6 @@ is scored within the hour of closing; its status is in the README's round table.
 
 Left before Saturday 14 November, 23:59 UTC (judging is 16 to 18 November; results by 18 November, 23:59 UTC):
 
-- [ ] Post on X with the text above and the video (the rules also accept screenshots).
-- [ ] Submit: repo URL, X post URL, description, NEAR mainnet payout account.
+- [x] Posted on X with the video, as a 7-post thread (film/thread.md): https://x.com/willIsbillls/status/2121603731192160642
+- [ ] Submit: repo URL, X post URL (above), description, NEAR mainnet payout account.
 - [ ] Leave the repo public and Pages enabled until at least 25 November 2026.
