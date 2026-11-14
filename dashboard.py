@@ -47,18 +47,21 @@ code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
 .mast nav{display:flex;gap:22px;font-size:13.5px;color:var(--ink-2)}.mast nav a{text-decoration:none}.mast nav a:hover{color:var(--ink)}
 .toggle{flex:none;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;font:500 12.5px var(--sans);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .toggle:hover{border-color:var(--muted)}
+.qlink{margin-left:auto;display:inline-flex;align-items:baseline;gap:6px;font:500 14px var(--sans);color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink);padding:2px 0 3px;white-space:nowrap}
+.qlink i{font:italic 400 21px/1 var(--serif);color:var(--teal)}.qlink:hover{color:var(--teal);border-bottom-color:var(--teal)}
+.quick-cta{grid-column:1/-1;justify-self:start;width:min(100%,720px);display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 28px;
+ margin:36px 0 30px;padding:18px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);color:var(--ink);text-decoration:none}
+.quick-cta .n{font:italic 400 76px/.8 var(--serif);color:var(--teal);letter-spacing:-.03em}.quick-cta .n small{font-size:.42em;margin-left:2px}
+.quick-cta b{display:block;font:400 30px/1.1 var(--serif);letter-spacing:-.01em}.quick-cta .t span{display:block;font-size:15px;color:var(--ink-2);margin-top:6px}
+.quick-cta .go{font:500 12.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid currentColor;padding-bottom:2px;white-space:nowrap}
+.quick-cta:hover .go,.quick-cta:hover b{color:var(--teal)}
+@media (max-width:560px){.quick-cta{grid-template-columns:auto minmax(0,1fr)}.quick-cta .go{grid-column:2;justify-self:start}.quick-cta .n{font-size:58px}.quick-cta b{font-size:24px}}
 .mast nav a{white-space:nowrap}@media (max-width:1440px){.brand span{display:none}}
-.toggle.quick{text-decoration:none;margin-left:auto;background:var(--teal);border-color:var(--teal);color:#fff;font-size:14px;font-weight:600;padding:8px 16px}
-.quick-cta{grid-column:1/-1;justify-self:start;width:fit-content;display:inline-flex;align-items:center;gap:16px;margin:32px 0 28px;padding:18px 26px;border-radius:18px;background:var(--teal);color:#fff;text-decoration:none;box-shadow:0 10px 30px -12px var(--teal);max-width:100%;transition:transform .2s var(--ease),box-shadow .2s}
 .inv{grid-column:1/-1;margin-top:40px;border:1px solid var(--ink);border-radius:20px;padding:24px 28px;background:var(--card)}
 .inv ul{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 36px}
 .inv li{display:grid;gap:4px;align-content:start}.inv .k{font:600 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
 .inv li:nth-child(4) .k{color:var(--terra)}.inv .v{font-size:17px;line-height:1.5;color:var(--ink)}
 @media (max-width:720px){.inv ul{grid-template-columns:1fr}.inv{padding:20px}}
-.quick-cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px var(--teal)}
-.quick-cta .ic{font-size:28px;line-height:1}.quick-cta b{display:block;font:600 clamp(18px,2.2vw,22px)/1.25 var(--sans)}
-.quick-cta small{display:block;font-size:15px;opacity:.9;margin-top:2px}.quick-cta .ar{font-size:26px;margin-left:auto}
-@media screen and (prefers-reduced-motion:no-preference){.quick-cta .ar{animation:qnudge 1.6s ease-in-out infinite}@keyframes qnudge{50%{transform:translateX(5px)}}}
 .toggle i{width:10px;height:10px;border-radius:50%;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%);border:1px solid var(--ink);display:inline-block}
 .hero{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding:clamp(40px,7vw,96px) 0 40px}
 .hero{position:relative;isolation:isolate;overflow-x:clip}
@@ -1434,9 +1437,9 @@ def render(results, sha, ledgers=None, tape=None):
 <link rel="stylesheet" href="{FONTS}">
 <style>{CSS}{PATH_CSS}</style></head><body><div class="wrap">
 <header class="mast"><div class="brand"><b>Coverage</b><span>A research report on what NEAR pays back</span></div>
-<nav aria-label="Chapters">{nav}</nav><a class="toggle quick" href="quick.html">60-second version</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
+<nav aria-label="Chapters">{nav}</nav><a class="qlink" href="quick.html"><i>60s</i> version</a><button class="toggle" id="theme" type="button" aria-label="Switch between paper and ink"><i></i><span>Ink</span></button></header>
 <section class="hero" id="top" aria-label="{e(meta)}"><div class="meta"><span class="eyebrow">NEAR mainnet</span><span class="eyebrow">{span}</span><span class="eyebrow">{s['epochs']:,} epochs</span></div>
-<h1>{h1}</h1><a class="quick-cta" href="quick.html"><span class="ic">⏱</span><span><b>Short on time? Read it in 60 seconds</b><small>One idea per step, in plain words</small></span><span class="ar">→</span></a><p class="dek">{dek}</p><p class="byline">{byline}</p>{inv}</section>
+<h1>{h1}</h1><a class="quick-cta" href="quick.html"><span class="n">60<small>s</small></span><span class="t"><b>The short version</b><span>One idea per step, in plain words. Same numbers.</span></span><span class="go">Read it</span></a><p class="dek">{dek}</p><p class="byline">{byline}</p>{inv}</section>
 {ruler}{live}{scale}
 <div class="body"><aside class="index" aria-label="Contents"><div class="eyebrow">Contents</div><ol id="idx">{idx}</ol>{foot}</aside>
 <main><div class="mobile-index"><details><summary><span class="row"><b id="mi-t">01 {chapters[0][1] if chapters else ''}</b><span id="mi-n" class="eyebrow">1 / {len(chapters)}</span></span><span class="p" style="display:block"><i id="mi-p"></i></span></summary><ol>{midx}</ol></details></div>
