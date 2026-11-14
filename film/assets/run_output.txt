@@ -64,15 +64,15 @@ payback_if_all_intents_fees_captured 0.492441
 backtest persistence  {'pinball': 0.0864741, 'interval_hit': 0.668627, 'n': 510, 'skill_vs_persistence': 0.0}
 backtest clock        {'pinball': 0.0784853, 'interval_hit': 0.652941, 'n': 510, 'skill_vs_persistence': 0.092384}
 backtest price        {'pinball': 0.0938406, 'interval_hit': 0.731373, 'n': 510, 'skill_vs_persistence': -0.0851872}
-LEDGER round-224265136-h05.json: 2/5 epochs closed -> PENDING
+LEDGER round-224265136-h05.json: 3/5 epochs closed -> PENDING
 LEDGER   burn_total: 1193.06 to 1879.68, actual None -> PENDING
 LEDGER   buyback_total: 7317.79 to 35576.2, actual None -> PENDING
 LEDGER   payback: 0.0690182 to 0.272094, actual None -> PENDING
-LEDGER round-224265136-h10.json: 2/10 epochs closed -> PENDING
+LEDGER round-224265136-h10.json: 3/10 epochs closed -> PENDING
 LEDGER   burn_total: 2173.99 to 3553.67, actual None -> PENDING
 LEDGER   buyback_total: 14073.0 to 86747.8, actual None -> PENDING
 LEDGER   payback: 0.0627287 to 0.307977, actual None -> PENDING
-LEDGER round-224265136-h20.json: 2/20 epochs closed -> PENDING
+LEDGER round-224265136-h20.json: 3/20 epochs closed -> PENDING
 LEDGER   burn_total: 2819.73 to 6523.96, actual None -> PENDING
 LEDGER   buyback_total: 34148.4 to 133348.0, actual None -> PENDING
 LEDGER   payback: 0.0687373 to 0.267913, actual None -> PENDING

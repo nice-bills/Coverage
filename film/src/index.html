@@ -51,14 +51,18 @@ const scenes=[0,5,10,18,24,32,39,46,53,61,67,72];
 
 function caption(id,html,t,a,b){return show(id,html,'a cap',t,a,b,0,0,{dy:24,kind:snap,out:.3})}
 
-function shotFrame(id,img,url,t,a,b,{x=150,y=118,w=1620,h=640,z0=1,z1=1.08,px0=0,py0=0,px1=0,py1=0,iw=1620}={}){
- const vis=t>=a-0.01&&t<=b+.4;
- const e=show(id,`<div class="frame" style="width:${w}px"><div class="bar"><i></i><i></i><i></i><span>${url}</span></div><div class="view" style="height:${h}px"><img src="../assets/${img}" style="width:${iw}px"></div></div>`,'a',t,a,b,x,y,{dy:60,kind:settle,out:.4});
- if(!e)return;const k=ease(lin(t,a,b)),im=e.querySelector('img');
- im.style.transform=`translate(${-(px0+(px1-px0)*k)}px,${-(py0+(py1-py0)*k)}px) scale(${z0+(z1-z0)*k})`;}
+// screens are shown whole: the view takes the image's own aspect ratio, at most 690 px tall and 1240 px wide,
+// so the right-hand side stays free for the badge; a slow 2.5% push-in from the centre is the only crop
+const ASPECT={hero:2880/1800,epochs:1942/1408,bq:1972/960,path:1942/1172,rounds:1942/1492};
+let FRAME_R=1420;
+function shotFrame(id,img,url,t,a,b){
+ const ar=ASPECT[img.replace('.png','')],h=Math.round(Math.min(690,1240/ar)),w=Math.round(h*ar),x=120,y=118;
+ FRAME_R=x+w;
+ const e=show(id,`<div class="frame" style="width:${w}px"><div class="bar"><i></i><i></i><i></i><span>${url}</span></div><div class="view" style="height:${h}px"><img src="../assets/${img}" style="width:${w}px;height:${h}px;transform-origin:50% 50%"></div></div>`,'a',t,a,b,x,y,{dy:60,kind:settle,out:.4});
+ if(!e)return;const k=ease(lin(t,a,b));e.querySelector('img').style.transform=`scale(${1+0.025*k})`;}
 
 function badge(id,big,small,t,a,b,color){
- return show(id,`<div style="background:var(--card);border:2px solid ${color};border-radius:24px;padding:22px 30px;box-shadow:0 30px 60px -30px rgba(29,27,23,.5)"><div class="serif" style="font-size:96px;line-height:1;color:${color}">${big}</div><div style="font:500 24px/1.3 var(--sans);color:var(--ink2);margin-top:6px;max-width:330px">${small}</div></div>`,'a',t,a,b,1420,150,{dy:50,kind:land,out:.3});}
+ return show(id,`<div style="background:var(--card);border:2px solid ${color};border-radius:24px;padding:22px 30px;box-shadow:0 30px 60px -30px rgba(29,27,23,.5)"><div class="serif" style="font-size:96px;line-height:1;color:${color}">${big}</div><div style="font:500 24px/1.3 var(--sans);color:var(--ink2);margin-top:6px;max-width:330px">${small}</div></div>`,'a',t,a,b,FRAME_R+48,170,{dy:50,kind:land,out:.3});}
 window.seek=function(t){
  for(const k in pool)pool[k].style.display='none';
  // persistent brand mark, top left, from 0.6 s
@@ -92,7 +96,7 @@ window.seek=function(t){
  show('r3',`<div style="display:flex;gap:80px;align-items:baseline"><div><div class="eyebrow" style="margin-bottom:12px">Won back</div><div class="serif" style="font-size:150px;line-height:1;color:var(--teal)">${D.payback}</div></div><div><div class="eyebrow" style="margin-bottom:12px">Break-even</div><div class="serif" style="font-size:150px;line-height:1">${D.mult} <span style="color:var(--muted);text-decoration:line-through;text-decoration-color:var(--terra);text-decoration-thickness:6px">${D.burn_mult}</span></div></div></div>`,'a',t,13.6,17.4,120,770,{dy:60});
 
  // 4 PRODUCT 18-24
- shotFrame('f_hero','hero.png','nice-bills.github.io/Coverage',t,17.55,23.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.07,px1:30,py1:40});
+ shotFrame('f_hero','hero.png','nice-bills.github.io/Coverage',t,17.55,23.6);
  badge('b4',D.payback,'of issuance won back, from the chain',t,20.3,23.5,'var(--teal)');
  caption('c4','A live research report. <b>Every number comes from NEAR mainnet.</b>',t,18.6,23.6);
 
@@ -105,22 +109,22 @@ window.seek=function(t){
  caption('c5','One command. No keys, no network. <b>Every number rebuilt in 2 seconds, with a hash.</b>',t,24.8,31.6);
 
  // 6 PROOF 2: epochs 32-39
- shotFrame('f_ep','epochs.png','every epoch since 13 Feb',t,32,38.6,{x:150,y:118,h:640,iw:1620,z0:1.02,z1:1.06,px1:60,py1:0});
+ shotFrame('f_ep','epochs.png','every epoch since 13 Feb',t,32,38.6);
  badge('b6',D.epochs,'epochs, each checked to start where the last one ended',t,34.8,38.5,'var(--ink)');
  caption('c6','Every epoch since February, <b>read from block headers to the yoctoNEAR.</b>',t,32.6,38.6);
 
  // 7 PROOF 3: BigQuery 39-46
- shotFrame('f_bq','bq.png','Network activity · BigQuery',t,39,45.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.05,py1:260});
+ shotFrame('f_bq','bq.png','Network activity · BigQuery',t,39,45.6);
  badge('b7',D.intents_x,'more Intents activity, while the chain fell',t,41.8,45.5,'var(--teal)');
  caption('c7',`The chain got quieter: accounts <span class="r">${D.dau}</span>. Intents didn't: <span class="t"><b>${D.intents_x} more activity.</b></span>`,t,39.6,45.6);
 
  // 8 FUTURE 46-53
- shotFrame('f_path','path.png','The path to break-even',t,46,52.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.06,px1:40,py1:20});
+ shotFrame('f_path','path.png','The path to break-even',t,46,52.6);
  badge('b8','16 Nov','HSP-029 veto window closes, during judging',t,48.8,52.5,'var(--terra)');
  caption('c8','Break-even turns on <b>two votes</b>: fee capture, and HSP-029 <span style="color:var(--muted)">(veto window closes 16 Nov)</span>.',t,46.6,52.6);
 
  // 9 LIVE 53-61
- shotFrame('f_rounds','rounds.png','Check it yourself · live forecasts',t,53,60.6,{x:150,y:118,h:640,iw:1620,z0:1,z1:1.04,py1:40});
+ shotFrame('f_rounds','rounds.png','Check it yourself · live forecasts',t,53,60.6);
  badge('b9',D.so_far,`payback so far, inside ${D.inside} ranges`,t,55.8,60.5,'var(--teal)');
  caption('c9',`Frozen in Bitcoin before the data existed. <span class="t"><b>${D.so_far} so far, inside ${D.inside} ranges.</b></span> They close 14–18 Nov, while you judge.`,t,53.6,60.6);
 
