@@ -39,7 +39,7 @@ a{color:inherit;text-decoration-color:var(--rule);text-underline-offset:3px}a:ho
 :focus-visible{outline:2px solid var(--teal);outline-offset:3px}
 .num{font-variant-numeric:tabular-nums}.teal{color:var(--teal)}.terra{color:var(--terra)}
 code{font-family:var(--mono);font-size:.84em;overflow-wrap:anywhere}
-.wrap{max-width:1360px;margin:0 auto;padding:0 var(--gut)}
+.wrap{max-width:1760px;margin:0 auto;padding:0 var(--gut)}
 .eyebrow{font:500 11.5px/1.35 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .mast{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0 18px;border-bottom:1px solid var(--rule)}
 .brand{display:flex;align-items:baseline;gap:14px;min-width:0}.brand b{font:400 28px/1 var(--serif);letter-spacing:-.01em}

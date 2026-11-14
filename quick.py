@@ -62,11 +62,11 @@ body{font-size:18px;line-height:1.6}
 .q-list .ic{font:400 30px/1 var(--serif);color:var(--terra)}
 .q-list b{display:block;font-size:20px;font-weight:600}
 .q-list span{color:var(--ink-2);font-size:17px}
-.q-verdict{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:14px}
-.q-verdict li{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;display:grid;gap:6px;background:var(--paper)}
-.q-verdict .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
-.q-verdict li:nth-child(4) .k{color:var(--terra)}
-.q-verdict .v{font-size:18px;line-height:1.5}
+.q-vlist{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:14px}
+.q-vlist li{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;display:grid;gap:6px;background:var(--paper)}
+.q-vlist .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.q-vlist li:nth-child(4) .k{color:var(--terra)}
+.q-vlist .v{font-size:18px;line-height:1.5}
 .q-live{margin-top:20px;border:2px solid var(--teal);border-radius:16px;padding:16px 18px;display:grid;gap:8px}
 .q-live .k{font:600 14px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
 .q-live .v{font-size:18px}.q-live .q-btn{justify-self:start;margin-top:6px}
@@ -88,6 +88,35 @@ html.anim .q-grow.g2{transition-delay:calc(var(--d,0s) + .75s)}
 html.anim .q-vs .old .v{transition:text-decoration-color .6s ease-out 1.4s}
 html.anim .rv:not(.in) .q-vs .old .v{text-decoration-color:transparent}}
 @media print{.q-prog{display:none}}
+/* wide screens: a dashboard of cards instead of one long column; phones keep the step-by-step column */
+@media (min-width:1200px){
+ .q-wrap{max-width:1840px}
+ .q-hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:56px;align-items:end;padding:36px 0 22px}
+ .q-hero .eyebrow{grid-column:1/-1}.q-hero h1{grid-row:2;margin:10px 0 0;max-width:none;font-size:clamp(48px,4.4vw,80px)}
+ .q-hero .lead,.q-hero .chips{grid-column:2}.q-hero .lead{grid-row:2;align-self:end;margin-bottom:64px}.q-hero .chips{grid-row:2;align-self:end;margin:0}
+ .q-prog{display:none}
+ .q-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
+ .q-grid .q-step{margin:0;padding:26px 28px;border-radius:20px;height:100%}
+ .q-grid .q-path,.q-grid .q-verdict{grid-column:span 2}
+ .q-grid .q-step h2{font-size:30px;margin:12px 0 4px}
+ .q-grid .q-step .big{font-size:84px;margin:12px 0 2px}.q-grid .q-step .big small{font-size:17px}
+ .q-grid .q-step .say{font-size:17px}.q-grid .q-step .plain{font-size:15px;margin-top:14px;padding:10px 14px}
+ .q-grid .tag{font-size:13px}.q-grid .tag .n{width:32px;height:32px;font-size:18px}
+ .q-grid .q-bars{margin-top:16px}.q-grid .q-bar .track{height:22px}.q-grid .q-bar .lab{font-size:14px}
+ .q-grid .q-vs{margin-top:16px;gap:12px}.q-grid .q-vs>div{padding:12px 14px}.q-grid .q-vs .v{font-size:40px}.q-grid .q-vs .k{font-size:13px}
+ .q-grid .q-cases{margin-top:14px}.q-grid .q-cases .y{font-size:34px}
+ .q-grid .q-path .fan-w{margin-top:14px!important}
+ .q-grid .q-list{margin-top:12px;gap:8px}.q-grid .q-list li{padding-top:8px}.q-grid .q-list b{font-size:17px}.q-grid .q-list span{font-size:15px}
+ .q-grid .q-vlist{grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.q-grid .q-vlist li{padding:12px 14px}
+ .q-grid .q-vlist .v{font-size:15px}
+ .q-grid .q-cmd{font-size:15px;padding:12px 14px;margin-top:12px}.q-grid .q-live .v{font-size:15px}
+ .q-end{padding:28px 0 40px}.q-end h2{font-size:40px}
+ .q-grid .q-check{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:32px;align-content:start}
+ .q-grid .q-check>.tag,.q-grid .q-check>h2,.q-grid .q-check>.say{grid-column:1}
+ .q-grid .q-check>.q-cmd{grid-column:2;grid-row:1/3;align-self:start;margin-top:0}
+ .q-grid .q-check>.plain{grid-column:2;grid-row:3;align-self:start}
+ .q-grid .q-check>.q-live{grid-column:3;grid-row:1/4;align-self:start;margin-top:0}
+}
 """
 
 QUICK_JS = r"""
@@ -202,7 +231,7 @@ def render(results, sha, ledgers=None):
         step("verdict", "So, buy or not?", f"""
 <h2>So what should an investor do?</h2>
 <p class="say">Our honest call, in four lines:</p>
-<ul class="q-verdict">{vi}</ul>""")
+<ul class="q-vlist">{vi}</ul>""")
 
     cb = results.get("claims_backtest") or {}
     tot = [sum(v["payback"][k] for v in cb.values() if "payback" in v) for k in ("hit", "n")]
@@ -240,7 +269,7 @@ def render(results, sha, ledgers=None):
 
     n = len(steps)
     body = "".join(
-        f"<section class='q-step' id='s{i + 1}' data-t='{e(t)}'><div class='tag'><span class='n'>{i + 1}</span>{e(t)}</div>{html_}</section>"
+        f"<section class='q-step q-{k}' id='s{i + 1}' data-t='{e(t)}'><div class='tag'><span class='n'>{i + 1}</span>{e(t)}</div>{html_}</section>"
         for i, (k, t, html_) in enumerate(steps))
     title = f"Coverage in 60 seconds: NEAR wins back {pct(s['payback'])} of what it mints"
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -257,7 +286,7 @@ def render(results, sha, ledgers=None):
 <h1>NEAR makes new coins. We measured how much it <em>wins back</em>.</h1>
 <p class="lead">{n} quick steps. One idea each. Every number is real and you can check it.</p>
 <ul class="chips"><li>About 60 seconds</li><li>{n} steps</li><li>Last {s['window_days']:.0f} days of NEAR mainnet</li></ul></section>
-{body}
+<div class="q-grid">{body}</div>
 <section class="q-end"><h2>That's it.</h2><p>NEAR wins back <b>{pct(s['payback'])}</b> of what it makes, and break-even is <b>{s['multiple']:.1f}×</b> away, not {s['burn_only_multiple']:.0f}×.</p>
 <div class="acts"><a class="q-btn solid" href="index.html">Read the full report</a><a class="q-btn" href="{D.REPO}">See the code</a></div></section>
 <footer class="q-foot"><span>Coverage · MIT licence · result <code>{sha[:12]}</code></span><span>Same numbers as the full report, from <code>out/results.json</code>.</span></footer>
