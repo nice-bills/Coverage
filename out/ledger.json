@@ -14,8 +14,8 @@
   "file": "round-224265136-h10.json",
   "frozen_t": 1794516622,
   "payback": null,
-  "resolved": 6,
-  "so_far": 0.13390147674690658,
+  "resolved": 7,
+  "so_far": 0.1515434072779148,
   "total": 10,
   "verdict": "PENDING"
  },
@@ -24,8 +24,8 @@
   "file": "round-224265136-h20.json",
   "frozen_t": 1794516622,
   "payback": null,
-  "resolved": 6,
-  "so_far": 0.13390147674690658,
+  "resolved": 7,
+  "so_far": 0.1515434072779148,
   "total": 20,
   "verdict": "PENDING"
  }
