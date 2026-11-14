@@ -49,6 +49,10 @@ def load():
     # looks backwards, so it applies unchanged to epochs that close after the predictions are frozen.
     mark_lumps(rows)
     llama = list(csv.DictReader(open(os.path.join(ROOT, "data", "llama.csv"))))
+    # a day whose Intents buybacks exceed its gross Intents fees is incomplete in DefiLlama's series (buybacks are part of fees);
+    # such days are left out of every DefiLlama figure (2026-03-27 and 2026-11-11 in the committed file)
+    bad = lambda r: float(r["intents_buyback_usd"] or 0) > float(r["intents_fees_usd"] or 0) > 0 or (float(r["intents_buyback_usd"] or 0) > 0 and not float(r["intents_fees_usd"] or 0))
+    llama = [r for r in llama if not bad(r)]
     return rows, price, llama
 
 
@@ -383,14 +387,26 @@ def growth_measures(llama, before):
 def breakeven(payback, growth, ramp, horizon=100, delay=0.0):
     """Years until payback, growing at `growth` a year (monthly steps), reaches 100% of issuance; None if not within `horizon`."""
     for m in range(0, 12 * horizon + 1):
-        if payback * (1 + growth) ** (m / 12) / issuance_factor(m, ramp, delay) >= 1:
+        if payback * (1 + growth) ** (m / 12) / mint_factor(m, ramp, delay) >= 1:
             return m / 12
     return None
 
 
 def issuance_factor(month, ramp, delay=0.0):
-    """Issuance relative to 2.5% after `month` months; the HSP-029 ramp starts `delay` months from now."""
+    """Issuance rate relative to 2.5% after `month` months; the HSP-029 ramp starts `delay` months from now."""
     return 1 - (1 - HSP029) * min(max(month - delay, 0), 24) / 24 if ramp else 1.0
+
+
+ISSUANCE = 0.025  # maximum yearly issuance today (data/protocol.json); realized gross issuance is within 0.1 point of it
+
+
+def mint_factor(month, ramp, delay=0.0):
+    """NEAR minted per month after `month` months, relative to today: the issuance rate times the supply it applies to.
+    Buybacks are held, not burnt, and the fee burn is under 1% of mint, so supply grows by what is minted (monthly steps)."""
+    supply = 1.0
+    for k in range(int(month)):
+        supply *= 1 + ISSUANCE * issuance_factor(k, ramp, delay) / 12
+    return issuance_factor(month, ramp, delay) * supply
 
 
 def scenarios(s, llama, before):
@@ -409,11 +425,11 @@ def scenarios(s, llama, before):
         y, yh = breakeven(pay, rate, False), breakeven(pay, rate, True, delay=dl)
         cases[name] = dict(growth=rate, years=y, years_hsp029=yh,
                            year=None if y is None else int(when(y)), year_hsp029=None if yh is None else int(when(yh)),
-                           payback_10y=pay * (1 + rate) ** 10, payback_10y_hsp029=pay * (1 + rate) ** 10 / HSP029)
+                           payback_10y=pay * (1 + rate) ** 10 / mint_factor(120, False), payback_10y_hsp029=pay * (1 + rate) ** 10 / mint_factor(120, True, dl))
     path = dict(years=[q / 4 for q in range(41)])
     for name, c in cases.items():
         for ramp in (False, True):
-            path[name + ("_hsp029" if ramp else "")] = [pay * (1 + c["growth"]) ** (q / 4) / issuance_factor(3 * q, ramp, dl) for q in range(41)]
+            path[name + ("_hsp029" if ramp else "")] = [pay * (1 + c["growth"]) ** (q / 4) / mint_factor(3 * q, ramp, dl) for q in range(41)]
     # capture lever: the burn stays, the buyback part scales with the share of gross Intents fees captured
     cap = []
     for share in sorted({s["capture_share"], 0.5, 1.0}):
@@ -523,7 +539,7 @@ def main():
         ramp=True lowers issuance linearly from 2.5% to 1.6% over 24 months (HSP-029), from its earliest start."""
         dl = hsp_delay(rows[-1]["date"] if "date" in rows[-1] else day(rows[-1]["t1_ns"]).strftime("%Y-%m-%d"))
         for month in range(1, 12 * 100 + 1):
-            issuance = issuance_factor(month, ramp, dl)
+            issuance = mint_factor(month, ramp, dl)
             if (1 + growth) ** (month / 12) >= now["multiple"] * issuance:
                 return month / 12
         return None
@@ -544,7 +560,7 @@ def main():
         multiple_at_1_6_issuance=None if pay is None else now["multiple"] * 1.6 / 2.5,
         window_days=(w[-1]["t1_ns"] - w[0]["t0_ns"]) / 86400e9,
         # constant yearly growth in burn plus buybacks that reaches break-even in 3, 5 and 10 years
-        **({} if pay is None else {f"growth_needed_{n}y": now["multiple"] ** (1 / n) - 1 for n in (3, 5, 10)}),
+        **({} if pay is None else {f"growth_needed_{n}y": (now["multiple"] * mint_factor(12 * n, False)) ** (1 / n) - 1 for n in (3, 5, 10)}),
         utilization=now["utilization"], ceiling=now["ceiling"],
         ceiling_p05=quantile(boot, 0.05), ceiling_p95=quantile(boot, 0.95),
         window_price_usd=usd, llama_burn_near_per_day=near("near_burn_usd"), llama_fees_near_per_day=near("near_fees_usd"),

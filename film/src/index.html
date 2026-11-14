@@ -53,7 +53,7 @@ function caption(id,html,t,a,b){return show(id,html,'a cap',t,a,b,0,0,{dy:24,kin
 
 // screens are shown whole: the view takes the image's own aspect ratio, at most 690 px tall and 1240 px wide,
 // so the right-hand side stays free for the badge; a slow 2.5% push-in from the centre is the only crop
-const ASPECT={hero:2880/1800,epochs:1942/1408,bq:1972/960,path:1942/1172,rounds:1942/1492};
+const ASPECT={hero:2880/1800,epochs:2102/1408,bq:1972/960,path:2102/1244,rounds:2102/1412};
 let FRAME_R=1420;
 function shotFrame(id,img,url,t,a,b){
  const ar=ASPECT[img.replace('.png','')],h=Math.round(Math.min(690,1240/ar)),w=Math.round(h*ar),x=120,y=118;

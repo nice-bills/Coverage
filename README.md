@@ -14,8 +14,9 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 | [THESIS.md](THESIS.md) | Verdict, claim, evidence for, evidence against, what would change our mind | The full argument with the bear case at equal weight |
 | [Forecast rounds](#forecasts-and-the-outside-judge) | Ranges frozen before the epochs existed, timestamped in Bitcoin | The chain scores them during judging, 14 to 18 Nov |
 
-It runs itself. Every hour during judging a scheduled job fetches the epochs that closed, scores
-the frozen forecast rounds, commits and redeploys. Nobody edits the numbers by hand. Freezing new
+It runs itself. A job scheduled hourly during judging fetches the epochs that closed, scores the
+frozen forecast rounds, commits and redeploys (GitHub can delay scheduled runs, so the same
+commands are also run by hand when a round closes). Nobody edits the numbers by hand. Freezing new
 rounds is paused until judging ends (25 Nov), so the headline numbers stay those submitted.
 
 ![The dashboard](docs/dashboard.jpg)
@@ -28,9 +29,9 @@ rounds is paused until judging ends (25 Nov), so the headline numbers stay those
   that flow equals 12.0% of issuance: flows would have to grow 8.4x, not 108x.
 - The case against, with equal weight in [THESIS.md](THESIS.md): buybacks are held, not burnt,
   and the 100-epoch payback has fallen from its 16.5% peak to 12.0%.
-- Path to break-even (THESIS.md): at the median year-long Intents growth in the data (+3.4%
-  a year), burn plus buybacks reach issuance in 2091 (2077 with HSP-029);
-  at the year's best trend (+50.2%) in 2032; at the worst (−25.5%), break-even never comes, because the flow shrinks.
+- Path to break-even (THESIS.md): at the median year-long Intents growth in the data (+5.2%
+  a year), burn plus buybacks reach issuance in 2110 (2075 with HSP-029);
+  at the year's best trend (+49.9%) in 2032; at the worst (−23.2%), break-even never comes, because the flow shrinks.
 - Every number above is rebuilt offline by `python3 run.py` and checked against mainnet by
   `python3 verify.py`; forecasts frozen before judging are scored by the chain during it.
 
@@ -54,8 +55,8 @@ Forecasts frozen before the epochs existed, scored by mainnet while you judge:
 
 ## Verdict for an investor
 
-- **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2091. Don't own NEAR expecting buybacks to offset dilution soon.
-- **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 23%) and HSP-029's lower issuance would bring even the base case to about 8 years. Both are votes, not market conditions.
+- **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2110. Don't own NEAR expecting buybacks to offset dilution soon.
+- **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 22%) and HSP-029's lower issuance would bring even the base case to about 7 years. Both are votes, not market conditions.
 - **Turn more bullish if:** HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
@@ -102,7 +103,7 @@ python3 run.py
 Expected last line:
 
 ```
-RESULT sha256=505432748cb53d707967526ca56680cf8124b1c07b364c36f2ba755d0e1309d1
+RESULT sha256=a214eaa40dbd90f2e2d453838be6857b27391c1d948e1eb253b2257668d6940d
 ```
 
 The command reads the files in `data/`, checks that the cached epochs chain together, writes
@@ -330,7 +331,7 @@ the code derives from the data up to that round's height.
 | `predictions/` | the frozen forecast rounds and their OpenTimestamps proofs |
 | `VERIFY.txt` | recorded output of one `verify.py` run |
 | `THESIS.md` | claim, evidence for and against, what would change our mind |
-| `.github/workflows/pages.yml` | hourly during judging: fetches new epochs, scores the rounds, commits to `main`, redeploys the dashboard (freezing new rounds is paused until 25 Nov) |
+| `.github/workflows/pages.yml` | scheduled hourly during judging (GitHub may delay runs): fetches new epochs, scores the rounds, commits to `main`, redeploys the dashboard (freezing new rounds is paused until 25 Nov) |
 
 ## Limits
 

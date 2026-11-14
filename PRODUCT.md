@@ -26,5 +26,5 @@ Plain, specific, measured. Numbers with units. No promotion.
 ## Design
 
 An auditor's working paper under daylight: black ink, ruled lines, one teal for what comes back
-to the token and one orange for what is burnt. No cards, no external assets, system fonts, light
-and dark. Tokens live at the top of `dashboard.py`.
+to the token and one orange for what is burnt. Instrument Serif, Inter and JetBrains Mono from Google
+Fonts with system fallbacks; nothing else external. Light and dark. Tokens live at the top of `dashboard.py`.

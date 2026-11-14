@@ -10,8 +10,8 @@ divided by new issuance; *break-even* is how many times flows must grow to equal
 
 ## Verdict for an investor
 
-- **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2091. Don't own NEAR expecting buybacks to offset dilution soon.
-- **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 23%) and HSP-029's lower issuance would bring even the base case to about 8 years. Both are votes, not market conditions.
+- **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2110. Don't own NEAR expecting buybacks to offset dilution soon.
+- **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 22%) and HSP-029's lower issuance would bring even the base case to about 7 years. Both are votes, not market conditions.
 - **Turn more bullish if:** HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
@@ -64,16 +64,16 @@ transaction hashes). Earlier transfers are not covered by this check. Over every
 (the audit below, from FastNear), `intents.near` sent 77.2%; the two figures cover
 different periods and sources and are both reported.
 
-**Captured revenue follows volume.** Across 37 complete weeks since buybacks began, weekly
-captured revenue and weekly NEAR Intents volume have a correlation of 0.90 (DefiLlama). NEAR
-keeps a median 2.6 basis points of volume, in a range of 1.1 to 6.1. So the
+**Captured revenue follows volume.** Across 36 complete weeks since buybacks began, weekly
+captured revenue and weekly NEAR Intents volume have a correlation of 0.92 (DefiLlama). NEAR
+keeps a median 2.5 basis points of volume, in a range of 1.1 to 5.7. So the
 volume lever in the table below rests on an observed relationship, not an assumption. It is
-37 weekly points: a description of this period, not proof that the relationship is stable
+36 weekly points: a description of this period, not proof that the relationship is stable
 or causal, and the take rate is not stable.
 
 **A separate pipeline gives the same total.** DefiLlama computes NEAR's captured Intents revenue
 from Dune tables across three revenue wallets. Converted at each day's price it is
-13,589 NEAR a day over the same days. Balance changes of those three wallets, read
+13,594 NEAR a day over the same days. Balance changes of those three wallets, read
 with 12 RPC calls, give 13,984 NEAR a day. The thesis uses only the buyback wallet,
 9,922 NEAR a day, which is the lower figure.
 
@@ -129,9 +129,9 @@ over the whole cache; the protocol config has `max_inflation_rate` at 1/40
 (`data/protocol.json`). If the buyback NEAR were burnt rather than held, net inflation would be
 2.20%; as it is held, supply still grows at the gross rate.
 
-**The capture lever is large.** Gross NEAR Intents fees run at $191,119 a day (DefiLlama).
-The buyback account receives about 23% of that. If all of it arrived, at today's
-volume, payback would be 49%.
+**The capture lever is large.** Gross NEAR Intents fees run at $197,318 a day (DefiLlama).
+The buyback account receives about 22% of that. If all of it arrived, at today's
+volume, payback would be 50%.
 
 **Burn has headroom on paper (extrapolated, not observed).** Sampled blocks are 0.78% full. Scaling today's burn to full
 blocks at today's effective gas price gives 119% of issuance (90% bootstrap range
@@ -197,8 +197,8 @@ arrives, not the split, which is not published per swap.
 latest is 12.0%. The history is too short to fit a trend.
 
 **NEAR Intents is not growing.** Comparing the first and last 30 days of the year to 2026-11-12
-(DefiLlama): daily Intents volume is 1.02x, gross Intents fees 0.75x, and
-NEAR gas fees in USD 0.62x. Within the year volume fell to a weekly low of
+(DefiLlama): daily Intents volume is 1.03x, gross Intents fees 0.77x, and
+NEAR gas fees in USD 0.64x. Within the year volume fell to a weekly low of
 $51M a day and has recovered to $130M, so the year-on-year figure hides a round trip,
 not steady growth. The buyback flow exists because capture was switched on in February 2026. At today's capture share, break-even needs
 8.4x the volume.
@@ -240,8 +240,8 @@ DefiLlama volume, fee and take-rate figures used here for context understate act
 **Third-party inputs.** Attribution of inflows uses NearBlocks, and the USD context uses
 DefiLlama and CoinGecko. None of these feed mint, burn, the buyback gain or payback. DefiLlama's
 NEAR page states that 70% of gas fees are burnt; the live protocol config has
-`burnt_gas_reward` at 0. Over the same days DefiLlama reports 978 NEAR a day in
-gas fees and 684 burnt, against 829 measured from the chain. We report the
+`burnt_gas_reward` at 0. Over the same days DefiLlama reports 979 NEAR a day in
+gas fees and 685 burnt, against 829 measured from the chain. We report the
 difference and do not explain it.
 
 **Sampling.** Utilization and the ceiling use 3 blocks per epoch and are reported only as
@@ -291,8 +291,8 @@ Beyond the rounds, rerunning `fetch.py` and `run.py` would change our mind if:
 - payback over a 100-epoch window drops below half of 12.0%;
 - transfers into the buyback account stop coming from `intents.near`.
 - the year-long growth measures behind the scenarios move. The base case is their median
-  (+3.4% a year, break-even in 2091): another year of falling Intents fees
-  would make the bear case the base, and a year at the volume trend's pace (+50.2%)
+  (+5.2% a year, break-even in 2110): another year of falling Intents fees
+  would make the bear case the base, and a year at the volume trend's pace (+49.9%)
   would bring the base case within about five years. The path to break-even below is
   recomputed by every run.
 
@@ -304,15 +304,15 @@ forecast:
 
 | Growth in burn plus buybacks | Years to break-even, issuance at 2.5% | Years, issuance ramping to 1.6% (HSP-029) |
 |---|---|---|
-| 10% a year | 22.3 | 17.7 |
-| 25% a year | 9.6 | 7.6 |
-| 50% a year | 5.2 | 4.2 |
-| 100% a year | 3.1 | 2.5 |
+| 10% a year | 30.2 | 21.3 |
+| 25% a year | 10.8 | 8.2 |
+| 50% a year | 5.6 | 4.4 |
+| 100% a year | 3.2 | 2.5 |
 
 | Path to break-even | What it requires |
 |---|---|
-| Growth alone, issuance unchanged | burn plus buybacks growing 103% a year for 3 years, 53% for 5, or 24% for 10 |
-| Capture all gross Intents fees, at today's volume | payback of 49%; the rest must come from growth or lower issuance |
+| Growth alone, issuance unchanged | burn plus buybacks growing 108% a year for 3 years, 57% for 5, or 27% for 10 |
+| Capture all gross Intents fees, at today's volume | payback of 50%; the rest must come from growth or lower issuance |
 | Lower issuance to 1.6% a year (HSP-029) | the multiple falls to 5.3x at today's flows |
 
 HSP-029 is the issuance lever being pulled now. It lowers maximum issuance from 2.5% to 1.6% a
@@ -330,8 +330,8 @@ year over 24 months. Its timeline
 As of 2026-11-13 no veto and no nearcore release had been reported. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
-For: the flow exists, is measurable on chain, has moved with a product's volume over 37 weeks (correlation
-0.90), and two of the three levers are governance decisions. Against: the product's volume
+For: the flow exists, is measurable on chain, has moved with a product's volume over 36 weeks (correlation
+0.92), and two of the three levers are governance decisions. Against: the product's volume
 is flat year on year, the flow is under nine months old and has fallen from its peak, and the
 NEAR is held, not destroyed. On this evidence NEAR is closer to offsetting its issuance than
 fee-burn analysis shows, and still far from doing so. A long-term case needs either sustained
@@ -347,43 +347,46 @@ the year each one brings burn plus buybacks to 100% of issuance (`run.py: scenar
 
 The rule. The captured flow is about nine months old and was ramping up, so its own growth rate
 is not used. What drives it is: buybacks are 11.1% of 12.0% payback and track NEAR
-Intents volume week by week (correlation 0.90). The data hold a full year of Intents volume
+Intents volume week by week (correlation 0.92). The data hold a full year of Intents volume
 and gross fees, each measured two ways. Windows shorter than a year are left out because they
 annualise one regime shift (weekly volume doubled in August 2026) into rates of several hundred
 percent a year.
 
 | Year-long growth measure (DefiLlama, to 2026-11-12) | Rate a year |
 |---|---|
-| Gross NEAR Intents fees, last 30 days against the first 30 of the year | −25.5% |
-| NEAR Intents volume, last 30 days against the first 30 of the year | +1.9% |
-| Gross NEAR Intents fees, log-linear trend through every day of the year | +4.8% |
-| NEAR Intents volume, log-linear trend through every day of the year | +50.2% |
+| Gross NEAR Intents fees, last 30 days against the first 30 of the year | −23.2% |
+| NEAR Intents volume, last 30 days against the first 30 of the year | +2.6% |
+| Gross NEAR Intents fees, log-linear trend through every day of the year | +7.7% |
+| NEAR Intents volume, log-linear trend through every day of the year | +49.9% |
 
 Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
-payback (12.0%) and holds the capture share and the NEAR price constant. HSP-029 is
+payback (12.0%) and holds the capture share and the NEAR price constant. Issuance is a rate on a
+supply that keeps growing (buybacks are held, not burnt), so the NEAR minted each year grows too and
+every path is measured against that rising mint. DefiLlama days whose Intents buybacks exceed their
+gross fees are incomplete and left out. HSP-029 is
 modelled as a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible
 date, about 2027-02-14 (after the veto window and the 90-day grace period).
 
 | Scenario | Growth a year | Payback in 10 years (2.5% / HSP-029) | Break-even, issuance 2.5% | Break-even, HSP-029 ramp |
 |---|---|---|---|---|
-| Bear | −25.5% | 0.6% / 1.0% | never, because the flow shrinks | never, because the flow shrinks |
-| Base | +3.4% | 17% / 26% | 2091 (in 64 years) | 2077 (in 51 years) |
-| Bull | +50.2% | above 100% / above 100% | 2032 (in 5 years) | 2031 (in 4 years) |
+| Bear | −23.2% | 0.7% / 1.1% | never, because the flow shrinks | never, because the flow shrinks |
+| Base | +5.2% | 15% / 26% | 2110 (in 84 years) | 2075 (in 49 years) |
+| Bull | +49.9% | above 100% / above 100% | 2032 (in 6 years) | 2031 (in 4 years) |
 
-In plain words: if Intents fees keep shrinking as they did over the last year (−25.5%),
-break-even never comes, because the flow shrinks. At the median year-long growth (+3.4%) it comes in
-2091, or 2077 with HSP-029: decades, not years. At the year's best
-trend, Intents volume's +50.2% a year, it comes in 2032, or 2031
-with HSP-029; that rate is close to the 53% a year that five-year break-even needs.
+In plain words: if Intents fees keep shrinking as they did over the last year (−23.2%),
+break-even never comes, because the flow shrinks. At the median year-long growth (+5.2%) it comes in
+2110, or 2075 with HSP-029: decades, not years. At the year's best
+trend, Intents volume's +49.9% a year, it comes in 2032, or 2031
+with HSP-029; that rate is close to the 57% a year that five-year break-even needs.
 
 Capture is the larger lever on the base case. At today's volume, by share of gross Intents fees
 reaching the buyback account:
 
 | Share of gross Intents fees captured | Payback today, 2.5% / 1.6% issuance | Base case break-even, 2.5% / HSP-029 ramp |
 |---|---|---|
-| 23% (today) | 12% / 19% | 64.3 / 50.8 years |
-| 50% | 25% / 39% | 41.9 / 28.4 years |
-| 100% | 49% / 77% | 21.5 / 8.0 years |
+| 22% (today) | 12% / 19% | 83.5 / 49.1 years |
+| 50% | 26% / 40% | 53.4 / 26.9 years |
+| 100% | 50% / 79% | 26.9 / 7.2 years |
 
 Issuance: today's flow would equal issuance if issuance were 0.30% a year. HSP-029's
 1.6% takes the multiple from 8.4x to 5.3x; capture and growth have to close the rest.

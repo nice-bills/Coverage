@@ -907,7 +907,7 @@ def path_chapter(sc, s, num_, fnk):
             f"what drives it is (buybacks are {pct(s['buyback_coverage'] / s['payback'], 0)} of payback and follow NEAR Intents volume, r = {s['intents_volume_captured_correlation']:.2f} by week). "
             f"Four year-long rates from the DefiLlama year: Intents volume, last 30 days against the first 30 ({g(m['intents_volume_yoy'])}) and log-linear trend ({g(m['intents_volume_trend'])}); "
             f"gross Intents fees, the same two ways ({g(m['intents_fees_yoy'])}, {g(m['intents_fees_trend'])}). Bear is the lowest, base the median, bull the highest. "
-            f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; "
+            f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; issuance is a rate on a supply that keeps growing, so the NEAR minted each year rises with it; "
             f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible date, {sc.get('hsp029_start', sc['start'])} (veto window closes 16 Nov 2026, then a 90-day grace period; validators must also adopt the upgrade). Dashed lines: with HSP-029. Shaded: between bear and bull. "
             f"<code>run.py: scenarios</code>, <code>scenarios</code> in <code>out/results.json</code>.")
     full = sc["levers"]["capture"][-1]  # every Intents fee captured, at the base growth rate
@@ -1329,7 +1329,7 @@ def render(results, sha, ledgers=None, tape=None):
             rng_, lead = f"{sum(tally.values())} rounds", f"Scored so far: {tal}."
         rounds = (f"<div class='rounds'>{cards}</div><div class='judging'><div class='d'>{rng_}</div><p>{lead} Historically the payback band has held {held} "
                   "of the time, so an occasional miss is expected even when the model is right, and a pass near the bounds is weak support.</p></div>"
-                  f"<details><summary>Scoreboard<small>{len(ledgers)} rounds frozen: {tal}. An hourly job scores each round as its epochs close; nothing is ever removed. Freezing new rounds is paused during judging.</small></summary>"
+                  f"<details><summary>Scoreboard<small>{len(ledgers)} rounds frozen: {tal}. A scheduled job scores each round as its epochs close; nothing is ever removed. Freezing new rounds is paused during judging.</small></summary>"
                   "<div class='tw'><table class='tbl'><tr><th>Frozen</th><th>Window</th><th class='r'>Committed payback</th><th class='r'>Actual</th>"
                   f"<th class='r'>Epochs closed</th><th class='r'>Verdict</th></tr>{board}</table></div></details>")
     # recorded output

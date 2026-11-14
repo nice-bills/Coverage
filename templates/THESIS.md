@@ -340,7 +340,10 @@ percent a year.
 __SC_MEASURES__
 
 Bear is the lowest of the four, base the median, bull the highest. Each path starts from today's
-payback (__PAYBACK__) and holds the capture share and the NEAR price constant. HSP-029 is
+payback (__PAYBACK__) and holds the capture share and the NEAR price constant. Issuance is a rate on a
+supply that keeps growing (buybacks are held, not burnt), so the NEAR minted each year grows too and
+every path is measured against that rising mint. DefiLlama days whose Intents buybacks exceed their
+gross fees are incomplete and left out. HSP-029 is
 modelled as a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible
 date, about 2027-02-14 (after the veto window and the 90-day grace period).
 

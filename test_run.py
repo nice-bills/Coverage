@@ -88,7 +88,11 @@ if _w:
     assert abs(_w["call_residual_near"]) < 1, _w  # gas and contract rewards in the epochs with multisig calls
 
 # Path to break-even: faster growth never arrives later, HSP-029 never later than 2.5%, and a shrinking flow never arrives.
-assert run.breakeven(0.5, 1.0, False) == 1.0 and run.breakeven(0.1, -0.1, False) is None and run.breakeven(1.0, 0.0, False) == 0
+# Mint grows with supply (issuance is a rate on a growing supply): payback doubling from 50% reaches the mint after 13 months,
+# not 12, because by month 12 the mint is 2.53% higher; a flow growing exactly as fast as supply never catches up from below.
+assert run.breakeven(0.5, 1.0, False) == 13 / 12 and run.breakeven(0.1, -0.1, False) is None and run.breakeven(1.0, 0.0, False) == 0
+assert run.breakeven(0.9, (1 + run.ISSUANCE / 12) ** 12 - 1, False) is None
+assert abs(run.mint_factor(12, False) - (1 + run.ISSUANCE / 12) ** 12) < 1e-12
 _sc = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "results.json"))).get("scenarios")
 if _sc:
     _inf = lambda v: float("inf") if v is None else v
