@@ -12,7 +12,7 @@ divided by new issuance; *break-even* is how many times flows must grow to equal
 
 - **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2110. Don't own NEAR expecting buybacks to offset dilution soon.
 - **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 22%) and HSP-029's lower issuance would bring even the base case to about 7 years. Both are votes, not market conditions.
-- **Turn more bullish if:** HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
+- **Turn more bullish if:** HSP-029 is ratified (its veto window runs to 16 Nov 2026, 16:48 UTC) and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
 The rest of this file is the evidence for that stance, the case against it, and the rounds that
@@ -57,8 +57,8 @@ exactly the fees burnt in that block. `VERIFY.txt` records one such run. `run.py
 cache whose epochs do not chain together in height and supply; that check catches gaps and
 edits, but it is the chain comparison, not the internal check, that establishes correctness.
 
-**The inflows come from the NEAR Intents contract.** Of the 2996 transfers into the
-buyback account since height 201009796, 2979 were sent by `intents.near`,
+**The inflows come from the NEAR Intents contract.** Of the 2,996 transfers into the
+buyback account since height 201009796, 2,979 were sent by `intents.near`,
 carrying 74.0% of the NEAR (`data/inflows.csv`, from the NearBlocks indexer, with
 transaction hashes). Earlier transfers are not covered by this check. Over every receipt since the account opened
 (the audit below, from FastNear), `intents.near` sent 77.2%; the two figures cover
@@ -323,11 +323,11 @@ year over 24 months. Its timeline
 |---|---|
 | 2026-10-07 | Proposal posted (author: Sal Ternullo, SVRN) |
 | 2026-11-02 | House of Stake vote passes, 99.96% of voting power, 36 voters |
-| 2026-11-16, 16:48 UTC | Security Council veto window closes; with no veto it is ratified |
+| 2026-11-16, 16:48 UTC | End of the Security Council veto window; with no veto it is ratified |
 | about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
 | after that | Validators adopt a nearcore release; the cut binds only then |
 
-As of 2026-11-13 no veto and no nearcore release had been reported. The row above only
+When this was last checked, on 2026-11-14, no veto and no nearcore release had been reported; the thread linked above carries any later news. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over 36 weeks (correlation
@@ -370,8 +370,8 @@ date, about 2027-02-14 (after the veto window and the 90-day grace period).
 | Scenario | Growth a year | Payback in 10 years (2.5% / HSP-029) | Break-even, issuance 2.5% | Break-even, HSP-029 ramp |
 |---|---|---|---|---|
 | Bear | −23.2% | 0.7% / 1.1% | never, because the flow shrinks | never, because the flow shrinks |
-| Base | +5.2% | 15% / 26% | 2110 (in 84 years) | 2075 (in 49 years) |
-| Bull | +49.9% | above 100% / above 100% | 2032 (in 6 years) | 2031 (in 4 years) |
+| Base | +5.2% | 15% / 26% | 2110 (in 83.5 years) | 2075 (in 49.1 years) |
+| Bull | +49.9% | above 100% / above 100% | 2032 (in 5.7 years) | 2031 (in 4.4 years) |
 
 In plain words: if Intents fees keep shrinking as they did over the last year (−23.2%),
 break-even never comes, because the flow shrinks. At the median year-long growth (+5.2%) it comes in

@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "17 * * * *"   # hourly during judging (14 to 25 Nov 2026), so a closed round is scored within the hour; was every 6 hours
+    - cron: "17 * * * *"   # hourly through judging (16 to 18 Nov 2026) and until 25 Nov, so a closed round is scored within the hour; was every 6 hours
   workflow_dispatch:
 permissions:
   contents: write
@@ -35,7 +35,7 @@ jobs:
         continue-on-error: true   # run.py only reconciles epochs the committed history covers
         timeout-minutes: 15
         run: python3 fetch.py history
-      # Paused for judging (14 to 25 Nov 2026): a new round moves the headline snapshot away from the submitted
+      # Paused until 25 Nov 2026 (judging is 16 to 18 Nov): a new round moves the headline snapshot away from the submitted
       # figures, and the three open rounds are what judging scores. Re-enable by restoring the condition below.
       - name: Keep the committed cache if a fetch stopped part-way
         # fetch.py writes the CSVs before it re-hashes them into data/sources.json; a run cut off in between would fail

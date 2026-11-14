@@ -221,7 +221,7 @@ def chapter(num="06", cid="c6", d=None):
     s = summary(data)
     say = sentences(data, s)
     pct = lambda x: f"{100 * x:.1f}%" if x >= 0.001 else f"{100 * x:.2f}%"
-    sql = {n: open(os.path.join(HERE, "queries", n + ".sql")).read() for n, _, _, _ in QUERIES
+    sql = {n: open(os.path.join(HERE, "queries", n + ".sql"), encoding="utf-8").read() for n, _, _, _ in QUERIES
            if os.path.isfile(os.path.join(HERE, "queries", n + ".sql"))}
     blob = {}
 

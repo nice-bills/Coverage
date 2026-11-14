@@ -308,11 +308,11 @@ year over 24 months. Its timeline
 |---|---|
 | 2026-10-07 | Proposal posted (author: Sal Ternullo, SVRN) |
 | 2026-11-02 | House of Stake vote passes, 99.96% of voting power, 36 voters |
-| 2026-11-16, 16:48 UTC | Security Council veto window closes; with no veto it is ratified |
+| 2026-11-16, 16:48 UTC | End of the Security Council veto window; with no veto it is ratified |
 | about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
 | after that | Validators adopt a nearcore release; the cut binds only then |
 
-As of 2026-11-13 no veto and no nearcore release had been reported. The row above only
+When this was last checked, on 2026-11-14, no veto and no nearcore release had been reported; the thread linked above carries any later news. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over __WEEKS__ weeks (correlation
