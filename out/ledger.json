@@ -1,21 +1,21 @@
 [
  {
-  "ends": null,
+  "ends": "2026-11-14 07:16 UTC",
   "file": "round-224265136-h05.json",
   "frozen_t": 1794516622,
-  "payback": null,
-  "resolved": 4,
-  "so_far": 0.17874193410466654,
+  "payback": 0.14936234990927963,
+  "resolved": 5,
+  "so_far": 0.14936234990927963,
   "total": 5,
-  "verdict": "PENDING"
+  "verdict": "PASS"
  },
  {
   "ends": null,
   "file": "round-224265136-h10.json",
   "frozen_t": 1794516622,
   "payback": null,
-  "resolved": 4,
-  "so_far": 0.17874193410466654,
+  "resolved": 5,
+  "so_far": 0.14936234990927963,
   "total": 10,
   "verdict": "PENDING"
  },
@@ -24,8 +24,8 @@
   "file": "round-224265136-h20.json",
   "frozen_t": 1794516622,
   "payback": null,
-  "resolved": 4,
-  "so_far": 0.17874193410466654,
+  "resolved": 5,
+  "so_far": 0.14936234990927963,
   "total": 20,
   "verdict": "PENDING"
  }
