@@ -79,11 +79,11 @@ with 12 RPC calls, give 13,984 NEAR a day. The thesis uses only the buyback wall
 
 **Other teams' published figures agree once the wallet scope is matched.** Several entries in
 this hackathon measured the same flow independently. As published in their READMEs, read
-2026-11-13 (typed in from those pages, not computed here):
+2026-11-14 (typed in from those pages, not computed here):
 
 | Source | Their figure | Scope | Ours on the same scope |
 |---|---|---|---|
-| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR gap in published buyback totals, which they trace to an internal transfer | three revenue wallets | 16.5%; 73%; 505,041 NEAR excluded as a transfer |
+| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR gap in published buyback totals, which they trace to an internal transfer of 510,068.0 NEAR, less outflows and fees, plus revenue received after the dashboard's cutoff | three revenue wallets | 16.5%; 73%; 505,041 NEAR excluded as a transfer |
 | [NEAR Agent Census](https://github.com/daodudestiny56-netizen/near-thesis-) | Intents revenue covers 15.1% of issuance; burn 0.58% | DefiLlama revenue, sampled burn, 2026-06 to 2026-11 | 16.5%; 0.92% (exact, last 29 days) |
 | [near-thesis](https://github.com/soldanoandrea/near-thesis) | 7.2x to offset issuance | all captured revenue | 6.1x |
 
