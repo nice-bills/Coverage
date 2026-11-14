@@ -524,7 +524,7 @@ const TD=D.tape;if(TD){const N=x=>Number(x)/1e24,cv=$('#tape'),cx=cv.getContext(
    set('l-h',fmt(hgt));set('l-s',fmt(Number(BigInt(b.header.total_supply)/10n**24n)));set('l-b',fmt(Number(bl/10n**24n)));
    if(gain!=null&&TD.rounds.length){set('l-g',(gain<0n?'':'+')+fmt(Number(gain/10n**21n)/1e3));set('l-gs','NEAR in '+ep.toFixed(1)+' epochs')}
    msg.textContent='Mainnet, live';sub.textContent='Read by your browser just now, block '+fmt(hgt);fail.hidden=true;
-   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n,h0=+s.dataset.h,e2=(hgt-h0)/TD.len;s.textContent=e2>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
+   document.querySelectorAll('.rlive').forEach(s=>{const n=+s.dataset.n,h0=+s.dataset.h,e2=(hgt-h0)/TD.len;s.textContent=s.dataset.v!=='PENDING'?'':e2>=n?'Live: the window has closed on mainnet. The next rebuild scores it.':
     'Live: about '+e2.toFixed(1)+' of '+n+' epochs elapsed'+(gain!=null&&h0==TD.snap?', buyback gain so far '+fmt(Number(gain/10n**21n)/1e3)+' NEAR':'')+'.'})}
   catch(err){if(!msg.dataset.ok){fail.hidden=false;sub.textContent=sub.dataset.cache}return}
   msg.dataset.ok=1}
@@ -908,7 +908,7 @@ def path_chapter(sc, s, num_, fnk):
             f"Four year-long rates from the DefiLlama year: Intents volume, last 30 days against the first 30 ({g(m['intents_volume_yoy'])}) and log-linear trend ({g(m['intents_volume_trend'])}); "
             f"gross Intents fees, the same two ways ({g(m['intents_fees_yoy'])}, {g(m['intents_fees_trend'])}). Bear is the lowest, base the median, bull the highest. "
             f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; issuance is a rate on a supply that keeps growing, so the NEAR minted each year rises with it; "
-            f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible date, {sc.get('hsp029_start', sc['start'])} (veto window closes 16 Nov 2026, then a 90-day grace period; validators must also adopt the upgrade). Dashed lines: with HSP-029. Shaded: between bear and bull. "
+            f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible date, {sc.get('hsp029_start', sc['start'])} (after the veto window, which runs to 16 Nov 2026, and a 90-day grace period; validators must also adopt the upgrade). Dashed lines: with HSP-029. Shaded: between bear and bull. "
             f"<code>run.py: scenarios</code>, <code>scenarios</code> in <code>out/results.json</code>.")
     full = sc["levers"]["capture"][-1]  # every Intents fee captured, at the base growth rate
     head = (f"Break-even turns on growth and capture. At Intents' volume trend it comes in about {c['bull']['years']:.0f} years; "
@@ -1312,7 +1312,7 @@ def render(results, sha, ledgers=None, tape=None):
                   f"<div><div class='pmeta'><span>{L['resolved']} of {L['total']} epochs closed</span><span>{inside}</span></div>"
                   f"<div class='prog'><i style='width:{100 * L['resolved'] / L['total']:.1f}%'></i></div></div>"
                   f"<div><div class='pmeta'><span>NEAR burnt per epoch, committed 10–90% band ({e(L['table_model'])} model)</span></div>{fan(L['rows'])}</div>"
-                  f"<span class='rlive' data-n='{L['total']}' data-h='{L['after_end_height']}' aria-live='polite'></span>"
+                  f"<span class='rlive' data-n='{L['total']}' data-h='{L['after_end_height']}' data-v='{e(L['verdict'])}' aria-live='polite'></span>"
                   f"<div class='hash'>predictions/{e(L['file'])}<br>sha256 {e(L['commit'])}</div></article>")
     rounds = ""
     if cards:
@@ -1390,9 +1390,9 @@ def render(results, sha, ledgers=None, tape=None):
              "Scenarios: <code>run.py: scenarios</code> and <code>growth_measures</code>; bear, base and bull are the lowest, median and highest of four year-long "
              "growth rates of NEAR Intents volume and gross fees (DefiLlama). HSP-029: "
              "https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644, "
-             "passed by the House of Stake on 2026-11-02 (99.96% of voting power, 36 voters). The Security Council veto window closes 2026-11-16 16:48 UTC; "
+             "passed by the House of Stake on 2026-11-02 (99.96% of voting power, 36 voters). The Security Council veto window runs to 2026-11-16 16:48 UTC; "
              "without a veto it is ratified, a 90-day grace period follows (earliest start about 2027-02-14), and validators must adopt a nearcore release. "
-             "As of 2026-11-13 no veto and no release had been reported."]
+             "When last checked, on 2026-11-14, no veto and no release had been reported."]
     try:
         srcs = json.load(open(os.path.join(HERE, "data", "sources.json")))
     except (OSError, ValueError):

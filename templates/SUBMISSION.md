@@ -11,17 +11,17 @@ NEAR mints about 2.5% of supply a year. Counting only the gas-fee burn, under 1%
 Since 27 October more Intents swaps settle privately (found by another entry, Tideline), so public swap data misses their fees. The buyback account is a mainnet balance and still does: __PS_BUY__ NEAR a day since, against __PB_BUY__ before.
 
 What makes it checkable:
-- One command, `python3 run.py`: no keys, no network, no dependencies. It prints a hash that must match the README.
-- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet and requires an exact match with the cache.
+- `python3 run.py`: no keys, no network, no dependencies. It prints a hash that must match the README.
+- `python3 verify.py 3 <your seed>` refetches random epochs from mainnet; they must match the cache exactly.
 - `python3 test_run.py`: the command refuses a cache with one yoctoNEAR changed, and edited predictions.
-- Audit: all __W_RECEIPTS__ receipts of the buyback account reconcile with chain balances to the yoctoNEAR in __W_EXACT__ of __W_BUSY__ transfer-only epochs. intents.near sent __W_TOP1_SHARE__ of the NEAR; __W_PAID_SHARE__ has left; __C_CONF__ of __C_KEYS__ keys can move it.
+- Audit: all __W_RECEIPTS__ receipts of the buyback account match chain balances to the yoctoNEAR in __W_EXACT__ of __W_BUSY__ transfer-only epochs. intents.near sent __W_TOP1_SHARE__ of the NEAR; __W_PAID_SHARE__ has left; __C_CONF__ of __C_KEYS__ keys can move it.
 - BigQuery SQL in queries/, results committed: the chain got quieter; intents.near's receipts grew 2.8x.
-- Verdict: not yet a supply story. The bet is governance: fee capture and HSP-029.
+- Verdict: not yet a supply story. The bet is governance: fee capture, HSP-029.
 - The bear case has equal weight in THESIS.md: buybacks are held, not burnt; payback has fallen from __PAY_PEAK__ to __PAYBACK__; Intents volume is flat year on year; one app supplies over 90% of the flow.
 
-The outside judge is the chain. Forecast rounds in predictions/ commit to ranges for payback, burn and buyback gain after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close during judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round, and refuses any round it cannot re-derive exactly. A scheduled job scores them as they close.
+The outside judge is the chain. Forecast rounds in predictions/ commit to ranges for payback, burn and buyback gain after a fixed height, each timestamped in Bitcoin with OpenTimestamps. They close 14 to 18 Nov, through judging: `python3 fetch.py --epochs 45 && python3 run.py` prints PASS or FALSIFIED per round, and refuses any round it cannot re-derive exactly. A scheduled job scores each as it closes.
 
-## X post (attach the video; fits 280 characters)
+## X post (attach the video or screenshots; fits 280 characters)
 
 Built at NEAR HACKATHON: NEAR's burn covers __BURN_COV__ of issuance. With Intents buybacks: __PAYBACK__. Break-even is __MULT__x away, not __BURN_MULT__x.
 
@@ -60,11 +60,11 @@ then mux (see `film/voiceover.md`). It works on mute; the optional voiceover scr
 
 Already done: the repo is public, GitHub Pages serves the dashboard, and the scheduled `pages`
 workflow fetches new epochs, scores the frozen rounds, upgrades their Bitcoin timestamps and
-commits every hour during judging (freezing new rounds is paused until 25 Nov). The first round
-closes about 14 November 07:00 UTC and is scored within the hour.
+commits every hour during judging (freezing new rounds is paused until 25 Nov). Each round
+is scored within the hour of closing; its status is in the README's round table.
 
-Left before Saturday 14 November, 23:59 UTC:
+Left before Saturday 14 November, 23:59 UTC (judging is 16 to 18 November; results by 18 November, 23:59 UTC):
 
-- [ ] Record the video and post on X with the text above.
+- [ ] Post on X with the text above and the video (the rules also accept screenshots).
 - [ ] Submit: repo URL, X post URL, description, NEAR mainnet payout account.
 - [ ] Leave the repo public and Pages enabled until at least 25 November 2026.

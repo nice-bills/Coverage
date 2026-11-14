@@ -76,11 +76,11 @@ __BUY__ NEAR a day, which is the lower figure.
 
 **Other teams' published figures agree once the wallet scope is matched.** Several entries in
 this hackathon measured the same flow independently. As published in their READMEs, read
-2026-11-13 (typed in from those pages, not computed here):
+2026-11-14 (typed in from those pages, not computed here):
 
 | Source | Their figure | Scope | Ours on the same scope |
 |---|---|---|---|
-| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR gap in published buyback totals, which they trace to an internal transfer | three revenue wallets | __ALL_PAY__; __BUY_SHARE__; __LUMP__ NEAR excluded as a transfer |
+| [NEAR Books](https://github.com/IhorMuliar/nearbooks) | revenue covers about 17% of new supply; 69.0% of DefiLlama's "buyback" revenue reached the buyback wallet; a 505,085.6 NEAR gap in published buyback totals, which they trace to an internal transfer of 510,068.0 NEAR, less outflows and fees, plus revenue received after the dashboard's cutoff | three revenue wallets | __ALL_PAY__; __BUY_SHARE__; __LUMP__ NEAR excluded as a transfer |
 | [NEAR Agent Census](https://github.com/daodudestiny56-netizen/near-thesis-) | Intents revenue covers 15.1% of issuance; burn 0.58% | DefiLlama revenue, sampled burn, 2026-06 to 2026-11 | __ALL_PAY__; __BURN_COV__ (exact, last __WINDOW_DAYS__ days) |
 | [near-thesis](https://github.com/soldanoandrea/near-thesis) | 7.2x to offset issuance | all captured revenue | __ALL_MULT__x |
 
@@ -308,11 +308,11 @@ year over 24 months. Its timeline
 |---|---|
 | 2026-10-07 | Proposal posted (author: Sal Ternullo, SVRN) |
 | 2026-11-02 | House of Stake vote passes, 99.96% of voting power, 36 voters |
-| 2026-11-16, 16:48 UTC | Security Council veto window closes; with no veto it is ratified |
+| 2026-11-16, 16:48 UTC | End of the Security Council veto window; with no veto it is ratified |
 | about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
 | after that | Validators adopt a nearcore release; the cut binds only then |
 
-As of 2026-11-13 no veto and no nearcore release had been reported. The row above only
+When this was last checked, on 2026-11-14, no veto and no nearcore release had been reported; the thread linked above carries any later news. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over __WEEKS__ weeks (correlation

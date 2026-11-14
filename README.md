@@ -12,12 +12,12 @@ How much of NEAR's token issuance is offset by protocol flows, and how far is br
 | ★ [Live dashboard](https://nice-bills.github.io/Coverage/) | Every chart with the query or code behind it and one sentence on what it shows | Reads NEAR mainnet live in your browser; the forecast cards update as epochs close |
 | ★ `python3 run.py` | Rebuilds every number offline in under 2 seconds and prints a hash | Must match the hash in this file: no keys, no network, no trust needed |
 | [THESIS.md](THESIS.md) | Verdict, claim, evidence for, evidence against, what would change our mind | The full argument with the bear case at equal weight |
-| [Forecast rounds](#forecasts-and-the-outside-judge) | Ranges frozen before the epochs existed, timestamped in Bitcoin | The chain scores them during judging, 14 to 18 Nov |
+| [Forecast rounds](#forecasts-and-the-outside-judge) | Ranges frozen before the epochs existed, timestamped in Bitcoin | The chain scores them as they close, 14 to 18 Nov (judging is 16 to 18 Nov) |
 
 It runs itself. A job scheduled hourly during judging fetches the epochs that closed, scores the
 frozen forecast rounds, commits and redeploys (GitHub can delay scheduled runs, so the same
 commands are also run by hand when a round closes). Nobody edits the numbers by hand. Freezing new
-rounds is paused until judging ends (25 Nov), so the headline numbers stay those submitted.
+rounds is paused until 25 Nov, a week after judging ends (18 Nov), so the headline numbers stay those submitted.
 
 ![The dashboard](docs/dashboard.jpg)
 
@@ -57,7 +57,7 @@ Forecasts frozen before the epochs existed, scored by mainnet while you judge:
 
 - **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2110. Don't own NEAR expecting buybacks to offset dilution soon.
 - **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 22%) and HSP-029's lower issuance would bring even the base case to about 7 years. Both are votes, not market conditions.
-- **Turn more bullish if:** HSP-029 clears its veto window (closes 16 Nov 2026), and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
+- **Turn more bullish if:** HSP-029 is ratified (its veto window runs to 16 Nov 2026, 16:48 UTC) and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
 ## Where each track requirement is met
@@ -136,7 +136,7 @@ Expected output: `DOCS IN SYNC from result <first 12 characters of the hash abov
 `THESIS.md` and `SUBMISSION.md` are generated from `templates/` by `docs.py`; every measured
 figure in them is filled in from `out/results.json`, so those figures cannot drift from the
 data. Dates and governance facts (the buyback start date, HSP-029) are not computed here; each
-is cited to its source in `THESIS.md` and is true as of 2026-11-13.
+is cited to its source in `THESIS.md` and is true as of 2026-11-14.
 
 ## Network activity from BigQuery (needs a Google account)
 
@@ -296,7 +296,7 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
 newest cached epoch and never overwritten. The scheduled job (`.github/workflows/pages.yml`) runs
 `python3 run.py freeze-if-due 5`, which freezes a 5-epoch round once three epochs have closed
-since the newest one (paused during judging, 14 to 25 Nov, so the three open rounds are the ones scored). A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
+since the newest one (paused until 25 Nov, past the 16 to 18 Nov judging, so the three frozen rounds are the ones scored). A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
