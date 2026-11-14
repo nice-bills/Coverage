@@ -11,7 +11,7 @@ LINES = [
     (0.3, 5, "Dashboards say NEAR burns back under one percent of what it mints."),
     (5.2, 10, "That number is right. It measures the wrong layer."),
     (10.3, 18.3, "Count the Intents buybacks too, and twelve percent comes back. Break-even is eight times away, not a hundred and eight."),
-    (18.4, 24, "Coverage is a live report. Every number comes from NEAR mainnet."),
+    (18.4, 24, "Coverage is a live report. Every number comes straight from the NEAR blockchain."),
     (24.3, 32, "One command. No keys, no network. It rebuilds every number, and prints a hash that matches the read-me."),
     (32.3, 39, "Every epoch since February, read straight from block headers."),
     (39.3, 46, "The chain got quieter. Intents didn't. Its activity nearly tripled."),
