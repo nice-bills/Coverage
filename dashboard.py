@@ -908,7 +908,7 @@ def path_chapter(sc, s, num_, fnk):
             f"Four year-long rates from the DefiLlama year: Intents volume, last 30 days against the first 30 ({g(m['intents_volume_yoy'])}) and log-linear trend ({g(m['intents_volume_trend'])}); "
             f"gross Intents fees, the same two ways ({g(m['intents_fees_yoy'])}, {g(m['intents_fees_trend'])}). Bear is the lowest, base the median, bull the highest. "
             f"Shorter windows are left out: they annualise August's jump into several hundred percent a year. Paths start at today's {pct(s['payback'])} and hold capture share and NEAR price constant; issuance is a rate on a supply that keeps growing, so the NEAR minted each year rises with it; "
-            f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible date, {sc.get('hsp029_start', sc['start'])} (veto window closes 16 Nov 2026, then a 90-day grace period; validators must also adopt the upgrade). Dashed lines: with HSP-029. Shaded: between bear and bull. "
+            f"HSP-029 is a linear ramp from 2.5% to 1.6% over 24 months, starting at its earliest possible date, {sc.get('hsp029_start', sc['start'])} (after the veto window, which runs to 16 Nov 2026, and a 90-day grace period; validators must also adopt the upgrade). Dashed lines: with HSP-029. Shaded: between bear and bull. "
             f"<code>run.py: scenarios</code>, <code>scenarios</code> in <code>out/results.json</code>.")
     full = sc["levers"]["capture"][-1]  # every Intents fee captured, at the base growth rate
     head = (f"Break-even turns on growth and capture. At Intents' volume trend it comes in about {c['bull']['years']:.0f} years; "
@@ -1390,9 +1390,9 @@ def render(results, sha, ledgers=None, tape=None):
              "Scenarios: <code>run.py: scenarios</code> and <code>growth_measures</code>; bear, base and bull are the lowest, median and highest of four year-long "
              "growth rates of NEAR Intents volume and gross fees (DefiLlama). HSP-029: "
              "https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644, "
-             "passed by the House of Stake on 2026-11-02 (99.96% of voting power, 36 voters). The Security Council veto window closes 2026-11-16 16:48 UTC; "
+             "passed by the House of Stake on 2026-11-02 (99.96% of voting power, 36 voters). The Security Council veto window runs to 2026-11-16 16:48 UTC; "
              "without a veto it is ratified, a 90-day grace period follows (earliest start about 2027-02-14), and validators must adopt a nearcore release. "
-             "As of 2026-11-13 no veto and no release had been reported."]
+             "When last checked, on 2026-11-14, no veto and no release had been reported."]
     try:
         srcs = json.load(open(os.path.join(HERE, "data", "sources.json")))
     except (OSError, ValueError):

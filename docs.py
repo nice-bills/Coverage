@@ -84,7 +84,7 @@ def values():
     sc = r.get("scenarios")
     if sc:
         sgn = lambda x: f"{'+' if x >= 0 else '−'}{abs(100 * x):.1f}%"
-        when = lambda c, k: (f"{c['year' + k]} (in {c['years' + k]:.0f} years)" if c["years" + k] is not None
+        when = lambda c, k: (f"{c['year' + k]} (in {c['years' + k]:.1f} years)" if c["years" + k] is not None
                              else "never, because the flow shrinks" if c["growth"] < 0 else "not within 100 years")
         p10 = lambda x: "above 100%" if x >= 1 else pct(x, 0 if x > 0.1 else 1)
         label = {"intents_volume_yoy": "NEAR Intents volume, last 30 days against the first 30 of the year",
@@ -134,7 +134,7 @@ def values():
         VOL_LOW=f"{s['intents_volume_musd_low']:.0f}", VOL_NOW=f"{s['intents_volume_musd_latest']:.0f}",
         VOL_RATIO=f"{s['intents_volume_usd_ratio_1y']:.2f}", FEE_RATIO=f"{s['intents_fees_usd_ratio_1y']:.2f}",
         GAS_RATIO=f"{s['near_fees_usd_ratio_1y']:.2f}",
-        INFLOW_N=str(s["inflow_transfers"]), INFLOW_INTENTS=str(s["inflow_transfers_from_intents"]),
+        INFLOW_N=f"{s['inflow_transfers']:,}", INFLOW_INTENTS=f"{s['inflow_transfers_from_intents']:,}",
         INFLOW_SHARE=pct(s["inflow_share_from_intents"]), INFLOW_H=str(s["inflow_first_height"]),
         LUMP=num(s["lump_transfers_near"]), LUMP_OUT=num(s["lump_matched_outflow_near"]),
         OUT_N=str(s["buyback_outflow_epochs"]), OUT_NEAR=num(s["buyback_outflow_near"]),
