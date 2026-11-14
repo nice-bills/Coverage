@@ -280,15 +280,23 @@ pre.term button:hover{opacity:1}
 .match{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font:500 13px var(--sans);color:var(--teal)}
 .match::before{content:"";width:16px;height:16px;border-radius:50%;background:var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.3 2.3 4.7-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .match.no{color:var(--bad)}.match.no::before{background:var(--bad)}.match.wait{color:var(--muted)}.match.wait::before{background:var(--rule)}
-.notes{padding:56px 0 64px;border-top:1px solid var(--ink);display:grid;grid-template-columns:220px minmax(0,1fr);column-gap:clamp(24px,4vw,72px)}
-.notes ol{margin:0;padding:0 0 0 1.4em;columns:2;column-gap:48px;font-size:13px;color:var(--ink-2);line-height:1.55}
-.notes li{margin-bottom:10px;break-inside:avoid}.notes li::marker{color:var(--teal);font-weight:600}
-.notes h4{margin:28px 0 10px;font:500 11.5px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.notes ul{margin:0;padding:0;list-style:none;columns:2;column-gap:48px;font-size:12.5px;color:var(--ink-2);line-height:1.5}
-.notes ul li{margin-bottom:8px}.notes ul li b{font-weight:500;color:var(--ink)}
+.notes{padding:72px 0 64px;border-top:1px solid var(--ink);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:40px clamp(32px,5vw,96px);align-items:start}
+.notes .nhead{position:sticky;top:24px}.notes .nhead h3{font:400 clamp(30px,2.6vw,42px)/1.08 var(--serif);letter-spacing:-.01em;margin:14px 0 14px}
+.notes .nhead p{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink-2);max-width:36ch}
+.notes .ncards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.notes .ncards li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px;background:var(--card);border:1px solid var(--rule-2);border-radius:16px;padding:18px 20px;
+ font-size:14px;line-height:1.6;color:var(--ink-2);overflow-wrap:anywhere;scroll-margin-top:80px}
+.notes .ncards li:target{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.notes .nn{font:italic 400 24px/1.1 var(--serif);color:var(--teal)}
+.notes .ncards code{font-size:12.5px}.notes .ncards a{color:var(--teal);text-decoration-color:var(--teal-soft)}
+.notes .ndata{grid-column:2}.notes h4{margin:8px 0 12px;font:500 11.5px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.notes table{width:100%;border-collapse:collapse;font-size:13.5px;color:var(--ink-2)}
+.notes th{text-align:left;font:500 11.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 12px 10px 0;border-bottom:1px solid var(--ink)}
+.notes td{padding:10px 12px 10px 0;border-bottom:1px solid var(--rule-2);vertical-align:top}.notes td code{color:var(--ink);font-size:12.5px}
+.notes .r{text-align:right;white-space:nowrap;padding-right:0}
 .colophon{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:22px 0 40px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted)}
 @media (max-width:1100px){
-.body,.notes{grid-template-columns:minmax(0,1fr)}.index{display:none}
+.body,.notes{grid-template-columns:minmax(0,1fr)}.notes .ndata{grid-column:1}.notes .nhead{position:static}.index{display:none}
 .mobile-index{display:block;position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--paper) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);margin:0 calc(-1*var(--gut));padding:0 var(--gut)}
 .mobile-index details{border:0;margin:0;padding:0}.mobile-index summary{padding:10px 0;font:400 13px var(--sans)}
 .mobile-index summary::after{right:2px;width:7px;height:7px}
@@ -296,7 +304,7 @@ pre.term button:hover{opacity:1}
 .mobile-index .p{height:2px;background:var(--rule);margin-top:8px;border-radius:2px}.mobile-index .p i{display:block;height:100%;width:0;background:var(--ink)}
 .mobile-index ol{list-style:none;margin:0;padding:0 0 10px}.mobile-index ol a{display:block;padding:8px 0;text-decoration:none;font-size:14px;color:var(--ink-2);border-top:1px solid var(--rule-2)}
 .mobile-index ol a span{font:italic 400 15px var(--serif);color:var(--muted);margin-right:10px}
-.notes>div:first-child{margin-bottom:18px}}
+.notes>div:first-child{margin-bottom:0}}
 @media (max-width:980px){.live{grid-template-columns:repeat(2,minmax(0,1fr))}.live>div{border-left:0;border-top:1px solid var(--rule-2)}
 .live>div:first-child{grid-column:1/-1;border-top:0}.live>div:nth-child(odd):not(:first-child):not(.lfoot){border-left:1px solid var(--rule-2)}
 .mlist{grid-template-columns:repeat(2,minmax(0,1fr))}.mlist>div:nth-child(odd){padding-left:0;border-left:0}.mlist>div:nth-child(n+3){border-top:1px solid var(--rule-2);margin-top:16px}}
@@ -315,7 +323,7 @@ pre.term button:hover{opacity:1}
 .spread{grid-template-columns:minmax(0,1fr)}.side+.side{padding-left:0;border-left:0;border-top:1px solid var(--ink)}.side{padding-right:0}
 .step{grid-template-columns:40px minmax(0,1fr)}.step>div:last-child{grid-column:1/-1}
 .hashbox .l,.hashbox .r{grid-column:1/-1}
-.notes ol,.notes ul{columns:1}
+.notes .ncards{grid-template-columns:minmax(0,1fr)}.notes .ndata{grid-column:1}.notes .nhead{position:static}.notes td:nth-child(2){overflow-wrap:anywhere}
 #tape{height:240px}pre.term button{display:none}pre.term[data-copy]{padding-right:18px}.read dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}}
 @media (max-width:560px){
 .brand span{display:none}
@@ -571,7 +579,7 @@ REDRAW.push(drawAll);
   tween(1500,delay,k=>{inner.textContent=pre+(v*k).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp,useGrouping:gp})+post},
    ()=>{if(wrap.isConnected)wrap.replaceWith(n);end&&end()})}
  const CNT=[...document.querySelectorAll('.pull .big,.stat .v,.scale-legend b,.audit .v,.out .res .big')],
-  LEAF='.ruler,.live,.scale,.ch-head,.pull,.stat,.fig,.mult,.audit>div,.calc,.mlist>div,.round,.judging,.pt,div.verdict,.step,.hashbox,.sec,.notes>div,.colophon',
+  LEAF='.ruler,.live,.scale,.ch-head,.pull,.stat,.fig,.mult,.audit>div,.calc,.mlist>div,.round,.judging,.pt,div.verdict,.step,.hashbox,.sec,.notes .nhead,.notes .ncards li,.notes .ndata,.colophon',
   rv=[];
  document.querySelectorAll(LEAF).forEach(e=>{if(!e.closest('.rv'))e.classList.add('rv')});
  document.querySelectorAll('.grid12>div,.side').forEach(e=>{if(!e.classList.contains('rv')&&!e.closest('.rv')&&!e.querySelector('.rv'))e.classList.add('rv')});
@@ -1387,12 +1395,17 @@ def render(results, sha, ledgers=None, tape=None):
     except (OSError, ValueError):
         srcs = {}
     host = lambda u: u.split("//")[-1].split("/")[0].split()[0]
-    data_list = "".join(
-        f"<li><b><code>data/{e(f)}</code></b> · {e(', '.join(sorted({host(u) for u in (v.get('urls') if isinstance(v.get('urls'), list) else [str(v.get('urls', ''))]) if u})))}"
-        f"{' · fetched ' + e(v['fetched_utc'][:10]) if v.get('fetched_utc') else ''}</li>" for f, v in sorted(srcs.items()))
-    notes_html = (f"<footer class='notes'><div><div class='eyebrow'>Notes &amp; sources</div></div><div><ol>"
-                  + "".join(f"<li id='n{i + 1}'>{n}</li>" for i, n in enumerate(notes)) + "</ol>"
-                  + (f"<h4>Data, each file hashed in data/sources.json and checked by test_run.py</h4><ul>{data_list}</ul>" if data_list else "") + "</div></footer>")
+    import re as _re
+    link = lambda t: _re.sub(r"https://([^\s,;)<]+)", lambda m: f"<a href='https://{m.group(1)}'>{m.group(1).split('/')[0]}{' thread' if '/t/' in m.group(1) else ''}</a>", t)
+    rows = "".join(
+        f"<tr><td><code>data/{e(f)}</code></td><td>{e(', '.join(sorted({host(u) for u in (v.get('urls') if isinstance(v.get('urls'), list) else [str(v.get('urls', ''))]) if u})))}</td>"
+        f"<td class='r'>{e(v['fetched_utc'][:10]) if v.get('fetched_utc') else ''}</td></tr>" for f, v in sorted(srcs.items()))
+    notes_html = (f"<footer class='notes'><div class='nhead'><div class='eyebrow'>Notes &amp; sources</div>"
+                  f"<h3>How every number on this page was made.</h3><p>The small numbers in the text link here. Each data file is hashed in "
+                  f"<code>data/sources.json</code>, and <code>test_run.py</code> refuses to run if any of them changes.</p></div>"
+                  f"<ol class='ncards'>" + "".join(f"<li id='n{i + 1}'><span class='nn'>{i + 1:02d}</span><div>{link(n)}</div></li>" for i, n in enumerate(notes)) + "</ol>"
+                  + (f"<div class='ndata'><h4>Data files</h4><table><thead><tr><th>File</th><th>Read from</th><th class='r'>Fetched</th></tr></thead><tbody>{rows}</tbody></table></div>" if rows else "")
+                  + "</footer>")
 
     # ---- chapter 06: network activity (BigQuery); bq.py reads data/bq/*.csv, which run.py and the result hash never use ----
     import bq
