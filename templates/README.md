@@ -288,7 +288,7 @@ for sender attribution, a cross-check table, the price-based forecasting model a
 Each file in `predictions/` is a round, written by `python3 run.py freeze <epochs>` from the
 newest cached epoch and never overwritten. The scheduled job (`.github/workflows/pages.yml`) runs
 `python3 run.py freeze-if-due 5`, which freezes a 5-epoch round once three epochs have closed
-since the newest one, so a round closes almost every day. A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
+since the newest one (paused during judging, 14 to 25 Nov, so the three open rounds are the ones scored). A round commits to bands (the 5% to 95% range of past window-to-window changes) for payback, total
 NEAR burnt and total NEAR gained by the buyback account over the next `<epochs>` epochs, plus
 per-epoch burn forecasts from three models (`persistence`, `clock`, `price`).
 
