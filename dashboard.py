@@ -916,7 +916,7 @@ def path_chapter(sc, s, num_, fnk):
             if c["bull"]["years"] is not None and full.get("years_base_hsp029") is not None and full["share"] == 1.0 else
             "Where the flow goes from here, under three growth rates the data set.")
     return f"""<section class="chapter paths" id="c-path" data-t="The path to break-even"><div class="ch-head"><div class="ch-num"><span class="n">{num_}</span><span class="eyebrow">The path to break-even</span><span class="line"></span></div>
-<h2>{head}</h2><p>Not a forecast: three growth rates taken from the data by one rule, and where each takes payback from today's {pct(s['payback'])}. HSP-029, passed on 2 November 2026 and awaiting ratification, moves every date earlier; it does not change which paths arrive.{fn}</p></div>
+<h2>{head}</h2><p>Not a forecast: three growth rates taken from the data by one rule, and where each takes payback from today's {pct(s['payback'])}. HSP-029, passed on 2 November 2026 with no veto reported by the 16 November deadline, moves every date earlier; it does not change which paths arrive.{fn}</p></div>
 <figure class="fig" style="margin:0"><div class="fig-title"><h3>Payback over the next ten years, bear to bull</h3><div class="legend"><span><i class="l" style="--c:var(--teal)"></i>Bull</span><span><i class="l" style="--c:var(--ink)"></i>Base</span><span><i class="l" style="--c:var(--terra)"></i>Bear</span><span><i class="l" style="--c:var(--muted);background:repeating-linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 9px)"></i>With HSP-029</span></div></div>
 <p class="fig-sub">Burn plus buybacks as a share of issuance, log scale. Above the line, NEAR's flows pay back more than it mints.</p>
 <div class="chart fan-w">{path_svg(sc, True)}</div><div class="chart fan-n">{path_svg(sc, False)}</div>
@@ -1224,7 +1224,7 @@ def render(results, sha, ledgers=None, tape=None):
                "<p class='prose'>Checked by <code>run.py: load</code> (continuity of heights and supply) and against mainnet by <code>verify.py</code>.</p></div>")
     ch3 = f"""<section class="chapter" id="c3" data-t="The models"><div class="ch-head"><div class="ch-num"><span class="n">03</span><span class="eyebrow">The models</span><span class="line"></span></div>
 <h2>Three levers move payback. Two of them are governance votes.</h2>
-<p>Payback scales with Intents volume and with the share of gross Intents fees reaching the buyback account, and inversely with the issuance rate. HSP-029, passed by NEAR's House of Stake on 2 November 2026 and awaiting ratification, would lower maximum issuance to 1.6% a year.{fn(5)}</p></div>
+<p>Payback scales with Intents volume and with the share of gross Intents fees reaching the buyback account, and inversely with the issuance rate. HSP-029, passed by NEAR's House of Stake on 2 November 2026 with no veto reported by the 16 November deadline, would lower maximum issuance to 1.6% a year.{fn(5)}</p></div>
 {calc}<div class="grid12" style="margin-top:56px">{years_tbl}{fc_tbl}</div>{mlist}
 <details><summary>Model detail<small>Four models, each a few functions in <code>run.py</code>, rebuilt by <code>python3 run.py</code> with no network; outputs in <code>out/results.json</code></small></summary>{detail}</details></section>"""
 
@@ -1392,7 +1392,7 @@ def render(results, sha, ledgers=None, tape=None):
              "https://gov.near.org/t/hsp-029-establish-a-24-month-issuance-ramp-to-a-1-6-target-rate-of-near-token-emissions/42644, "
              "passed by the House of Stake on 2026-11-02 (99.96% of voting power, 36 voters). The Security Council veto window runs to 2026-11-16 16:48 UTC; "
              "without a veto it is ratified, a 90-day grace period follows (earliest start about 2027-02-14), and validators must adopt a nearcore release. "
-             "When last checked, on 2026-11-14, no veto and no release had been reported."]
+             "When last checked, at 18:00 UTC on 2026-11-16 just after the window closed, no veto had been reported, which under HSP-009 means it is ratified; no nearcore release had been reported yet."]
     try:
         srcs = json.load(open(os.path.join(HERE, "data", "sources.json")))
     except (OSError, ValueError):

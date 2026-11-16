@@ -12,7 +12,7 @@ divided by new issuance; *break-even* is how many times flows must grow to equal
 
 - **Today:** **Not yet a supply story.** NEAR still mints about 8× what it wins back, and at the median growth rate in the data break-even is in 2110. Don't own NEAR expecting buybacks to offset dilution soon.
 - **The bet:** **Governance, not growth.** Sending every Intents fee to the buyback (today about 22%) and HSP-029's lower issuance would bring even the base case to about 7 years. Both are votes, not market conditions.
-- **Turn more bullish if:** HSP-029 is ratified (its veto window runs to 16 Nov 2026, 16:48 UTC) and validators adopt it after the 90-day grace period, or the buyback's share of Intents fees rises toward 50%.
+- **Turn more bullish if:** validators adopt HSP-029 after its 90-day grace period (no veto was reported by the 16 Nov deadline), or the buyback's share of Intents fees rises toward 50%.
 - **Turn bearish if:** the buyback balance keeps falling, payback over 100 epochs drops below 6%, or transfers stop coming from intents.near.
 
 The rest of this file is the evidence for that stance, the case against it, and the rounds that
@@ -327,7 +327,7 @@ year over 24 months. Its timeline
 | about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
 | after that | Validators adopt a nearcore release; the cut binds only then |
 
-When this was last checked, on 2026-11-14, no veto and no nearcore release had been reported; the thread linked above carries any later news. The row above only
+When this was last checked, at 18:00 UTC on 2026-11-16 just after the window closed, no veto had been reported, which under HSP-009 means it is ratified; no nearcore release had been reported yet. The thread linked above carries any later news. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over 36 weeks (correlation

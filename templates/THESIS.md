@@ -312,7 +312,7 @@ year over 24 months. Its timeline
 | about 2027-02-14 | Earliest start: a 90-day grace period follows ratification |
 | after that | Validators adopt a nearcore release; the cut binds only then |
 
-When this was last checked, on 2026-11-14, no veto and no nearcore release had been reported; the thread linked above carries any later news. The row above only
+When this was last checked, at 18:00 UTC on 2026-11-16 just after the window closed, no veto had been reported, which under HSP-009 means it is ratified; no nearcore release had been reported yet. The thread linked above carries any later news. The row above only
 rescales today's multiple; the scenarios below start the ramp at its earliest date.
 
 For: the flow exists, is measurable on chain, has moved with a product's volume over __WEEKS__ weeks (correlation
