@@ -20,13 +20,13 @@
   "verdict": "PASS"
  },
  {
-  "ends": null,
+  "ends": "2026-11-18 15:37 UTC",
   "file": "round-224265136-h20.json",
   "frozen_t": 1794516622,
-  "payback": null,
-  "resolved": 19,
-  "so_far": 0.148988344021601,
+  "payback": 0.14587682703674673,
+  "resolved": 20,
+  "so_far": 0.14587682703674673,
   "total": 20,
-  "verdict": "PENDING"
+  "verdict": "PASS"
  }
 ]
