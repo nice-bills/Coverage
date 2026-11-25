@@ -1,14 +1,14 @@
 {
  "buybacks.csv": {
-  "fetched_utc": "2026-11-25T04:19:16Z",
-  "sha256": "680f1f802240e83d36fa0bedf9978b915ad2a5813fc197e2cd831b697d651e1c",
+  "fetched_utc": "2026-11-25T15:39:01Z",
+  "sha256": "8be01a162c3c89e615095426ff73acd77ac6f0ecd3d1587e23e9e27b7b522cf6",
   "urls": [
    "https://archival-rpc.mainnet.fastnear.com query view_account"
   ]
  },
  "epochs.csv": {
-  "fetched_utc": "2026-11-25T04:19:16Z",
-  "sha256": "27a81e5fa4a6ecad27c21c99879837b8c148e75a04d92cb7e8c773473d1de13b",
+  "fetched_utc": "2026-11-25T15:39:01Z",
+  "sha256": "c4ceab10999521b97dcce1025b8ab016cc42b3aad75df386adf392d5ad312de4",
   "urls": [
    "https://archival-rpc.mainnet.fastnear.com block",
    "https://mainnet.neardata.xyz/v0/block/{h}/headers"
@@ -61,8 +61,8 @@
   ]
  },
  "wallet_history.csv": {
-  "fetched_utc": "2026-11-25T04:22:44Z",
-  "sha256": "5859bd06f3944530ef657e8897a16b863f8c2f175e49d6f968451a82f33aed77",
+  "fetched_utc": "2026-11-25T15:42:40Z",
+  "sha256": "cf8b8f0c01db0933978d90014b91ab7c3075217993735ecf056699b2f4ebad94",
   "urls": [
    "https://tx.main.fastnear.com/v0/account",
    "https://tx.main.fastnear.com/v0/transactions"
